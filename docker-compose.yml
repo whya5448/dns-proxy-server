@@ -1,0 +1,14 @@
+version: '2'
+services:
+  gocompiler:
+    image: golang:1.7.4
+    container_name: gocompiler
+    volumes:
+      - $PWD:/app
+    command: sleep infinity
+    environment: 
+      - TERM=xterm
+      - GOPATH=/app
+    working_dir: /app
+    hostname: gocompiler.dev
+    network_mode: bridge
