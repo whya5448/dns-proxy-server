@@ -100,14 +100,18 @@ func handleReflect(w dns.ResponseWriter, r *dns.Msg) {
 	log.Logger.Infof("status=loading-questions, questions=%d, type=%d", len(r.Question), r.Question[0].Qtype);
 	switch r.Question[0].Qtype {
 	case dns.TypeTXT:
+		log.Logger.Info("type=TXT");
 		m.Answer = append(m.Answer, t)
 		m.Extra = append(m.Extra, rr)
 	default:
+		log.Logger.Info("type=unknow");
 		fallthrough
 	case dns.TypeAAAA, dns.TypeA:
+		log.Logger.Info("type=AAAA OR A");
 		m.Answer = append(m.Answer, rr)
 		m.Extra = append(m.Extra, t)
 	case dns.TypeAXFR, dns.TypeIXFR:
+		log.Logger.Info("type=IXFR");
 		c := make(chan *dns.Envelope)
 		tr := new(dns.Transfer)
 		defer close(c)
@@ -139,6 +143,7 @@ func handleReflect(w dns.ResponseWriter, r *dns.Msg) {
 		w.Write(buf[:len(buf)/2])
 		return
 	}
+	log.Logger.Info("status=sending-answer");
 	w.WriteMsg(m)
 }
 
