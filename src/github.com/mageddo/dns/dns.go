@@ -97,6 +97,7 @@ func handleReflect(w dns.ResponseWriter, r *dns.Msg) {
 		Txt: []string{str},
 	}
 
+	log.Logger.Infof("status=loading-questions, questions=%d, type=%d", len(r.Question), r.Question[0].Qtype);
 	switch r.Question[0].Qtype {
 	case dns.TypeTXT:
 		m.Answer = append(m.Answer, t)
