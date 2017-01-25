@@ -61,7 +61,7 @@ func handleReflect(w dns.ResponseWriter, r *dns.Msg) {
 	log.Logger.Info("status=begin");
 
 
-	dns.Dial()
+	
 
 	var (
 		v4  bool
