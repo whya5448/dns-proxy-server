@@ -12,5 +12,5 @@
 
 [submodule "src/golang.org/x/net"]
 	path = src/golang.org/x/net
-	url  = https://golang.org/x/net.git
+	url  = https://go.googlesource.com/net
 
