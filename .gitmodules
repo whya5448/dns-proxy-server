@@ -14,7 +14,3 @@
 	path = src/golang.org/x/net
 	url  = https://golang.org/x/net.git
 
-[submodule "src/github.com/mageddo/go-logging"]
-	path = src/github.com/mageddo/go-logging
-	url  = https://github.com/mageddo/go-logging.git
-
