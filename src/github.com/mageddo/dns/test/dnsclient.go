@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/miekg/dns"
+	"github.com/miekg/exdns"
 	"os"
 	"net"
 	"github.com/mageddo/log"

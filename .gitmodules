@@ -1,0 +1,16 @@
+[submodule "src/github.com/miekg/dns"]
+	path = src/github.com/miekg/dns
+	url  = https://github.com/miekg/dns.git
+
+[submodule "src/github.com/miekg/exdns"]
+	path = src/github.com/miekg/exdns
+	url  = https://github.com/miekg/exdns.git
+
+[submodule "src/github.com/mageddo/go-logging"]
+	path = src/github.com/mageddo/go-logging
+	url  = https://github.com/mageddo/go-logging.git
+
+[submodule "src/golang.org/x/net"]
+	path = src/golang.org/x/net
+	url  = https://golang.org/x/net.git
+
