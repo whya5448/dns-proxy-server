@@ -50,6 +50,9 @@ func getOut() io.Writer {
 	return out
 }
 func getMode() string {
+	if(len(mode) == 0){
+		return "DEV"
+	}
 	return mode
 }
 

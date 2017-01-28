@@ -55,7 +55,7 @@ func handleReflect(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 	defer func() {
 		err := recover()
 		if err != nil {
-			log.Logger.Error("M=handleReflect, error=%v", err)
+			log.Logger.Errorf("M=handleReflect, status=error, error=%v", err)
 		}
 	}()
 
