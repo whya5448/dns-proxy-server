@@ -65,7 +65,13 @@ func handleReflect(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 	resp.SetReply(reqMsg)
 	resp.Compress = *compress
 
-	log.Logger.Infof("m=handleReflect, resp=%v", resp)
+
+	var firstAnswer dns.RR
+	if len(resp.Answer) != 0 {
+		firstAnswer = resp.Answer[0]
+	}
+
+	log.Logger.Infof("m=handleReflect, resp=%v", firstAnswer)
 	respWriter.WriteMsg(resp)
 
 }
