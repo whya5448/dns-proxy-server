@@ -52,8 +52,15 @@ var (
 
 func handleReflect(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 
+	defer func() {
+		err := recover()
+		if err != nil {
+			log.Logger.Error("M=handleReflect, error=%v", err)
+		}
+	}()
+
 	var questionName string
-	if len(reqMsg.Question) != 0{
+	if len(reqMsg.Question) != 0 {
 		questionName = reqMsg.Question[0].Name
 	}	else {
 		questionName = "null"
@@ -79,12 +86,12 @@ func handleReflect(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 func serve(net, name, secret string) {
 	switch name {
 	case "":
-		server := &dns.Server{Addr: ":8053", Net: net, TsigSecret: nil}
+		server := &dns.Server{Addr: ":53", Net: net, TsigSecret: nil}
 		if err := server.ListenAndServe(); err != nil {
 			fmt.Printf("Failed to setup the "+net+" server: %s\n", err.Error())
 		}
 	default:
-		server := &dns.Server{Addr: ":8053", Net: net, TsigSecret: map[string]string{name: secret}}
+		server := &dns.Server{Addr: ":53", Net: net, TsigSecret: map[string]string{name: secret}}
 		if err := server.ListenAndServe(); err != nil {
 			fmt.Printf("Failed to setup the "+net+" server: %s\n", err.Error())
 		}
