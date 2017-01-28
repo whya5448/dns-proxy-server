@@ -34,15 +34,11 @@ package main
 import (
 	"flag"
 	"fmt"
-	"net"
 	"os"
 	"os/signal"
 	"runtime/pprof"
-	"strconv"
 	"strings"
 	"syscall"
-	"time"
-
 	"github.com/miekg/dns"
 	"github.com/mageddo/log"
 	"github.com/mageddo/dns/utils"
@@ -50,101 +46,25 @@ import (
 
 var (
 	cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
-	printf     = flag.Bool("print", false, "print replies")
 	compress   = flag.Bool("compress", false, "compress replies")
 	tsig       = flag.String("tsig", "", "use MD5 hmac tsig: keyname:base64")
 )
 
-const dom = "whoami.miek.nl."
-
 func handleReflect(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
-	var (
-		v4  bool
-		rr  dns.RR
-		str string
-		a   net.IP
-	)
 
-	log.Logger.Infof("m=handleReflect, questions=%d, 1stQuestion=%s", len(reqMsg.Question), reqMsg.Question[0].Name)
-
-	m := new(dns.Msg)
-	m.SetReply(reqMsg)
-	m.Compress = *compress
-	if ip, ok := respWriter.RemoteAddr().(*net.UDPAddr); ok {
-		str = "Port: " + strconv.Itoa(ip.Port) + " (udp)"
-		a = ip.IP
-		v4 = a.To4() != nil
-	}
-	if ip, ok := respWriter.RemoteAddr().(*net.TCPAddr); ok {
-		str = "Port: " + strconv.Itoa(ip.Port) + " (tcp)"
-		a = ip.IP
-		v4 = a.To4() != nil
+	var questionName string
+	if len(reqMsg.Question) != 0{
+		questionName = reqMsg.Question[0].Name
+	}	else {
+		questionName = "null"
 	}
 
-	if v4 {
-		rr = &dns.A{
-			Hdr: dns.RR_Header{Name: dom, Rrtype: dns.TypeA, Class: dns.ClassINET, Ttl: 0},
-			A:   a.To4(),
-		}
-	} else {
-		rr = &dns.AAAA{
-			Hdr:  dns.RR_Header{Name: dom, Rrtype: dns.TypeAAAA, Class: dns.ClassINET, Ttl: 0},
-			AAAA: a,
-		}
-	}
+	log.Logger.Infof("m=handleReflect, questions=%d, 1stQuestion=%s", len(reqMsg.Question), questionName)
 
-	t := &dns.TXT{
-		Hdr: dns.RR_Header{Name: dom, Rrtype: dns.TypeTXT, Class: dns.ClassINET, Ttl: 0},
-		Txt: []string{str},
-	}
-
-	switch reqMsg.Question[0].Qtype {
-	case dns.TypeTXT:
-		m.Answer = append(m.Answer, t)
-		m.Extra = append(m.Extra, rr)
-	default:
-		fallthrough
-	case dns.TypeAAAA, dns.TypeA:
-		m.Answer = append(m.Answer, rr)
-		m.Extra = append(m.Extra, t)
-	case dns.TypeAXFR, dns.TypeIXFR:
-		c := make(chan *dns.Envelope)
-		tr := new(dns.Transfer)
-		defer close(c)
-		if err := tr.Out(respWriter, reqMsg, c); err != nil {
-			return
-		}
-		soa, _ := dns.NewRR(`whoami.miek.nl. 0 IN SOA linode.atoom.net. miek.miek.nl. 2009032802 21600 7200 604800 3600`)
-		c <- &dns.Envelope{RR: []dns.RR{soa, t, rr, soa}}
-		respWriter.Hijack()
-		// w.Close() // Client closes connection
-		return
-	}
-
-	if reqMsg.IsTsig() != nil {
-		if respWriter.TsigStatus() == nil {
-			m.SetTsig(reqMsg.Extra[len(reqMsg.Extra)-1].(*dns.TSIG).Hdr.Name, dns.HmacMD5, 300, time.Now().Unix())
-		} else {
-			println("Status", respWriter.TsigStatus().Error())
-		}
-	}
-	if *printf {
-		fmt.Printf("%v\n", m.String())
-	}
-	//// set TC when question is tc.miek.nl.
-	//if m.Question[0].Name == "tc.miek.nl." {
-	//	m.Truncated = true
-	//	// send half a message
-	//	buf, _ := m.Pack()
-	//	respWriter.Write(buf[:len(buf)/2])
-	//	return
-	//}
-	//respWriter.WriteMsg(m)
-
-
-	resp := utils.SolveName(reqMsg.Question[0].Name)
+	resp := utils.SolveName(questionName)
 	resp.SetReply(reqMsg)
 	resp.Compress = *compress
+
 	log.Logger.Infof("m=handleReflect, resp=%v", resp)
 	respWriter.WriteMsg(resp)
 
