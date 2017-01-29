@@ -12,6 +12,7 @@ import (
 	"github.com/mageddo/log"
 	"github.com/mageddo/dns-proxy-server/proxy"
 	"reflect"
+	"github.com/mageddo/dns-proxy-server/utils"
 )
 
 var (
@@ -29,24 +30,25 @@ func handleQuestion(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 		}
 	}()
 
-	var questionName string
+	var firstQuestion dns.Question
 	questionsQtd := len(reqMsg.Question)
 	if questionsQtd != 0 {
-		questionName = reqMsg.Question[0].Name
-	}	else {
-		questionName = "null"
+		firstQuestion = reqMsg.Question[0]
+	}else{
+		log.Logger.Error("m=handleQuestion, status=question-is-nil")
+		return
 	}
 
-	log.Logger.Infof("m=handleQuestion, questions=%d, 1stQuestion=%s", questionsQtd, questionName)
+	log.Logger.Infof("m=handleQuestion, status=begin, questions=%d, 1stQuestion=%s, type=%s", questionsQtd, firstQuestion.Name, utils.DnsQTypeCodeToName(firstQuestion.Qtype))
 
 
 	// loading the solvers and try to solve the hostname in that order
-	solvers := []proxy.DnsSolver{proxy.LocalDnsSolver{}, proxy.DockerDnsSolver{}, proxy.RemoteDnsSolver{}}
+	solvers := []proxy.DnsSolver{/*proxy.LocalDnsSolver{}, proxy.DockerDnsSolver{},*/ proxy.RemoteDnsSolver{}}
 	for _, solver := range solvers {
 
 		solverID := reflect.TypeOf(solver).Name()
 		// loop through questions
-		resp, err := solver.Solve(questionName)
+		resp, err := solver.Solve(firstQuestion)
 		if err == nil {
 
 			var firstAnswer dns.RR

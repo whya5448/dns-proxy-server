@@ -19,9 +19,9 @@ type DockerDnsSolver struct {
 
 }
 
-func (DockerDnsSolver) Solve(name string) (*dns.Msg, error) {
+func (DockerDnsSolver) Solve(question dns.Question) (*dns.Msg, error) {
 
-	log.Logger.Infof("m=solve, status=begin, solver=docker, name=%s", name)
+	log.Logger.Infof("m=solve, status=begin, solver=docker, name=%s", question)
 
 	// adaptar a api do docker aqui
 	cli, err := client.NewClient("unix:///var/run/docker.sock", "v1.24", nil, nil)
@@ -65,7 +65,7 @@ func (DockerDnsSolver) Solve(name string) (*dns.Msg, error) {
 			break
 		}
 
-		log.Logger.Infof("m=solve, status=success, solver=docker, name=%s", name)
+		log.Logger.Infof("m=solve, status=success, solver=docker, name=%s", question)
 		// check if it is a stop or start to remove/add to cache
 		return nil, nil
 	}
