@@ -39,8 +39,8 @@ func handleQuestion(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 		return
 	}
 
-	log.Logger.Infof("m=handleQuestion, status=begin, questions=%d, 1stQuestion=%s, type=%s", questionsQtd, firstQuestion.Name, utils.DnsQTypeCodeToName(firstQuestion.Qtype))
-
+	log.Logger.Infof("m=handleQuestion, status=begin, reqId=%d, questions=%d, question=%s, type=%s", reqMsg.Id,
+		questionsQtd, firstQuestion.Name, utils.DnsQTypeCodeToName(firstQuestion.Qtype))
 
 	// loading the solvers and try to solve the hostname in that order
 	solvers := []proxy.DnsSolver{/*proxy.LocalDnsSolver{}, proxy.DockerDnsSolver{},*/ proxy.RemoteDnsSolver{}}
@@ -52,11 +52,12 @@ func handleQuestion(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 		if err == nil {
 
 			var firstAnswer dns.RR
-			if len(resp.Answer) != 0 {
+			answerLenth := len(resp.Answer)
+			if answerLenth != 0 {
 				firstAnswer = resp.Answer[0]
 			}
-			log.Logger.Infof("m=handleQuestion, status=resolved, solver=%s, answer=%v", solverID, firstAnswer)
-			
+			log.Logger.Infof("m=handleQuestion, status=resolved, solver=%s, alength=%d, answer=%v", solverID, answerLenth, firstAnswer)
+
 			resp.SetReply(reqMsg)
 			resp.Compress = *compress
 			respWriter.WriteMsg(resp)
@@ -66,7 +67,6 @@ func handleQuestion(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 		log.Logger.Warningf("m=handleQuestion, status=not-resolved, solver=%s, err=%v", solverID, err)
 
 	}
-
 
 }
 
