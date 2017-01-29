@@ -1,4 +1,4 @@
-package dns
+package proxy
 
 import (
 	"github.com/miekg/dns"
@@ -12,25 +12,26 @@ import (
 	"golang.org/x/net/context"
 	"github.com/docker/engine-api/types/filters"
 	"github.com/mageddo/log"
+	"errors"
 )
 
 type DockerDnsSolver struct {
 
 }
 
-func (*DockerDnsSolver) Solve(name string) *dns.Msg {
+func (*DockerDnsSolver) Solve(name string) (*dns.Msg, error) {
 	// adaptar a api do docker aqui
 	cli, err := client.NewClient("unix:///var/run/docker.sock", "v1.24", nil, nil)
 	//cli, err := client.NewEnvClient()
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	// more about list containers https://docs.docker.com/engine/reference/commandline/ps/
 	options := types.ContainerListOptions{}
 	containers, err := cli.ContainerList(context.Background(), options)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	for _, c := range containers {
@@ -47,7 +48,7 @@ func (*DockerDnsSolver) Solve(name string) *dns.Msg {
 
 	body, err := cli.Events(context.Background(), types.EventsOptions{ Filters: eventFilter })
 	if err != nil {
-		log.Logger.Fatal(err)
+		return nil, err
 	}
 
 	dec := json.NewDecoder(body)
@@ -60,5 +61,5 @@ func (*DockerDnsSolver) Solve(name string) *dns.Msg {
 
 		log.Logger.Info(event)
 	}
-	return nil
+	return nil, errors.New("not implemented")
 }

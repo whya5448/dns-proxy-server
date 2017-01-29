@@ -1,4 +1,4 @@
-package dns
+package proxy
 
 import (
 	"github.com/miekg/dns"
@@ -12,7 +12,7 @@ type RemoteDnsSolver struct {
 }
 
 // reference https://miek.nl/2014/August/16/go-dns-package/
-func (*RemoteDnsSolver) Solve(name string) *dns.Msg {
+func (*RemoteDnsSolver) Solve(name string) (*dns.Msg, error) {
 
 		//config, _ := dns.ClientConfigFromFile("/etc/resolv.conf")
 		c := new(dns.Client)
@@ -26,15 +26,14 @@ func (*RemoteDnsSolver) Solve(name string) *dns.Msg {
 
 		// if the answer not be returned
 		if r == nil {
-		panic(err)
+			return nil, errors.New(fmt.Sprintf("status=answer-can-not-be-bull, err=%v", err))
 		}
 
 		// what the code of the return message ?
 		if r.Rcode != dns.RcodeSuccess {
-		panic(errors.New(fmt.Sprintf(" *** invalid answer name %s after MX query for %s", name, name)))
+			return nil, errors.New(fmt.Sprintf("status=invalid-answer-name, name=%s, rcode=%d", name, r.Rcode))
 		}
 
-		// looping through the anwsers
-		return r
+		return r, nil
 
 	}

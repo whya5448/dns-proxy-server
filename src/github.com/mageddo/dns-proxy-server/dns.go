@@ -11,6 +11,7 @@ import (
 	"github.com/miekg/dns"
 	"github.com/mageddo/log"
 	"github.com/mageddo/dns-proxy-server/utils"
+	"github.com/mageddo/dns-proxy-server/proxy"
 )
 
 var (
@@ -37,6 +38,21 @@ func handleQuestion(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 	}
 
 	log.Logger.Infof("m=handleReflect, questions=%d, 1stQuestion=%s", questionsQtd, questionName)
+
+
+	// loading the solvers and try to solve the hostname in that order
+	solvers := []proxy.DnsSolver{proxy.LocalDnsSolver{}, proxy.DockerDnsSolver{}, proxy.RemoteDnsSolver{}}
+	for _, solver := range solvers {
+
+		// loop through questions
+		answer := solver.Solve(questionName)
+
+		answer.SetReply(reqMsg)
+		answer.Compress = *compress
+		respWriter.WriteMsg(answer);
+
+	}
+
 
 	resp := utils.SolveName(questionName)
 	resp.SetReply(reqMsg)
