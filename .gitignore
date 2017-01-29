@@ -2,3 +2,8 @@
 /bin
 .idea/
 dns-proxy.iml
+
+.gradle/
+*.orig
+/conf/
+node_modules/
