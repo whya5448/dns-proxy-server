@@ -12,6 +12,7 @@ import (
 	"github.com/mageddo/log"
 	"github.com/mageddo/dns-proxy-server/utils"
 	"github.com/mageddo/dns-proxy-server/proxy"
+	"reflect"
 )
 
 var (
@@ -25,7 +26,7 @@ func handleQuestion(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 	defer func() {
 		err := recover()
 		if err != nil {
-			log.Logger.Errorf("M=handleReflect, status=error, error=%v", err)
+			log.Logger.Errorf("M=handleQuestion, status=error, error=%v", err)
 		}
 	}()
 
@@ -37,7 +38,7 @@ func handleQuestion(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 		questionName = "null"
 	}
 
-	log.Logger.Infof("m=handleReflect, questions=%d, 1stQuestion=%s", questionsQtd, questionName)
+	log.Logger.Infof("m=handleQuestion, questions=%d, 1stQuestion=%s", questionsQtd, questionName)
 
 
 	// loading the solvers and try to solve the hostname in that order
@@ -45,27 +46,25 @@ func handleQuestion(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 	for _, solver := range solvers {
 
 		// loop through questions
-		answer := solver.Solve(questionName)
+		resp, err := solver.Solve(questionName)
+		if err == nil {
 
-		answer.SetReply(reqMsg)
-		answer.Compress = *compress
-		respWriter.WriteMsg(answer);
+			var firstAnswer dns.RR
+			if len(resp.Answer) != 0 {
+				firstAnswer = resp.Answer[0]
+			}
+
+			log.Logger.Infof("m=handleQuestion, resp=%v", firstAnswer)
+			
+			resp.SetReply(reqMsg)
+			resp.Compress = *compress
+			respWriter.WriteMsg(resp)
+			break
+		}
+		log.Logger.Warningf("status=not-resolved, solver=%s, err=%v", reflect.TypeOf(solver).Elem().Name(), err)
 
 	}
 
-
-	resp := utils.SolveName(questionName)
-	resp.SetReply(reqMsg)
-	resp.Compress = *compress
-
-
-	var firstAnswer dns.RR
-	if len(resp.Answer) != 0 {
-		firstAnswer = resp.Answer[0]
-	}
-
-	log.Logger.Infof("m=handleReflect, resp=%v", firstAnswer)
-	respWriter.WriteMsg(resp)
 
 }
 

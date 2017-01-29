@@ -20,10 +20,14 @@ type DockerDnsSolver struct {
 }
 
 func (*DockerDnsSolver) Solve(name string) (*dns.Msg, error) {
+
+	log.Logger.Infof("m=solve, status=begin, solver=docker, name=%s", name)
+
 	// adaptar a api do docker aqui
 	cli, err := client.NewClient("unix:///var/run/docker.sock", "v1.24", nil, nil)
 	//cli, err := client.NewEnvClient()
 	if err != nil {
+		log.Logger.Errorf("m=solve, status=error-to-connect-at-host, solver=docker, err=%v", err)
 		return nil, err
 	}
 
@@ -31,6 +35,7 @@ func (*DockerDnsSolver) Solve(name string) (*dns.Msg, error) {
 	options := types.ContainerListOptions{}
 	containers, err := cli.ContainerList(context.Background(), options)
 	if err != nil {
+		log.Logger.Errorf("m=solve, status=error-to-list-container, solver=docker, err=%v", err)
 		return nil, err
 	}
 
@@ -48,6 +53,7 @@ func (*DockerDnsSolver) Solve(name string) (*dns.Msg, error) {
 
 	body, err := cli.Events(context.Background(), types.EventsOptions{ Filters: eventFilter })
 	if err != nil {
+		log.Logger.Errorf("m=solve, status=error-to-attach-at-events-handler, solver=docker, err=%v", err)
 		return nil, err
 	}
 
@@ -59,7 +65,8 @@ func (*DockerDnsSolver) Solve(name string) (*dns.Msg, error) {
 			break
 		}
 
-		log.Logger.Info(event)
+		log.Logger.Infof("m=solve, status=success, solver=docker, name=%s", name)
+		return event, nil
 	}
 	return nil, errors.New("not implemented")
 }
