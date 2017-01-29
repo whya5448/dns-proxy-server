@@ -12,7 +12,7 @@ type RemoteDnsSolver struct {
 }
 
 // reference https://miek.nl/2014/August/16/go-dns-package/
-func (*RemoteDnsSolver) Solve(name string) (*dns.Msg, error) {
+func (RemoteDnsSolver) Solve(name string) (*dns.Msg, error) {
 
 		//config, _ := dns.ClientConfigFromFile("/etc/resolv.conf")
 		c := new(dns.Client)

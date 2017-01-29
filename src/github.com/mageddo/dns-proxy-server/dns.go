@@ -10,7 +10,6 @@ import (
 	"syscall"
 	"github.com/miekg/dns"
 	"github.com/mageddo/log"
-	"github.com/mageddo/dns-proxy-server/utils"
 	"github.com/mageddo/dns-proxy-server/proxy"
 	"reflect"
 )

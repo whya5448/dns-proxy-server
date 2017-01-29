@@ -19,7 +19,7 @@ type DockerDnsSolver struct {
 
 }
 
-func (*DockerDnsSolver) Solve(name string) (*dns.Msg, error) {
+func (DockerDnsSolver) Solve(name string) (*dns.Msg, error) {
 
 	log.Logger.Infof("m=solve, status=begin, solver=docker, name=%s", name)
 
@@ -66,7 +66,8 @@ func (*DockerDnsSolver) Solve(name string) (*dns.Msg, error) {
 		}
 
 		log.Logger.Infof("m=solve, status=success, solver=docker, name=%s", name)
-		return event, nil
+		// check if it is a stop or start to remove/add to cache
+		return nil, nil
 	}
 	return nil, errors.New("not implemented")
 }
