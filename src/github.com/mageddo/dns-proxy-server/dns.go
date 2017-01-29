@@ -44,6 +44,7 @@ func handleQuestion(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 	solvers := []proxy.DnsSolver{proxy.LocalDnsSolver{}, proxy.DockerDnsSolver{}, proxy.RemoteDnsSolver{}}
 	for _, solver := range solvers {
 
+		solverID := reflect.TypeOf(solver).Name()
 		// loop through questions
 		resp, err := solver.Solve(questionName)
 		if err == nil {
@@ -52,15 +53,15 @@ func handleQuestion(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 			if len(resp.Answer) != 0 {
 				firstAnswer = resp.Answer[0]
 			}
-
-			log.Logger.Infof("m=handleQuestion, resp=%v", firstAnswer)
+			log.Logger.Infof("m=handleQuestion, status=resolved, solver=%s, answer=%v", solverID, firstAnswer)
 			
 			resp.SetReply(reqMsg)
 			resp.Compress = *compress
 			respWriter.WriteMsg(resp)
 			break
 		}
-		log.Logger.Warningf("status=not-resolved, solver=%s, err=%v", reflect.TypeOf(solver).Elem().Name(), err)
+
+		log.Logger.Warningf("m=handleQuestion, status=not-resolved, solver=%s, err=%v", solverID, err)
 
 	}
 
