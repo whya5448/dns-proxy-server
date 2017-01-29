@@ -13,6 +13,7 @@ This tool is in the version 2 from nodejs version, improving:
 * Performance - this version uses much less RAM and is much faster
 * Bug fixes
 * Binary distribution - now you can simply download a linux executable and use it, without need to install anything
+* Code design quality
 * And more
 
 # Installing
