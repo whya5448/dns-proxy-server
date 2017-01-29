@@ -31,7 +31,7 @@ func (*RemoteDnsSolver) Solve(name string) *dns.Msg {
 
 		// what the code of the return message ?
 		if r.Rcode != dns.RcodeSuccess {
-		panic(errors.New(fmt.Sprintf(" *** invalid answer name %s after MX query for %s", hostname, hostname)))
+		panic(errors.New(fmt.Sprintf(" *** invalid answer name %s after MX query for %s", name, name)))
 		}
 
 		// looping through the anwsers

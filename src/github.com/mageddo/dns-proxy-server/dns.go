@@ -1,164 +1,67 @@
-// Copyright 2011 Miek Gieben. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
-// Reflect is a small name server which sends back the IP address of its client, the
-// recursive resolver.
-// When queried for type A (resp. AAAA), it sends back the IPv4 (resp. v6) address.
-// In the additional section the port number and transport are shown.
-//
-// Basic use pattern:
-//
-//	dig @localhost -p 8053 whoami.miek.nl A
-//
-//	;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 2157
-//	;; flags: qr rd; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
-//	;; QUESTION SECTION:
-//	;whoami.miek.nl.			IN	A
-//
-//	;; ANSWER SECTION:
-//	whoami.miek.nl.		0	IN	A	127.0.0.1
-//
-//	;; ADDITIONAL SECTION:
-//	whoami.miek.nl.		0	IN	TXT	"Port: 56195 (udp)"
-//
-// Similar services: whoami.ultradns.net, whoami.akamai.net. Also (but it
-// is not their normal goal): rs.dns-oarc.net, porttest.dns-oarc.net,
-// amiopen.openresolvers.org.
-//
-// Original version is from: Stephane Bortzmeyer <stephane+grong@bortzmeyer.org>.
-//
-// Adapted to Go (i.e. completely rewritten) by Miek Gieben <miek@miek.nl>.
 package main
 
 import (
 	"flag"
 	"fmt"
-	"net"
 	"os"
 	"os/signal"
 	"runtime/pprof"
-	"strconv"
 	"strings"
 	"syscall"
-	"time"
-	"github.com/mageddo/log"
 	"github.com/miekg/dns"
+	"github.com/mageddo/log"
+	"github.com/mageddo/dns-proxy-server/utils"
 )
 
 var (
 	cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
-	printf     = flag.Bool("print", false, "print replies")
 	compress   = flag.Bool("compress", false, "compress replies")
 	tsig       = flag.String("tsig", "", "use MD5 hmac tsig: keyname:base64")
 )
 
-const dom = "whoami.miek.nl."
+func handleQuestion(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 
-func handleReflect(w dns.ResponseWriter, r *dns.Msg) {
-
-
-	log.Logger.Info("status=begin");
-
-
-	
-
-	var (
-		v4  bool
-		rr  dns.RR
-		str string
-		a   net.IP
-	)
-	m := new(dns.Msg)
-	m.SetReply(r)
-	m.Compress = *compress
-	if ip, ok := w.RemoteAddr().(*net.UDPAddr); ok {
-		str = "Port: " + strconv.Itoa(ip.Port) + " (udp)"
-		a = ip.IP
-		v4 = a.To4() != nil
-	}
-	if ip, ok := w.RemoteAddr().(*net.TCPAddr); ok {
-		str = "Port: " + strconv.Itoa(ip.Port) + " (tcp)"
-		a = ip.IP
-		v4 = a.To4() != nil
-	}
-
-	if v4 {
-		rr = &dns.A{
-			Hdr: dns.RR_Header{Name: dom, Rrtype: dns.TypeA, Class: dns.ClassINET, Ttl: 0},
-			A:   a.To4(),
+	defer func() {
+		err := recover()
+		if err != nil {
+			log.Logger.Errorf("M=handleReflect, status=error, error=%v", err)
 		}
-	} else {
-		rr = &dns.AAAA{
-			Hdr:  dns.RR_Header{Name: dom, Rrtype: dns.TypeAAAA, Class: dns.ClassINET, Ttl: 0},
-			AAAA: a,
-		}
+	}()
+
+	var questionName string
+	questionsQtd := len(reqMsg.Question)
+	if questionsQtd != 0 {
+		questionName = reqMsg.Question[0].Name
+	}	else {
+		questionName = "null"
 	}
 
-	t := &dns.TXT{
-		Hdr: dns.RR_Header{Name: dom, Rrtype: dns.TypeTXT, Class: dns.ClassINET, Ttl: 0},
-		Txt: []string{str},
+	log.Logger.Infof("m=handleReflect, questions=%d, 1stQuestion=%s", questionsQtd, questionName)
+
+	resp := utils.SolveName(questionName)
+	resp.SetReply(reqMsg)
+	resp.Compress = *compress
+
+
+	var firstAnswer dns.RR
+	if len(resp.Answer) != 0 {
+		firstAnswer = resp.Answer[0]
 	}
 
-	log.Logger.Infof("status=loading-questions, questions=%d, type=%d", len(r.Question), r.Question[0].Qtype);
-	switch r.Question[0].Qtype {
-	case dns.TypeTXT:
-		log.Logger.Info("type=TXT");
-		m.Answer = append(m.Answer, t)
-		m.Extra = append(m.Extra, rr)
-	default:
-		log.Logger.Info("type=unknow");
-		fallthrough
-	case dns.TypeAAAA, dns.TypeA:
-		log.Logger.Info("type=AAAA OR A");
-		m.Answer = append(m.Answer, rr)
-		m.Extra = append(m.Extra, t)
-	case dns.TypeAXFR, dns.TypeIXFR:
-		log.Logger.Info("type=IXFR");
-		c := make(chan *dns.Envelope)
-		tr := new(dns.Transfer)
-		defer close(c)
-		if err := tr.Out(w, r, c); err != nil {
-			return
-		}
-		soa, _ := dns.NewRR(`whoami.miek.nl. 0 IN SOA linode.atoom.net. miek.miek.nl. 2009032802 21600 7200 604800 3600`)
-		c <- &dns.Envelope{RR: []dns.RR{soa, t, rr, soa}}
-		w.Hijack()
-		// w.Close() // Client closes connection
-		return
-	}
+	log.Logger.Infof("m=handleReflect, resp=%v", firstAnswer)
+	respWriter.WriteMsg(resp)
 
-	if r.IsTsig() != nil {
-		if w.TsigStatus() == nil {
-			m.SetTsig(r.Extra[len(r.Extra)-1].(*dns.TSIG).Hdr.Name, dns.HmacMD5, 300, time.Now().Unix())
-		} else {
-			println("Status", w.TsigStatus().Error())
-		}
-	}
-	if *printf {
-		fmt.Printf("%v\n", m.String())
-	}
-	// set TC when question is tc.miek.nl.
-	if m.Question[0].Name == "tc.miek.nl." {
-		m.Truncated = true
-		// send half a message
-		buf, _ := m.Pack()
-		w.Write(buf[:len(buf)/2])
-		return
-	}
-	log.Logger.Info("status=sending-answer");
-	w.WriteMsg(m)
 }
 
 func serve(net, name, secret string) {
 	switch name {
 	case "":
-		server := &dns.Server{Addr: ":8053", Net: net, TsigSecret: nil}
+		server := &dns.Server{Addr: ":53", Net: net, TsigSecret: nil}
 		if err := server.ListenAndServe(); err != nil {
 			fmt.Printf("Failed to setup the "+net+" server: %s\n", err.Error())
 		}
 	default:
-		server := &dns.Server{Addr: ":8053", Net: net, TsigSecret: map[string]string{name: secret}}
+		server := &dns.Server{Addr: ":53", Net: net, TsigSecret: map[string]string{name: secret}}
 		if err := server.ListenAndServe(); err != nil {
 			fmt.Printf("Failed to setup the "+net+" server: %s\n", err.Error())
 		}
@@ -184,7 +87,7 @@ func main() {
 		defer pprof.StopCPUProfile()
 	}
 
-	dns.HandleFunc(".", handleReflect)
+	dns.HandleFunc(".", handleQuestion)
 	go serve("tcp", name, secret)
 	go serve("udp", name, secret)
 	sig := make(chan os.Signal)
