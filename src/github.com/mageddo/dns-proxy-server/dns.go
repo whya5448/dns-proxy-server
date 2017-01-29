@@ -29,7 +29,7 @@ func handleQuestion(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 	defer func() {
 		err := recover()
 		if err != nil {
-			logger.Errorf("M=handleQuestion, status=error, error=%v", err)
+			logger.Errorf("status=error, error=%v", err)
 		}
 	}()
 
@@ -38,11 +38,11 @@ func handleQuestion(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 	if questionsQtd != 0 {
 		firstQuestion = reqMsg.Question[0]
 	}else{
-		logger.Error("m=handleQuestion, status=question-is-nil")
+		logger.Error("status=question-is-nil")
 		return
 	}
 
-	logger.Infof("m=handleQuestion, status=begin, reqId=%d, questions=%d, question=%s, type=%s", reqMsg.Id,
+	logger.Infof("status=begin, reqId=%d, questions=%d, question=%s, type=%s", reqMsg.Id,
 		questionsQtd, firstQuestion.Name, utils.DnsQTypeCodeToName(firstQuestion.Qtype))
 
 	// loading the solvers and try to solve the hostname in that order
@@ -59,7 +59,7 @@ func handleQuestion(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 			if answerLenth != 0 {
 				firstAnswer = resp.Answer[0]
 			}
-			logger.Infof("m=handleQuestion, status=resolved, solver=%s, alength=%d, answer=%v", solverID, answerLenth, firstAnswer)
+			logger.Infof("status=resolved, solver=%s, alength=%d, answer=%v", solverID, answerLenth, firstAnswer)
 
 			resp.SetReply(reqMsg)
 			resp.Compress = *compress
@@ -67,7 +67,7 @@ func handleQuestion(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 			break
 		}
 
-		logger.Warningf("m=handleQuestion, status=not-resolved, solver=%s, err=%v", solverID, err)
+		logger.Warningf("status=not-resolved, solver=%s, err=%v", solverID, err)
 
 	}
 
