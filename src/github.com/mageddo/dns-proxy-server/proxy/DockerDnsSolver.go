@@ -16,7 +16,6 @@ type DockerDnsSolver struct {
 
 func (DockerDnsSolver) Solve(question dns.Question) (*dns.Msg, error) {
 
-	log.Logger.Infof("m=solve, status=begin, solver=docker, name=%s", question.Name)
 	key := question.Name[:len(question.Name)-1]
 	if events.ContainsKey(key) {
 
@@ -37,6 +36,5 @@ func (DockerDnsSolver) Solve(question dns.Question) (*dns.Msg, error) {
 		log.Logger.Infof("m=solve, status=success, solver=docker")
 		return m, nil
 	}
-	log.Logger.Errorf("m=solve, status=error, solver=docker")
 	return nil, errors.New("hostname not found")
 }
