@@ -31,7 +31,7 @@ func (RemoteDnsSolver) Solve(question dns.Question) (*dns.Msg, error) {
 
 		// what the code of the return message ?
 		if r.Rcode != dns.RcodeSuccess {
-			return nil, errors.New(fmt.Sprintf("status=invalid-answer-name, name=%s, rcode=%d", question, r.Rcode))
+			return nil, errors.New(fmt.Sprintf("status=invalid-answer-name, name=%s, rcode=%d", question.Name, r.Rcode))
 		}
 
 		return r, nil
