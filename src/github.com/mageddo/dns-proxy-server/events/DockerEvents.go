@@ -38,16 +38,17 @@ func HandleDockerEvents(){
 
 	for _, c := range containers {
 		cInspection, err := cli.ContainerInspect(ctx, c.ID)
+		logger.Infof("status=container-from-list-begin, container=%s", cInspection.Name)
 		if err != nil {
 			logger.Errorf("status=inspect-error-at-list, container=%s, err=%v", c.Names, err)
 		}
 		hostnames := getHostnames(cInspection)
 		putHostnames(hostnames, cInspection)
+		logger.Infof("status=container-from-list-success, container=%s, hostnames=%s", cInspection.Name, hostnames)
 	}
 
 	// more about events here: http://docs-stage.docker.com/v1.10/engine/reference/commandline/events/
 	var eventFilter = filters.NewArgs()
-
 	eventFilter.Add("event", "start")
 
 	eventFilter.Add("event", "die")
