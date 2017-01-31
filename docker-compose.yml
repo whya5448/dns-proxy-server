@@ -5,6 +5,7 @@ services:
     container_name: gocompiler
     volumes:
       - $PWD:/app
+      - /var/run/docker.sock:/var/run/docker.sock
     command: sleep infinity
     environment: 
       - TERM=xterm
