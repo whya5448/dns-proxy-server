@@ -9,8 +9,8 @@ import (
 )
 
 var configuration = utils.LocalConfiguration{
-	Envs: *new([]utils.EnvVo),
-	RemoteDnsServers: *new([][4]byte),
+	Envs: make([]utils.EnvVo, 0),
+	RemoteDnsServers: make([][4]byte, 0),
 }
 //var cache = make(map[string]utils.HostnameVo)
 
