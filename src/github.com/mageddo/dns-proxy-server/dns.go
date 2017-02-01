@@ -112,6 +112,9 @@ func main() {
 	}
 
 	dns.HandleFunc(".", handleQuestion)
+
+	events.LoadConfiguration()
+
 	go events.HandleDockerEvents()
 	go serve("tcp", name, secret)
 	go serve("udp", name, secret)
