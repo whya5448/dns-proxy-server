@@ -13,6 +13,7 @@ import (
 	"github.com/mageddo/dns-proxy-server/proxy"
 	"reflect"
 	"github.com/mageddo/dns-proxy-server/utils"
+	"github.com/mageddo/dns-proxy-server/events"
 )
 
 var (
@@ -46,7 +47,7 @@ func handleQuestion(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 		questionsQtd, firstQuestion.Name, utils.DnsQTypeCodeToName(firstQuestion.Qtype))
 
 	// loading the solvers and try to solve the hostname in that order
-	solvers := []proxy.DnsSolver{/*proxy.LocalDnsSolver{}, proxy.DockerDnsSolver{},*/ proxy.RemoteDnsSolver{}}
+	solvers := []proxy.DnsSolver{/*proxy.LocalDnsSolver{},*/ proxy.DockerDnsSolver{}, proxy.RemoteDnsSolver{}}
 	for _, solver := range solvers {
 
 		solverID := reflect.TypeOf(solver).Name()
@@ -73,15 +74,18 @@ func handleQuestion(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 
 }
 
+const serverPort = 53
+
 func serve(net, name, secret string) {
+	var port string = fmt.Sprintf(":%d", serverPort)
 	switch name {
 	case "":
-		server := &dns.Server{Addr: ":53", Net: net, TsigSecret: nil}
+		server := &dns.Server{Addr: port, Net: net, TsigSecret: nil}
 		if err := server.ListenAndServe(); err != nil {
 			fmt.Printf("Failed to setup the "+net+" server: %s\n", err.Error())
 		}
 	default:
-		server := &dns.Server{Addr: ":53", Net: net, TsigSecret: map[string]string{name: secret}}
+		server := &dns.Server{Addr: port, Net: net, TsigSecret: map[string]string{name: secret}}
 		if err := server.ListenAndServe(); err != nil {
 			fmt.Printf("Failed to setup the "+net+" server: %s\n", err.Error())
 		}
@@ -108,6 +112,7 @@ func main() {
 	}
 
 	dns.HandleFunc(".", handleQuestion)
+	go events.HandleDockerEvents()
 	go serve("tcp", name, secret)
 	go serve("udp", name, secret)
 	sig := make(chan os.Signal)

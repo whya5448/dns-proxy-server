@@ -2,16 +2,11 @@ package proxy
 
 import (
 	"github.com/miekg/dns"
-	"fmt"
-	"encoding/json"
-	"io"
-
-	"github.com/docker/engine-api/client"
-	"github.com/docker/engine-api/types"
-	"github.com/docker/engine-api/types/events"
-	"golang.org/x/net/context"
-	"github.com/docker/engine-api/types/filters"
+	"github.com/mageddo/dns-proxy-server/events"
 	"github.com/mageddo/log"
+	"net"
+	"strings"
+	"strconv"
 	"errors"
 )
 
@@ -21,53 +16,25 @@ type DockerDnsSolver struct {
 
 func (DockerDnsSolver) Solve(question dns.Question) (*dns.Msg, error) {
 
-	log.Logger.Infof("m=solve, status=begin, solver=docker, name=%s", question)
+	key := question.Name[:len(question.Name)-1]
+	if events.ContainsKey(key) {
 
-	// adaptar a api do docker aqui
-	cli, err := client.NewClient("unix:///var/run/docker.sock", "v1.24", nil, nil)
-	//cli, err := client.NewEnvClient()
-	if err != nil {
-		log.Logger.Errorf("m=solve, status=error-to-connect-at-host, solver=docker, err=%v", err)
-		return nil, err
-	}
+		ip := events.Get(key)
+		ipArr := strings.Split(ip, ".")
+		i1, _ := strconv.Atoi(ipArr[0])
+		i2, _ := strconv.Atoi(ipArr[1])
+		i3, _ := strconv.Atoi(ipArr[2])
+		i4, _ := strconv.Atoi(ipArr[3])
 
-	// more about list containers https://docs.docker.com/engine/reference/commandline/ps/
-	options := types.ContainerListOptions{}
-	containers, err := cli.ContainerList(context.Background(), options)
-	if err != nil {
-		log.Logger.Errorf("m=solve, status=error-to-list-container, solver=docker, err=%v", err)
-		return nil, err
-	}
-
-	for _, c := range containers {
-		fmt.Printf("%s - %s\n", c.Names[0], c.ID)
-	}
-
-	// more about events here: http://docs-stage.docker.com/v1.10/engine/reference/commandline/events/
-	var eventFilter = filters.NewArgs()
-
-	eventFilter.Add("event", "start")
-
-	eventFilter.Add("event", "die")
-	eventFilter.Add("event", "stop")
-
-	body, err := cli.Events(context.Background(), types.EventsOptions{ Filters: eventFilter })
-	if err != nil {
-		log.Logger.Errorf("m=solve, status=error-to-attach-at-events-handler, solver=docker, err=%v", err)
-		return nil, err
-	}
-
-	dec := json.NewDecoder(body)
-	for {
-		var event events.Message
-		err := dec.Decode(&event)
-		if err != nil && err == io.EOF {
-			break
+		rr := &dns.A{
+			Hdr: dns.RR_Header{Name: question.Name, Rrtype: dns.TypeA, Class: dns.ClassINET, Ttl: 0},
+			A: net.IPv4(byte(i1), byte(i2), byte(i3), byte(i4)),
 		}
 
-		log.Logger.Infof("m=solve, status=success, solver=docker, name=%s", question)
-		// check if it is a stop or start to remove/add to cache
-		return nil, nil
+		m := new(dns.Msg)
+		m.Answer = append(m.Answer, rr)
+		log.Logger.Infof("m=solve, status=success, solver=docker")
+		return m, nil
 	}
-	return nil, errors.New("not implemented")
+	return nil, errors.New("hostname not found")
 }
