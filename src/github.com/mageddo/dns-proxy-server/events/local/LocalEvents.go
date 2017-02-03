@@ -80,7 +80,7 @@ type HostnameVo struct {
 	Ttl int
 }
 
-func (lc *LocalConfiguration) GetEnv(envName string) *EnvVo {
+func (lc *LocalConfiguration) GetEnv(envName string) (*EnvVo) {
 
 	for _, env := range lc.Envs {
 		if env.Name == envName {
@@ -103,13 +103,34 @@ func(env *EnvVo) GetHostname(hostname string) *HostnameVo {
 	return nil
 }
 
+func (lc *LocalConfiguration) AddEnv(env EnvVo){
+	configuration.Envs = append(configuration.Envs, env)
+	SaveConfiguration(&configuration)
+}
+
+func (lc *LocalConfiguration) RemoveEnv(index int){
+	append(configuration.Envs[:index], configuration.Envs[index+1:]...)
+	SaveConfiguration(&configuration)
+}
+
+func (lc *LocalConfiguration) AddDns(dns [4]byte){
+	configuration.RemoteDnsServers = append(configuration.RemoteDnsServers, dns)
+	SaveConfiguration(&configuration)
+}
+
+func (lc *LocalConfiguration) RemoveDns(index int){
+	append(configuration.RemoteDnsServers[:index], configuration.RemoteDnsServers[index+1:]...)
+	SaveConfiguration(&configuration)
+}
+
+
 func AddHostname(env EnvVo, hostname HostnameVo){
 	foundEnv := configuration.GetEnv(env.Name)
 	env.Hostnames = append(foundEnv.Hostnames, hostname)
 	SaveConfiguration(&configuration)
 }
 
-func removeHostname(env EnvVo, hostname HostnameVo){
+func RemoveHostname(env EnvVo, hostname HostnameVo){
 	foundEnv := configuration.GetEnv(env.Name)
 	env.Hostnames = append(foundEnv.Hostnames, hostname)
 	SaveConfiguration(&configuration)
