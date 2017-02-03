@@ -48,7 +48,7 @@ func handleQuestion(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 		questionsQtd, firstQuestion.Name, utils.DnsQTypeCodeToName(firstQuestion.Qtype))
 
 	// loading the solvers and try to solve the hostname in that order
-	solvers := []proxy.DnsSolver{/*proxy.LocalDnsSolver{},*/ proxy.DockerDnsSolver{}, proxy.RemoteDnsSolver{}}
+	solvers := []proxy.DnsSolver{proxy.LocalDnsSolver{}, proxy.DockerDnsSolver{}, proxy.RemoteDnsSolver{}}
 	for _, solver := range solvers {
 
 		solverID := reflect.TypeOf(solver).Name()
@@ -75,7 +75,7 @@ func handleQuestion(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 
 }
 
-const serverPort = 53
+const serverPort = 5380
 
 func serve(net, name, secret string) {
 	var port string = fmt.Sprintf(":%d", serverPort)

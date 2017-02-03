@@ -1,7 +1,6 @@
 package local
 
 import (
-	"github.com/mageddo/dns-proxy-server/utils"
 	"encoding/json"
 	"os"
 	"github.com/mageddo/log"
@@ -9,8 +8,8 @@ import (
 )
 
 var confPath string = "conf/config.json"
-var configuration = utils.LocalConfiguration{
-	Envs: make([]utils.EnvVo, 0),
+var configuration = LocalConfiguration{
+	Envs: make([]EnvVo, 0),
 	RemoteDnsServers: make([][4]byte, 0),
 }
 
@@ -33,11 +32,11 @@ func LoadConfiguration(){
 			log.Logger.Errorf("status=error-to-create-conf-folder, err=%v", err)
 			return
 		}
-		saveConfiguration(&configuration)
+		SaveConfiguration(&configuration)
 	}
 
 }
-func saveConfiguration(configuration *utils.LocalConfiguration) {
+func SaveConfiguration(configuration *LocalConfiguration) {
 
 	f, err := os.OpenFile(confPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0777)
 	defer func(){
@@ -59,6 +58,59 @@ func saveConfiguration(configuration *utils.LocalConfiguration) {
 
 }
 
-func GetConfiguration() utils.LocalConfiguration {
+func GetConfiguration() LocalConfiguration {
 	return configuration
+}
+
+
+type LocalConfiguration struct {
+	RemoteDnsServers [][4]byte
+	Envs []EnvVo
+	ActiveEnv string
+}
+
+type EnvVo struct {
+	Name string
+	Hostnames []HostnameVo
+}
+
+type HostnameVo struct {
+	Hostname string
+	Ip [4]byte
+	Ttl int
+}
+
+func (lc *LocalConfiguration) GetEnv(envName string) *EnvVo {
+
+	for _, env := range lc.Envs {
+		if env.Name == envName {
+			return &env
+		}
+	}
+	return nil
+}
+
+func (lc *LocalConfiguration) GetActiveEnv() *EnvVo {
+	return lc.GetEnv(lc.ActiveEnv)
+}
+
+func(env *EnvVo) GetHostname(hostname string) *HostnameVo {
+	for _, host := range env.Hostnames {
+		if host.Hostname == hostname {
+			return &host
+		}
+	}
+	return nil
+}
+
+func AddHostname(env EnvVo, hostname HostnameVo){
+	foundEnv := configuration.GetEnv(env.Name)
+	env.Hostnames = append(foundEnv.Hostnames, hostname)
+	SaveConfiguration(&configuration)
+}
+
+func removeHostname(env EnvVo, hostname HostnameVo){
+	foundEnv := configuration.GetEnv(env.Name)
+	env.Hostnames = append(foundEnv.Hostnames, hostname)
+	SaveConfiguration(&configuration)
 }
