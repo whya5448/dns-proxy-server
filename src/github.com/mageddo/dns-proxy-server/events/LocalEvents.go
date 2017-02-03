@@ -8,50 +8,57 @@ import (
 	"bufio"
 )
 
+var confPath string = "conf/config.json"
 var configuration = utils.LocalConfiguration{
 	Envs: make([]utils.EnvVo, 0),
 	RemoteDnsServers: make([][4]byte, 0),
 }
-//var cache = make(map[string]utils.HostnameVo)
-
-
-func x(){
-
-
-}
 
 func LoadConfiguration(){
 
-	//configuration.RemoteDnsServers = append(configuration.RemoteDnsServers, [4]byte{1,2,3,4})
-
-	var confPath string = "/app/conf/config.json"
 	if _, err := os.Stat(confPath); err == nil {
 
 		f, _ := os.Open(confPath)
+
+		defer func(){
+			f.Close()
+		}()
+
 		dec := json.NewDecoder(f)
 		dec.Decode(&configuration)
 
 	}else{
-		err := os.MkdirAll("/app/conf", 0755)
+		err := os.MkdirAll("conf", 0755)
 		if err != nil {
 			log.Logger.Errorf("status=error-to-create-conf-folder, err=%v", err)
 			return
 		}
-		f, err := os.OpenFile(confPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0777)
-		if err != nil {
-			log.Logger.Errorf("status=error-to-create-conf-file, err=%v", err)
-			return
-		}
-		wr := bufio.NewWriter(f)
-		enc := json.NewEncoder(wr)
-		err = enc.Encode(configuration)
-		log.Logger.Errorf("%v", configuration)
-		if err != nil {
-			log.Logger.Errorf("status=error-to-encode, error=%v", err)
-		}
-		wr.Flush()
-		f.Close()
+		saveConfiguration(&configuration)
 	}
 
+}
+func saveConfiguration(configuration *utils.LocalConfiguration) {
 
+	f, err := os.OpenFile(confPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0777)
+	defer func(){
+		f.Close()
+	}()
+	if err != nil {
+		log.Logger.Errorf("status=error-to-create-conf-file, err=%v", err)
+		return
+	}
+	wr := bufio.NewWriter(f)
+	defer func(){
+		wr.Flush()
+	}()
+	enc := json.NewEncoder(wr)
+	err = enc.Encode(configuration)
+	if err != nil {
+		log.Logger.Errorf("status=error-to-encode, error=%v", err)
+	}
+
+}
+
+func GetConfiguration() utils.LocalConfiguration {
+	return configuration
 }
