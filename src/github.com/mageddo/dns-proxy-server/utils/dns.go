@@ -16,20 +16,20 @@ type HostnameVo struct {
 	Ip [4]byte
 	Ttl int
 }
-func (lc *LocalConfiguration) GetActiveEnv() EnvVo {
+func (lc *LocalConfiguration) GetActiveEnv() *EnvVo {
 
 	for _, env := range lc.Envs {
 		if env.Name == lc.ActiveEnv {
-			return env
+			return &env
 		}
 	}
 	return nil
 }
 
-func(env *EnvVo) GetHostname(hostname string) HostnameVo {
+func(env *EnvVo) GetHostname(hostname string) *HostnameVo {
 	for _, host := range env.Hostnames {
 		if host.Hostname == hostname {
-			return host
+			return &host
 		}
 	}
 	return nil

@@ -15,7 +15,13 @@ type LocalDnsSolver struct {
 func (LocalDnsSolver) Solve(question dns.Question) (*dns.Msg, error) {
 
 	key := question.Name[:len(question.Name)-1]
-	activeEnv := events.GetConfiguration().GetActiveEnv()
+	conf := local.GetConfiguration()
+	activeEnv := conf.GetActiveEnv()
+
+	if activeEnv == nil {
+		return nil, errors.New("original env")
+	}
+
 	hostname := activeEnv.GetHostname(key)
 	if  hostname != nil {
 		rr := &dns.A{

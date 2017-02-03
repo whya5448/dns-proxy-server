@@ -1,4 +1,4 @@
-package events
+package local
 
 import (
 	"github.com/mageddo/dns-proxy-server/utils"

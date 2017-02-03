@@ -13,7 +13,8 @@ import (
 	"github.com/mageddo/dns-proxy-server/proxy"
 	"reflect"
 	"github.com/mageddo/dns-proxy-server/utils"
-	"github.com/mageddo/dns-proxy-server/events"
+	"github.com/mageddo/dns-proxy-server/events/local"
+	"github.com/mageddo/dns-proxy-server/events/docker"
 )
 
 var (
@@ -113,9 +114,9 @@ func main() {
 
 	dns.HandleFunc(".", handleQuestion)
 
-	events.LoadConfiguration()
+	local.GetConfiguration()
 
-	go events.HandleDockerEvents()
+	go docker.HandleDockerEvents()
 	go serve("tcp", name, secret)
 	go serve("udp", name, secret)
 	sig := make(chan os.Signal)

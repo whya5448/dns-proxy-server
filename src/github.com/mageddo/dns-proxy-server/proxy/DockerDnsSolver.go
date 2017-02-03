@@ -2,7 +2,7 @@ package proxy
 
 import (
 	"github.com/miekg/dns"
-	"github.com/mageddo/dns-proxy-server/events"
+	"github.com/mageddo/dns-proxy-server/events/docker"
 	"github.com/mageddo/log"
 	"net"
 	"strings"
@@ -17,9 +17,9 @@ type DockerDnsSolver struct {
 func (DockerDnsSolver) Solve(question dns.Question) (*dns.Msg, error) {
 
 	key := question.Name[:len(question.Name)-1]
-	if events.ContainsKey(key) {
+	if docker.ContainsKey(key) {
 
-		ip := events.Get(key)
+		ip := docker.Get(key)
 		ipArr := strings.Split(ip, ".")
 		i1, _ := strconv.Atoi(ipArr[0])
 		i2, _ := strconv.Atoi(ipArr[1])
