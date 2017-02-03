@@ -109,7 +109,7 @@ func (lc *LocalConfiguration) AddEnv(env EnvVo){
 }
 
 func (lc *LocalConfiguration) RemoveEnv(index int){
-	append(configuration.Envs[:index], configuration.Envs[index+1:]...)
+	configuration.Envs = append(configuration.Envs[:index], configuration.Envs[index+1:]...)
 	SaveConfiguration(&configuration)
 }
 
@@ -119,7 +119,7 @@ func (lc *LocalConfiguration) AddDns(dns [4]byte){
 }
 
 func (lc *LocalConfiguration) RemoveDns(index int){
-	append(configuration.RemoteDnsServers[:index], configuration.RemoteDnsServers[index+1:]...)
+	configuration.RemoteDnsServers = append(configuration.RemoteDnsServers[:index], configuration.RemoteDnsServers[index+1:]...)
 	SaveConfiguration(&configuration)
 }
 
@@ -132,6 +132,6 @@ func AddHostname(env EnvVo, hostname HostnameVo){
 
 func RemoveHostname(envIndex int, hostIndex int){
 	env := configuration.Envs[envIndex];
-	append(env.Hostnames[:hostIndex], env.Hostnames[hostIndex+1:]...)
+	env.Hostnames = append(env.Hostnames[:hostIndex], env.Hostnames[hostIndex+1:]...)
 	SaveConfiguration(&configuration)
 }
