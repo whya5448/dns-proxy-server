@@ -130,8 +130,8 @@ func AddHostname(env EnvVo, hostname HostnameVo){
 	SaveConfiguration(&configuration)
 }
 
-func RemoveHostname(env EnvVo, hostname HostnameVo){
-	foundEnv := configuration.GetEnv(env.Name)
-	env.Hostnames = append(foundEnv.Hostnames, hostname)
+func RemoveHostname(envIndex int, hostIndex int){
+	env := configuration.Envs[envIndex];
+	append(env.Hostnames[:hostIndex], env.Hostnames[hostIndex+1:]...)
 	SaveConfiguration(&configuration)
 }
