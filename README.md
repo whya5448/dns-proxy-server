@@ -19,3 +19,9 @@ This tool is in the version 2 from nodejs version, improving:
 # Installing
 
 	git submodule init && git submodule update
+
+
+
+# Test hostnames
+
+	nslookup -port=8980 bookmarks-node.mageddo.in 127.0.0.1

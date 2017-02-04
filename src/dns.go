@@ -13,7 +13,8 @@ import (
 	"github.com/mageddo/dns-proxy-server/proxy"
 	"reflect"
 	"github.com/mageddo/dns-proxy-server/utils"
-	"github.com/mageddo/dns-proxy-server/events"
+	"github.com/mageddo/dns-proxy-server/events/local"
+	"github.com/mageddo/dns-proxy-server/events/docker"
 )
 
 var (
@@ -47,7 +48,7 @@ func handleQuestion(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 		questionsQtd, firstQuestion.Name, utils.DnsQTypeCodeToName(firstQuestion.Qtype))
 
 	// loading the solvers and try to solve the hostname in that order
-	solvers := []proxy.DnsSolver{/*proxy.LocalDnsSolver{},*/ proxy.DockerDnsSolver{}, proxy.RemoteDnsSolver{}}
+	solvers := []proxy.DnsSolver{proxy.LocalDnsSolver{}, proxy.DockerDnsSolver{}, proxy.RemoteDnsSolver{}}
 	for _, solver := range solvers {
 
 		solverID := reflect.TypeOf(solver).Name()
@@ -74,7 +75,7 @@ func handleQuestion(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 
 }
 
-const serverPort = 53
+const serverPort = 5380
 
 func serve(net, name, secret string) {
 	var port string = fmt.Sprintf(":%d", serverPort)
@@ -112,7 +113,10 @@ func main() {
 	}
 
 	dns.HandleFunc(".", handleQuestion)
-	go events.HandleDockerEvents()
+
+	local.GetConfiguration()
+
+	go docker.HandleDockerEvents()
 	go serve("tcp", name, secret)
 	go serve("udp", name, secret)
 	sig := make(chan os.Signal)
