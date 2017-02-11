@@ -75,7 +75,7 @@ func handleQuestion(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 
 }
 
-const serverPort = 5380
+const serverPort = 53
 
 func serve(net, name, secret string) {
 	var port string = fmt.Sprintf(":%d", serverPort)
