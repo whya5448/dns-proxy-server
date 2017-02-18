@@ -15,6 +15,7 @@ import (
 	"github.com/mageddo/dns-proxy-server/utils"
 	"github.com/mageddo/dns-proxy-server/events/local"
 	"github.com/mageddo/dns-proxy-server/events/docker"
+	"strconv"
 )
 
 var (
@@ -52,12 +53,15 @@ func handleQuestion(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 	for _, solver := range solvers {
 
 		solverID := reflect.TypeOf(solver).Name()
+		logger.Infof("status=begin, solver=%s", solverID)
 		// loop through questions
-		resp, err := solver.Solve(firstQuestion)
+		resp, err := solver.Solve(ctx, firstQuestion)
 		if err == nil {
 
 			var firstAnswer dns.RR
 			answerLenth := len(resp.Answer)
+
+			logger.Infof("status=answer-found, solver=%s, length=%d", answerLenth)
 			if answerLenth != 0 {
 				firstAnswer = resp.Answer[0]
 			}
@@ -75,9 +79,14 @@ func handleQuestion(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 
 }
 
-const serverPort = 53
 
 func serve(net, name, secret string) {
+	argsWithoutProg := os.Args[1:]
+	serverPort := 53
+
+	if len(argsWithoutProg) > 0 {
+		serverPort, _ = strconv.Atoi(argsWithoutProg[0])
+	}
 	var port string = fmt.Sprintf(":%d", serverPort)
 	switch name {
 	case "":

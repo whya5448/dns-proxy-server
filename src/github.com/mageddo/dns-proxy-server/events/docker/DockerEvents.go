@@ -17,7 +17,8 @@ var cache = make(map[string]string)
 
 func HandleDockerEvents(){
 
-	logger := log.Logger
+	logCtx := log.GetContext()
+	logger := log.GetLogger(logCtx)
 
 	// adaptar a api do docker aqui
 	cli, err := client.NewClient("unix:///var/run/docker.sock", "v1.24", nil, nil)
@@ -43,7 +44,7 @@ func HandleDockerEvents(){
 			logger.Errorf("status=inspect-error-at-list, container=%s, err=%v", c.Names, err)
 		}
 		hostnames := getHostnames(cInspection)
-		putHostnames(hostnames, cInspection)
+		putHostnames(logCtx, hostnames, cInspection)
 		logger.Infof("status=container-from-list-success, container=%s, hostnames=%s", cInspection.Name, hostnames)
 	}
 
@@ -78,7 +79,7 @@ func HandleDockerEvents(){
 
 		switch event.Action {
 		case "start":
-			putHostnames(hostnames, cInspection)
+			putHostnames(ctx, hostnames, cInspection)
 			break
 
 		case "die":
@@ -139,8 +140,10 @@ func getHostnames(inspect types.ContainerJSON) []string {
 	return hostnames
 }
 
-func putHostnames(hostnames []string, inspect types.ContainerJSON){
+func putHostnames(ctx context.Context, hostnames []string, inspect types.ContainerJSON){
+	logger := log.GetLogger(ctx)
 	for _, host := range hostnames {
+		logger.Debugf("m=putHostnames, host=%s, ip=%s", host, inspect.NetworkSettings.IPAddress)
 		cache[host] = inspect.NetworkSettings.IPAddress
 	}
 }

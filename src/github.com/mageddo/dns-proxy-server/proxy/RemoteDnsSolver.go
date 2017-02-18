@@ -5,6 +5,7 @@ import (
 	"net"
 	"errors"
 	"fmt"
+	"golang.org/x/net/context"
 )
 
 type RemoteDnsSolver struct {
@@ -12,7 +13,7 @@ type RemoteDnsSolver struct {
 }
 
 // reference https://miek.nl/2014/August/16/go-dns-package/
-func (RemoteDnsSolver) Solve(question dns.Question) (*dns.Msg, error) {
+func (RemoteDnsSolver) Solve(ctx context.Context, question dns.Question) (*dns.Msg, error) {
 
 		//config, _ := dns.ClientConfigFromFile("/etc/resolv.conf")
 		c := new(dns.Client)

@@ -1,6 +1,5 @@
 package utils
 
-
 var QTypeCodes = map[uint16] string {
 0 : "TypeNone",
 1 : "TypeA",
