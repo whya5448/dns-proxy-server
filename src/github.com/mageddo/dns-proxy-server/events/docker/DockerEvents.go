@@ -17,8 +17,7 @@ var cache = make(map[string]string)
 
 func HandleDockerEvents(){
 
-	logCtx := log.GetContext()
-	logger := log.GetLogger(logCtx)
+	logger := log.GetLogger(log.GetContext())
 
 	// adaptar a api do docker aqui
 	cli, err := client.NewClient("unix:///var/run/docker.sock", "v1.24", nil, nil)
@@ -38,6 +37,7 @@ func HandleDockerEvents(){
 	}
 
 	for _, c := range containers {
+		logCtx := log.GetContext()
 		cInspection, err := cli.ContainerInspect(ctx, c.ID)
 		logger.Infof("status=container-from-list-begin, container=%s", cInspection.Name)
 		if err != nil {
