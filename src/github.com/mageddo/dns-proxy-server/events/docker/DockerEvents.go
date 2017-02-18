@@ -16,8 +16,8 @@ import (
 var cache = make(map[string]string)
 
 func HandleDockerEvents(){
-
-	logger := log.GetLogger(log.GetContext())
+	defaultLogger := log.GetContext()
+	logger := log.GetLogger(defaultLogger)
 
 	// adaptar a api do docker aqui
 	cli, err := client.NewClient("unix:///var/run/docker.sock", "v1.24", nil, nil)
@@ -37,15 +37,16 @@ func HandleDockerEvents(){
 	}
 
 	for _, c := range containers {
-		logCtx := log.GetContext()
+
 		cInspection, err := cli.ContainerInspect(ctx, c.ID)
 		logger.Infof("status=container-from-list-begin, container=%s", cInspection.Name)
 		if err != nil {
 			logger.Errorf("status=inspect-error-at-list, container=%s, err=%v", c.Names, err)
 		}
 		hostnames := getHostnames(cInspection)
-		putHostnames(logCtx, hostnames, cInspection)
+		putHostnames(defaultLogger, hostnames, cInspection)
 		logger.Infof("status=container-from-list-success, container=%s, hostnames=%s", cInspection.Name, hostnames)
+
 	}
 
 	// more about events here: http://docs-stage.docker.com/v1.10/engine/reference/commandline/events/
@@ -64,6 +65,9 @@ func HandleDockerEvents(){
 	dec := json.NewDecoder(body)
 	for {
 
+		logCtx := log.GetContext()
+		logger = log.GetLogger(logCtx)
+
 		var event events.Message
 		err := dec.Decode(&event)
 		if err != nil && err == io.EOF {
@@ -79,7 +83,7 @@ func HandleDockerEvents(){
 
 		switch event.Action {
 		case "start":
-			putHostnames(ctx, hostnames, cInspection)
+			putHostnames(logCtx, hostnames, cInspection)
 			break
 
 		case "die":
@@ -144,7 +148,7 @@ func putHostnames(ctx context.Context, hostnames []string, inspect types.Contain
 	logger := log.GetLogger(ctx)
 	for _, host := range hostnames {
 
-		var ip string
+		var ip string = ""
 		for _, network := range inspect.NetworkSettings.Networks {
 			ip = network.IPAddress
 		}
