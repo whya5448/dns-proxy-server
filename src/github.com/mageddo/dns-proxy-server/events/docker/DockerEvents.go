@@ -143,7 +143,15 @@ func getHostnames(inspect types.ContainerJSON) []string {
 func putHostnames(ctx context.Context, hostnames []string, inspect types.ContainerJSON){
 	logger := log.GetLogger(ctx)
 	for _, host := range hostnames {
-		logger.Debugf("m=putHostnames, host=%s, ip=%s", host, inspect.NetworkSettings.IPAddress)
-		cache[host] = inspect.NetworkSettings.IPAddress
+
+		var ip string
+		for _, network := range inspect.NetworkSettings.Networks {
+			ip = network.IPAddress
+		}
+		if len(ip) == 0 {
+			panic(fmt.Sprintf("no network found to %s", inspect.Name))
+		}
+		logger.Debugf("m=putHostnames, host=%s, ip=%s", host, ip)
+		cache[host] = ip
 	}
 }
