@@ -36,7 +36,6 @@ func (DockerDnsSolver) Solve(ctx context.Context, question dns.Question) (*dns.M
 
 		m := new(dns.Msg)
 		m.Answer = append(m.Answer, rr)
-		//logger.Infof("m=solve, status=success, solver=docker")
 		return m, nil
 	}
 	return nil, errors.New("hostname not found")
