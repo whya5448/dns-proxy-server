@@ -1,5 +1,6 @@
 /pkg
 /bin
+/build
 .idea/
 dns-proxy.iml
 

@@ -8,15 +8,18 @@ import (
 	"strings"
 	"strconv"
 	"errors"
+	"golang.org/x/net/context"
 )
 
 type DockerDnsSolver struct {
 
 }
 
-func (DockerDnsSolver) Solve(question dns.Question) (*dns.Msg, error) {
+func (DockerDnsSolver) Solve(ctx context.Context, question dns.Question) (*dns.Msg, error) {
 
+	logger := log.GetLogger(ctx)
 	key := question.Name[:len(question.Name)-1]
+	logger.Debugf("m=solve, status=solved-key, solver=docker, hostname=%s, ip=%s", key, docker.Get(key))
 	if docker.ContainsKey(key) {
 
 		ip := docker.Get(key)
@@ -33,7 +36,6 @@ func (DockerDnsSolver) Solve(question dns.Question) (*dns.Msg, error) {
 
 		m := new(dns.Msg)
 		m.Answer = append(m.Answer, rr)
-		log.Logger.Infof("m=solve, status=success, solver=docker")
 		return m, nil
 	}
 	return nil, errors.New("hostname not found")

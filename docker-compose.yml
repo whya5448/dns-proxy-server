@@ -1,5 +1,15 @@
 version: '2'
 services:
+  prod:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: docker-dns-server
+    image: reg.mageddo.com:5000/mageddo/docker-dns-server:2.0.1
+    hostname: dns.mageddo
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    network_mode: bridge
   gocompiler:
     image: golang:1.7.4
     container_name: gocompiler
@@ -13,3 +23,7 @@ services:
     working_dir: /app
     hostname: gocompiler.dev
     network_mode: bridge
+  prod-build:
+    extends: gocompiler
+    container_name: docker-dns-server-compiler
+    command: bash -c "mkdir -p build/ && cd src && go build -v -o ../build/docker-dns-server"

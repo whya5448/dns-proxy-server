@@ -6,13 +6,14 @@ import (
 	"net"
 	"github.com/mageddo/dns-proxy-server/events/local"
 	"github.com/mageddo/log"
+	"golang.org/x/net/context"
 )
 
 type LocalDnsSolver struct {
 
 }
 
-func (LocalDnsSolver) Solve(question dns.Question) (*dns.Msg, error) {
+func (LocalDnsSolver) Solve(ctx context.Context, question dns.Question) (*dns.Msg, error) {
 
 	key := question.Name[:len(question.Name)-1]
 	conf := local.GetConfiguration()
