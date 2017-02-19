@@ -161,4 +161,5 @@ func putHostnames(ctx context.Context, hostnames []string, inspect types.Contain
 		logger.Debugf("m=putHostnames, host=%s, ip=%s", host, ip)
 		cache[host] = ip
 	}
+	return nil
 }
