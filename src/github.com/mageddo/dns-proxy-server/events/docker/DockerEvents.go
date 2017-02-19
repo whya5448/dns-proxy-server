@@ -11,6 +11,7 @@ import (
 	"github.com/mageddo/log"
 	"github.com/docker/engine-api/types"
 	"strings"
+	"errors"
 )
 
 var cache = make(map[string]string)
@@ -144,7 +145,7 @@ func getHostnames(inspect types.ContainerJSON) []string {
 	return hostnames
 }
 
-func putHostnames(ctx context.Context, hostnames []string, inspect types.ContainerJSON){
+func putHostnames(ctx context.Context, hostnames []string, inspect types.ContainerJSON) error {
 	logger := log.GetLogger(ctx)
 	for _, host := range hostnames {
 
@@ -153,7 +154,9 @@ func putHostnames(ctx context.Context, hostnames []string, inspect types.Contain
 			ip = network.IPAddress
 		}
 		if len(ip) == 0 {
-			panic(fmt.Sprintf("no network found to %s", inspect.Name))
+			err := fmt.Sprintf("no network found to %s", inspect.Name)
+			logger.Error(err)
+			return errors.New(err)
 		}
 		logger.Debugf("m=putHostnames, host=%s, ip=%s", host, ip)
 		cache[host] = ip
