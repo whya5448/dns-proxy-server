@@ -1,5 +1,10 @@
 package utils
 
+import (
+	"path/filepath"
+	"os"
+)
+
 var QTypeCodes = map[uint16] string {
 0 : "TypeNone",
 1 : "TypeA",
@@ -132,4 +137,19 @@ var opCodes  = map[uint16] string {
 
 func DnsQTypeCodeToName(code uint16) string {
 	return QTypeCodes[code]
+}
+
+func GetCurrentPath() string {
+
+	currDIr := os.Getenv("MG_WORK_DIR")
+	if len(currDIr) != 0 {
+		return currDIr
+	}
+	currentPath, _ := filepath.Abs(filepath.Dir("."))
+	return currentPath
+
+}
+
+func GetPath(path string) string {
+	return GetCurrentPath() + path
 }
