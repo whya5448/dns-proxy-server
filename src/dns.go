@@ -17,6 +17,7 @@ import (
 	"github.com/mageddo/dns-proxy-server/events/docker"
 	"strconv"
 	"net/http"
+	"github.com/mageddo/dns-proxy-server/controller"
 )
 
 var (
@@ -130,9 +131,8 @@ func main() {
 	go serve("tcp", name, secret)
 	go serve("udp", name, secret)
 
-	staticPath := utils.GetPath("/static")
-	fmt.Printf("path=%v\n", staticPath)
-	go http.ListenAndServe(":8080", http.FileServer(http.Dir(staticPath)))
+	controller.Map()
+	go http.ListenAndServe(":8080", nil)
 	sig := make(chan os.Signal)
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
 	s := <-sig
