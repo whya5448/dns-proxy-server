@@ -131,7 +131,7 @@ func main() {
 	go serve("tcp", name, secret)
 	go serve("udp", name, secret)
 
-	controller.Map()
+	controller.MapRequests()
 	go http.ListenAndServe(":8080", nil)
 	sig := make(chan os.Signal)
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
