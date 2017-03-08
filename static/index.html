@@ -1,14 +1,18 @@
 <html>
 <head>
 	<meta charset="utf-8">
-	<link rel="stylesheet" type="text/css" href="static/css/bootstrap.min.css"/>
-	<link rel="stylesheet" type="text/css" href="static/css/bootstrap-theme.min.css"/>
+	<link rel="stylesheet" type="text/css" href="/static/css/bootstrap.min.css"/>
+	<link rel="stylesheet" type="text/css" href="/static/css/bootstrap-theme.min.css"/>
 
-	<link rel="stylesheet" type="text/css" href="static/css/style.css"/>
+	<link rel="stylesheet" type="text/css" href="/static/css/style.css"/>
+	<link rel="stylesheet" type="text/css" href="/static/css/ng-table.min.css"/>
 
-	<script src="static/js/angular.min.js"></script>
+	<script src="/static/js/angular.min.js"></script>
+	<script src="/static/js/lodash.min.js"></script>
+	<script src="/static/js/ng-table.min.js"></script>
+	<script src="/static/js/index.js"></script>
 </head>
-<body ng-app>
+<body >
 <nav class="navbar navbar-inverse navbar-fixed-top">
 	<div class="container">
 		<div class="navbar-header">
@@ -33,32 +37,98 @@
 
 <div class="container">
 
-	<div class="starter-template">
-		<h1>Bootstrap starter template</h1>
-		<table class="table table-bordered">
-			<thead>
-			<tr>
-				<th>Hostname</th>
-				<th>Type</th>
-				<th>TTL</th>
-				<th>Address</th>
-			</tr>
-			</thead>
-			<tbody>
-			<tr>
-				<td>mageddo.com</td>
-				<td>AAAA</td>
-				<td>200</td>
-				<td>192.168.0.1</td>
-			</tr>
-			<tr>
-				<td>blog.mageddo.com</td>
-				<td>CNAME</td>
-				<td>10</td>
-				<td>mageddo.com</td>
-			</tr>
-			</tbody>
-		</table>
+	<div ng-app="myApp" class="container-fluid">
+		<div class="row">
+			<div class="col-xs-12">
+				<h2 class="page-header">In-line row editing</h2>
+				<div class="row">
+					<div class="col-md-6">
+						<div class="bs-callout bs-callout-info">
+							<h4>Overview</h4>
+							<p>Example of how to edit rows in-line within a table one row at a time</p>
+						</div>
+					</div>
+					<div class="col-md-6">
+						<div class="bs-callout bs-callout-warning">
+							<h4>Notice</h4>
+							<p>There are several directives in use that track dirty state and validity of the table rows. Whilst they are reasonally capable they are <em>not production tested - use at your own risk!</em> <a href="#" ng-click="isExplanationOpen = !isExplanationOpen">More details...</a></p>
+							<div ng-show="isExplanationOpen">
+								<p>If you look at the declarative markup in the demo for the <code>ngTable</code> you'll see each row having an <code>ngForm</code> directive. Each <code>ngForm</code> will maintain the <code>$dirty</code> and <code>$invalid</code> status for their row. This allows the save button for a row to be enabled/disabled using the status of its respective <code>ngForm</code>.</p>
+								<p>This works up till the point that the user select's a new page to display in the table. At which point the existing <code>ngForm</code> directives are swapped out for new instances and their status is lost as the new data page is loaded.</p>
+								<p>The solution is to have a set of directives that sit parallel to the <code>ngForm</code> directives that remember the state of the rows when the corrosponding <code>ngFrom</code> directives are destroyed and recreated. When <code>ngForm</code>                directives are recreated they have their status reset by the directives that have remembered this state.</p>
+							</div>
+						</div>
+					</div>
+				</div>
+
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-md-6" ng-controller="demoController as demo">
+				<h3>ngTable directive</h3>
+				<table ng-table="demo.tableParams" class="table table-bordered table-hover table-condensed editable-table demoTable" ng-form="demo.tableForm" disable-filter="demo.isAdding" demo-tracked-table="demo.tableTracker">
+					<colgroup>
+						<col width="65%" />
+						<col width="10%" />
+						<col width="10%" />
+						<col width="15%" />
+					</colgroup>
+					<tr ng-repeat="row in $data" ng-form="rowForm" demo-tracked-table-row="row">
+						<td title="'Name'" filter="{name: 'text'}" sortable="'name'" ng-switch="row.isEditing" ng-class="name.$dirty ? 'bg-warning' : ''" ng-form="name" demo-tracked-table-cell>
+							<span ng-switch-default class="editable-text">{{row.name}}</span>
+							<div class="controls" ng-class="name.$invalid && name.$dirty ? 'has-error' : ''" ng-switch-when="true">
+								<input type="text" name="name" ng-model="row.name" class="editable-input form-control input-sm" required />
+							</div>
+						</td>
+						<td title="'Age'" filter="{age: 'number'}" sortable="'age'" ng-switch="row.isEditing" ng-class="age.$dirty ? 'bg-warning' : ''" ng-form="age" demo-tracked-table-cell>
+							<span ng-switch-default class="editable-text">{{row.age}}</span>
+							<div class="controls" ng-class="age.$invalid && age.$dirty ? 'has-error' : ''" ng-switch-when="true">
+								<input type="number" name="age" ng-model="row.age" class="editable-input form-control input-sm" required/>
+							</div>
+						</td>
+						<td title="'Money'" filter="{money: 'number'}" sortable="'money'" ng-switch="row.isEditing" ng-class="money.$dirty ? 'bg-warning' : ''" ng-form="money" demo-tracked-table-cell>
+							<span ng-switch-default class="editable-text">{{row.money}}</span>
+							<div class="controls" ng-class="money.$invalid && money.$dirty ? 'has-error' : ''" ng-switch-when="true">
+								<input type="number" name="money" ng-model="row.money" class="editable-input form-control input-sm" required/>
+							</div>
+						</td>
+						<td>
+							<button class="btn btn-primary btn-sm" ng-click="demo.save(row, rowForm)" ng-if="row.isEditing" ng-disabled="rowForm.$pristine || rowForm.$invalid"><span class="glyphicon glyphicon-ok"></span></button>
+							<button class="btn btn-default btn-sm" ng-click="demo.cancel(row, rowForm)" ng-if="row.isEditing"><span class="glyphicon glyphicon-remove"></span></button>
+							<button class="btn btn-default btn-sm" ng-click="row.isEditing = true" ng-if="!row.isEditing"><span class="glyphicon glyphicon-pencil"></span></button>
+							<button class="btn btn-danger btn-sm" ng-click="demo.del(row)" ng-if="!row.isEditing"><span class="glyphicon glyphicon-trash"></span></button>
+						</td>
+					</tr>
+				</table>
+			</div>
+			<div class="col-md-6" ng-controller="dynamicDemoController as demo">
+				<h3>ngTableDynamic directive</h3>
+				<table ng-table-dynamic="demo.tableParams with demo.cols" class="table table-bordered table-condensed table-hover editable-table demoTable" ng-form="demo.tableForm" disable-filter="demo.isAdding" demo-tracked-table="demo.tableTracker">
+					<colgroup>
+						<col width="65%" />
+						<col width="10%" />
+						<col width="10%" />
+						<col width="15%" />
+					</colgroup>
+					<tr ng-repeat="row in $data" ng-form="rowForm" demo-tracked-table-row="row">
+						<td ng-repeat="col in $columns" ng-class="rowForm[col.field].$dirty ? 'bg-warning' : ''" ng-form="{{col.field}}" demo-tracked-table-cell>
+							<span ng-if="col.dataType !== 'command' && !row.isEditing" class="editable-text">{{row[col.field]}}</span>
+							<div ng-if="col.dataType !== 'command' && row.isEditing" class="controls" ng-class="rowForm[col.field].$invalid && rowForm[col.field].$dirty ? 'has-error' : ''" ng-switch="col.dataType">
+								<input ng-switch-default type="text" name="{{col.field}}" ng-model="row[col.field]" class="editable-input form-control input-sm" required />
+								<input ng-switch-when="number" type="number" name="{{col.field}}" ng-model="row[col.field]" class="editable-input form-control input-sm" required />
+							</div>
+							<div ng-if="col.dataType === 'command'">
+								<button class="btn btn-primary btn-sm" ng-click="demo.save(row, rowForm)" ng-if="row.isEditing" ng-disabled="rowForm.$pristine || rowForm.$invalid"><span class="glyphicon glyphicon-ok"></span></button>
+								<button class="btn btn-default btn-sm" ng-click="demo.cancel(row, rowForm)" ng-if="row.isEditing"><span class="glyphicon glyphicon-remove"></span></button>
+								<button class="btn btn-default btn-sm" ng-click="row.isEditing = true" ng-if="!row.isEditing"><span class="glyphicon glyphicon-pencil"></span></button>
+								<button class="btn btn-danger btn-sm" ng-click="demo.del(row)" ng-if="!row.isEditing"><span class="glyphicon glyphicon-trash"></span></button>
+							</div>
+
+						</td>
+					</tr>
+				</table>
+			</div>
+		</div>
 	</div>
 
 </div><!-- /.container -->
