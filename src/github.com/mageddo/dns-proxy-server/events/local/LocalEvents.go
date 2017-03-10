@@ -52,6 +52,9 @@ func SaveConfiguration(configuration *LocalConfiguration) {
 		configuration.Envs = NewEmptyEnv()
 	}
 
+	js,_ := json.Marshal(&configuration)
+	log.Logger.Infof("m=SaveConfiguration, status=save, data=%s", js)
+
 	f, err := os.OpenFile(utils.GetPath(confPath), os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0777)
 	defer func(){
 		f.Close()
@@ -139,9 +142,9 @@ func (lc *LocalConfiguration) RemoveDns(index int){
 }
 
 
-func AddHostname(env EnvVo, hostname HostnameVo){
-	foundEnv := configuration.GetEnv(env.Name)
-	env.Hostnames = append(foundEnv.Hostnames, hostname)
+func AddHostname(envName string, hostname HostnameVo){
+	foundEnv := configuration.GetEnv(envName)
+	foundEnv.Hostnames = append(foundEnv.Hostnames, hostname)
 	SaveConfiguration(&configuration)
 }
 

@@ -3,18 +3,26 @@ angular.module("myApp", ["ngTable"]);
 (function() {
 		"use strict";
 
-		angular.module("myApp").controller("demoController", demoController);
-		demoController.$inject = ["NgTableParams"];
+		angular.module("myApp").controller("demoController", ["NgTableParams", "$http", demoController]);
 
-
-		function demoController(NgTableParams) {
+		function demoController(NgTableParams, $http) {
 				var self = this;
 
 				var originalData = dataFactory();
 
 				self.tableParams = new NgTableParams({}, {
 						filterDelay: 0,
-						dataset: angular.copy(originalData)
+//						dataset: angular.copy(originalData),
+						getData: function(params) {
+							console.debug('loading data');
+							// ajax request to api
+							return $http.get('/hostname').then(function(data) {
+								params.total(data.inlineCount); // recal. page nav controls
+								return data.results;
+							}, function(err){
+								console.debug('err', err);
+							});
+						}
 				});
 
 				self.cancel = cancel;
@@ -58,9 +66,16 @@ angular.module("myApp", ["ngTable"]);
 
 				function saveNewLine(line){
 						line = angular.copy(line);
+
+						$http({method: 'POST', url: '/hostname/new/', data: line, headers: {'Content-Type': 'application/json'}}).then(function(data){
+							console.debug('success', data);
+						}, function(err){
+							console.debug('err', err);
+						});
+
 						line.id = new Date().getTime();
-						console.debug('m=saveNewLine, line=%o', line);
-						self.tableParams.settings().dataset.push(line);
+						console.debug('m=saveNewLine, line=%o', line, self.tableParams, self.tableParams.settings());
+//						self.tableParams.settings().dataset.push(line);
 						self.tableParams.reload().then(function(data) {
 								if (data.length === 0 && self.tableParams.total() > 0) {
 										self.tableParams.page(self.tableParams.page() - 1);
