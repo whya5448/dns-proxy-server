@@ -5,12 +5,21 @@ import (
 	"os"
 	"github.com/mageddo/log"
 	"bufio"
+	"github.com/mageddo/dns-proxy-server/utils"
 )
 
 var confPath string = "conf/config.json"
 var configuration = LocalConfiguration{
 	Envs: make([]EnvVo, 0),
 	RemoteDnsServers: make([][4]byte, 0),
+}
+
+func init(){
+	if len(os.Args) > 2 {
+		confPath = os.Args[2];
+		log.Logger.Infof("m=init, status=changed-confpath, confpath=%s", utils.GetPath(confPath))
+	}
+
 }
 
 func LoadConfiguration(){
@@ -25,6 +34,7 @@ func LoadConfiguration(){
 
 		dec := json.NewDecoder(f)
 		dec.Decode(&configuration)
+		SaveConfiguration(&configuration)
 
 	}else{
 		err := os.MkdirAll("conf", 0755)
@@ -38,7 +48,11 @@ func LoadConfiguration(){
 }
 func SaveConfiguration(configuration *LocalConfiguration) {
 
-	f, err := os.OpenFile(confPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0777)
+	if len(configuration.Envs) == 0 {
+		configuration.Envs = NewEmptyEnv()
+	}
+
+	f, err := os.OpenFile(utils.GetPath(confPath), os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0777)
 	defer func(){
 		f.Close()
 	}()
@@ -59,25 +73,26 @@ func SaveConfiguration(configuration *LocalConfiguration) {
 }
 
 func GetConfiguration() LocalConfiguration {
+	LoadConfiguration()
 	return configuration
 }
 
 
 type LocalConfiguration struct {
-	RemoteDnsServers [][4]byte
-	Envs []EnvVo
-	ActiveEnv string
+	RemoteDnsServers [][4]byte `json:"remoteDnsServers"`
+	Envs []EnvVo `json:"envs"`
+	ActiveEnv string `json:"activeEnv"`
 }
 
 type EnvVo struct {
-	Name string
-	Hostnames []HostnameVo
+	Name string `json:"name"`
+	Hostnames []HostnameVo `json:"hostnames"`
 }
 
 type HostnameVo struct {
-	Hostname string
-	Ip [4]byte
-	Ttl int
+	Hostname string `json:"hostname"`
+	Ip [4]byte `json:"ip"`
+	Ttl int `json:"ttl"`
 }
 
 func (lc *LocalConfiguration) GetEnv(envName string) (*EnvVo) {
@@ -134,4 +149,8 @@ func RemoveHostname(envIndex int, hostIndex int){
 	env := configuration.Envs[envIndex];
 	env.Hostnames = append(env.Hostnames[:hostIndex], env.Hostnames[hostIndex+1:]...)
 	SaveConfiguration(&configuration)
+}
+
+func NewEmptyEnv() []EnvVo {
+	return []EnvVo{{Hostnames:[]HostnameVo{}, Name:""}}
 }

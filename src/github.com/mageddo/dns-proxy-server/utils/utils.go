@@ -151,5 +151,8 @@ func GetCurrentPath() string {
 }
 
 func GetPath(path string) string {
+	if path[:1] != "/" {
+		path = "/" + path
+	}
 	return GetCurrentPath() + path
 }
