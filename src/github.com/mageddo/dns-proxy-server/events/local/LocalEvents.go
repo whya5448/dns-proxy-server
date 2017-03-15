@@ -91,7 +91,7 @@ type LocalConfiguration struct {
 
 type EnvVo struct {
 	Name string `json:"name"`
-	Hostnames *[]HostnameVo `json:"hostnames"`
+	Hostnames []HostnameVo `json:"hostnames"`
 }
 
 type HostnameVo struct {
@@ -100,13 +100,12 @@ type HostnameVo struct {
 	Ttl int `json:"ttl"`
 }
 
-func (lc *LocalConfiguration) GetEnv(envName string) (**EnvVo) {
+func (lc *LocalConfiguration) GetEnv(envName string) (*EnvVo) {
 
 	for i := range lc.Envs {
-		env := lc.Envs[i]
-		if env.Name == envName {
-			x:= &env
-			return &x
+		env := &lc.Envs[i]
+		if (*env).Name == envName {
+			return env
 		}
 	}
 	return nil
@@ -115,18 +114,18 @@ func (lc *LocalConfiguration) GetEnv(envName string) (**EnvVo) {
 func (lc *LocalConfiguration) AddHostnameToEnv(env string, hostname *HostnameVo){
 	log.Logger.Infof("m=AddHostnameToEnv, status=begin, env=%+v, hostname=%+v", env, hostname)
 	foundEnv := lc.GetEnv(env)
-	t := append(*(*foundEnv).Hostnames, *hostname)
-	(*foundEnv).Hostnames = &t
-	(*foundEnv).Name = "tmp"
+	t := append(foundEnv.Hostnames, *hostname)
+	(*foundEnv).Hostnames = t
+	foundEnv.Name = "tmp"
 	log.Logger.Infof("m=AddHostnameToEnv, status=success, lc=%+v, foundEnv=%+v, hostnames=%+v", lc, foundEnv, lc.Envs[0].Hostnames)
 }
 
 func (lc *LocalConfiguration) GetActiveEnv() *EnvVo {
-	return *lc.GetEnv(lc.ActiveEnv)
+	return lc.GetEnv(lc.ActiveEnv)
 }
 
 func(env *EnvVo) GetHostname(hostname string) *HostnameVo {
-	for _, host := range *env.Hostnames {
+	for _, host := range env.Hostnames {
 		if host.Hostname == hostname {
 			return &host
 		}
@@ -164,11 +163,11 @@ func AddHostname(envName string, hostname HostnameVo){
 
 func RemoveHostname(envIndex int, hostIndex int){
 	env := configuration.Envs[envIndex];
-	t := append((*env.Hostnames)[:hostIndex], (*env.Hostnames)[hostIndex+1:]...)
-	env.Hostnames = &t
+	t := append(env.Hostnames[:hostIndex], env.Hostnames[hostIndex+1:]...)
+	env.Hostnames = t
 	SaveConfiguration(&configuration)
 }
 
 func NewEmptyEnv() []EnvVo {
-	return []EnvVo{{Hostnames:&[]HostnameVo{}, Name:""}}
+	return []EnvVo{{Hostnames:[]HostnameVo{}, Name:""}}
 }
