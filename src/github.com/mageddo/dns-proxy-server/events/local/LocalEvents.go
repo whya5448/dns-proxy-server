@@ -98,6 +98,7 @@ type HostnameVo struct {
 	Hostname string `json:"hostname"`
 	Ip [4]byte `json:"ip"`
 	Ttl int `json:"ttl"`
+	Env string `json:"env"` // apenas para o post do rest
 }
 
 func (lc *LocalConfiguration) GetEnv(envName string) (*EnvVo) {

@@ -8,10 +8,10 @@ import (
 )
 
 func init(){
-	http.HandleFunc("/static/", makeHandler(func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
+	Get("/static/", func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
 		staticPath := utils.GetPath("/")
 		log.Logger.Infof("path=%v", staticPath)
 		hd := http.FileServer(http.Dir(staticPath))
 		hd.ServeHTTP(res, req)
-	}))
+	})
 }
