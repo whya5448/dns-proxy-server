@@ -34,14 +34,17 @@ func init(){
 
 
 	http.HandleFunc("/hostname/new/", makeHandler(func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
+		logger := log.GetLogger(ctx)
 		res.Header().Add("Content-Type", "application/json")
-		log.GetLogger(ctx).Infof("m=/hostname/new/, status=begin")
+		logger.Infof("m=/hostname/new/, status=begin")
 		switch req.Method {
 		case "POST":
 			var hostname local.HostnameVo
 			json.NewDecoder(req.Body).Decode(&hostname)
 			conf := local.GetConfiguration()
-			local.AddHostname((*conf.GetActiveEnv()).Name, hostname)
+			env := (*conf.GetActiveEnv()).Name
+			logger.Infof("m=/hostname/new/, status=parsed-host, env=%+v, host=%+v", env, hostname)
+			local.AddHostname(env, hostname)
 		}
 		log.GetLogger(ctx).Infof("m=/hostname/new/, status=success")
 	}))

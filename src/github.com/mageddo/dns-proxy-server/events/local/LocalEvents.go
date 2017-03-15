@@ -46,13 +46,13 @@ func LoadConfiguration(){
 	}
 
 }
-func SaveConfiguration(configuration *LocalConfiguration) {
-
-	if len(configuration.Envs) == 0 {
-		configuration.Envs = NewEmptyEnv()
+func SaveConfiguration(c *LocalConfiguration) {
+	log.Logger.Infof("m=SaveConfiguration, status=begin, configuration=%+v", c)
+	if len(c.Envs) == 0 {
+		c.Envs = NewEmptyEnv()
 	}
 
-	js,_ := json.Marshal(&configuration)
+	js,_ := json.Marshal(&c)
 	log.Logger.Infof("m=SaveConfiguration, status=save, data=%s", js)
 
 	f, err := os.OpenFile(utils.GetPath(confPath), os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0777)
@@ -68,10 +68,12 @@ func SaveConfiguration(configuration *LocalConfiguration) {
 		wr.Flush()
 	}()
 	enc := json.NewEncoder(wr)
-	err = enc.Encode(configuration)
+	err = enc.Encode(c)
 	if err != nil {
 		log.Logger.Errorf("status=error-to-encode, error=%v", err)
 	}
+
+	log.Logger.Infof("m=SaveConfiguration, status=success")
 
 }
 
@@ -89,7 +91,7 @@ type LocalConfiguration struct {
 
 type EnvVo struct {
 	Name string `json:"name"`
-	Hostnames []HostnameVo `json:"hostnames"`
+	Hostnames *[]HostnameVo `json:"hostnames"`
 }
 
 type HostnameVo struct {
@@ -98,22 +100,33 @@ type HostnameVo struct {
 	Ttl int `json:"ttl"`
 }
 
-func (lc *LocalConfiguration) GetEnv(envName string) (*EnvVo) {
+func (lc *LocalConfiguration) GetEnv(envName string) (**EnvVo) {
 
-	for _, env := range lc.Envs {
+	for i := range lc.Envs {
+		env := lc.Envs[i]
 		if env.Name == envName {
-			return &env
+			x:= &env
+			return &x
 		}
 	}
 	return nil
 }
 
+func (lc *LocalConfiguration) AddHostnameToEnv(env string, hostname *HostnameVo){
+	log.Logger.Infof("m=AddHostnameToEnv, status=begin, env=%+v, hostname=%+v", env, hostname)
+	foundEnv := lc.GetEnv(env)
+	t := append(*(*foundEnv).Hostnames, *hostname)
+	(*foundEnv).Hostnames = &t
+	(*foundEnv).Name = "tmp"
+	log.Logger.Infof("m=AddHostnameToEnv, status=success, lc=%+v, foundEnv=%+v, hostnames=%+v", lc, foundEnv, lc.Envs[0].Hostnames)
+}
+
 func (lc *LocalConfiguration) GetActiveEnv() *EnvVo {
-	return lc.GetEnv(lc.ActiveEnv)
+	return *lc.GetEnv(lc.ActiveEnv)
 }
 
 func(env *EnvVo) GetHostname(hostname string) *HostnameVo {
-	for _, host := range env.Hostnames {
+	for _, host := range *env.Hostnames {
 		if host.Hostname == hostname {
 			return &host
 		}
@@ -122,38 +135,40 @@ func(env *EnvVo) GetHostname(hostname string) *HostnameVo {
 }
 
 func (lc *LocalConfiguration) AddEnv(env EnvVo){
-	configuration.Envs = append(configuration.Envs, env)
-	SaveConfiguration(&configuration)
+	lc.Envs = append(lc.Envs, env)
+	SaveConfiguration(lc)
 }
 
 func (lc *LocalConfiguration) RemoveEnv(index int){
-	configuration.Envs = append(configuration.Envs[:index], configuration.Envs[index+1:]...)
-	SaveConfiguration(&configuration)
+	lc.Envs = append(lc.Envs[:index], lc.Envs[index+1:]...)
+	SaveConfiguration(lc)
 }
 
 func (lc *LocalConfiguration) AddDns(dns [4]byte){
-	configuration.RemoteDnsServers = append(configuration.RemoteDnsServers, dns)
-	SaveConfiguration(&configuration)
+	lc.RemoteDnsServers = append(lc.RemoteDnsServers, dns)
+	SaveConfiguration(lc)
 }
 
 func (lc *LocalConfiguration) RemoveDns(index int){
-	configuration.RemoteDnsServers = append(configuration.RemoteDnsServers[:index], configuration.RemoteDnsServers[index+1:]...)
-	SaveConfiguration(&configuration)
+	lc.RemoteDnsServers = append(lc.RemoteDnsServers[:index], lc.RemoteDnsServers[index+1:]...)
+	SaveConfiguration(lc)
 }
 
 
 func AddHostname(envName string, hostname HostnameVo){
-	foundEnv := configuration.GetEnv(envName)
-	foundEnv.Hostnames = append(foundEnv.Hostnames, hostname)
+	log.Logger.Infof("m=AddHostname, status=begin, evnName=%s, hostname=%+v", envName, hostname)
+	configuration.AddHostnameToEnv(envName, &hostname)
 	SaveConfiguration(&configuration)
+	log.Logger.Infof("m=AddHostname, status=success, configuration=%+v", configuration)
 }
 
 func RemoveHostname(envIndex int, hostIndex int){
 	env := configuration.Envs[envIndex];
-	env.Hostnames = append(env.Hostnames[:hostIndex], env.Hostnames[hostIndex+1:]...)
+	t := append((*env.Hostnames)[:hostIndex], (*env.Hostnames)[hostIndex+1:]...)
+	env.Hostnames = &t
 	SaveConfiguration(&configuration)
 }
 
 func NewEmptyEnv() []EnvVo {
-	return []EnvVo{{Hostnames:[]HostnameVo{}, Name:""}}
+	return []EnvVo{{Hostnames:&[]HostnameVo{}, Name:""}}
 }
