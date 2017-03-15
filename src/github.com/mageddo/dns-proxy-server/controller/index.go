@@ -27,7 +27,10 @@ func init(){
 			var hostname local.HostnameVo
 			json.NewDecoder(req.Body).Decode(&hostname)
 			logger.Infof("m=/hostname/new/, status=parsed-host, host=%+v", hostname)
-			local.AddHostname(hostname.Env, hostname)
+			err := local.AddHostname(hostname.Env, hostname)
+			if err != nil {
+				BadRequest(res, "Env not found")
+			}
 		}
 		log.GetLogger(ctx).Infof("m=/hostname/new/, status=success")
 	})

@@ -6,6 +6,7 @@ import (
 	"github.com/mageddo/log"
 	"bufio"
 	"github.com/mageddo/dns-proxy-server/utils"
+	"errors"
 )
 
 var confPath string = "conf/config.json"
@@ -112,13 +113,15 @@ func (lc *LocalConfiguration) GetEnv(envName string) (*EnvVo) {
 	return nil
 }
 
-func (lc *LocalConfiguration) AddHostnameToEnv(env string, hostname *HostnameVo){
+func (lc *LocalConfiguration) AddHostnameToEnv(env string, hostname *HostnameVo) error {
 	log.Logger.Infof("m=AddHostnameToEnv, status=begin, env=%+v, hostname=%+v", env, hostname)
 	foundEnv := lc.GetEnv(env)
-	t := append(foundEnv.Hostnames, *hostname)
-	(*foundEnv).Hostnames = t
-	foundEnv.Name = "tmp"
+	if foundEnv == nil {
+		return errors.New("env not found")
+	}
+	(*foundEnv).Hostnames = append(foundEnv.Hostnames, *hostname)
 	log.Logger.Infof("m=AddHostnameToEnv, status=success, lc=%+v, foundEnv=%+v, hostnames=%+v", lc, foundEnv, lc.Envs[0].Hostnames)
+	return nil
 }
 
 func (lc *LocalConfiguration) GetActiveEnv() *EnvVo {
@@ -155,11 +158,15 @@ func (lc *LocalConfiguration) RemoveDns(index int){
 }
 
 
-func AddHostname(envName string, hostname HostnameVo){
+func AddHostname(envName string, hostname HostnameVo) error {
 	log.Logger.Infof("m=AddHostname, status=begin, evnName=%s, hostname=%+v", envName, hostname)
-	configuration.AddHostnameToEnv(envName, &hostname)
+	err := configuration.AddHostnameToEnv(envName, &hostname)
+	if err != nil {
+		return err
+	}
 	SaveConfiguration(&configuration)
 	log.Logger.Infof("m=AddHostname, status=success, configuration=%+v", configuration)
+	return nil
 }
 
 func RemoveHostname(envIndex int, hostIndex int){

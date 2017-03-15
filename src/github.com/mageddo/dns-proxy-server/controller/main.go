@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"golang.org/x/net/context"
 	"github.com/mageddo/log"
+	"encoding/json"
 )
 
 
@@ -19,6 +20,20 @@ DELETE Method = "DELETE"
 type Map struct {
 	method Method
 	path string
+}
+
+type Message struct {
+	Code int `json:"code"`
+	Message string `json:"message"`
+}
+
+func BadRequest(w http.ResponseWriter, msg string){
+	RespMessage(w, 400, msg)
+}
+
+func RespMessage(w http.ResponseWriter, code int, msg string){
+	w.WriteHeader(code)
+	json.NewEncoder(w).Encode(Message{Code:code, Message:msg})
 }
 
 var maps = make(map[string]map[string]func(context.Context, http.ResponseWriter, *http.Request, string))
@@ -64,6 +79,5 @@ func MapReq(method Method, path string, fn func(context.Context, http.ResponseWr
 	}
 	log.Logger.Debugf("m=MapReq, status=mapping, url=%s %s", method, path)
 	maps[path][string(method)] = fn
-
 
 }
