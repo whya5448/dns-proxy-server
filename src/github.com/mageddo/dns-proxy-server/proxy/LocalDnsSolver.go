@@ -16,7 +16,7 @@ type LocalDnsSolver struct {
 func (LocalDnsSolver) Solve(ctx context.Context, question dns.Question) (*dns.Msg, error) {
 
 	key := question.Name[:len(question.Name)-1]
-	conf := local.GetConfiguration()
+	conf := local.GetConfiguration(ctx)
 	activeEnv := conf.GetActiveEnv()
 
 	if activeEnv == nil {

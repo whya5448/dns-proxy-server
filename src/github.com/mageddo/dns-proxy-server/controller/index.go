@@ -15,7 +15,7 @@ func init(){
 
 	Get("/hostname/", func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
 		res.Header().Add("Content-Type", "application/json")
-		json.NewEncoder(res).Encode(local.GetConfiguration())
+		json.NewEncoder(res).Encode(local.GetConfiguration(ctx))
 	})
 
 	Post("/hostname/", func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
@@ -27,7 +27,7 @@ func init(){
 			var hostname local.HostnameVo
 			json.NewDecoder(req.Body).Decode(&hostname)
 			logger.Infof("m=/hostname/new/, status=parsed-host, host=%+v", hostname)
-			err := local.AddHostname(hostname.Env, hostname)
+			err := local.AddHostname(ctx, hostname.Env, hostname)
 			if err != nil {
 				BadRequest(res, "Env not found")
 			}

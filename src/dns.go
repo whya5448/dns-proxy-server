@@ -125,7 +125,7 @@ func main() {
 
 	dns.HandleFunc(".", handleQuestion)
 
-	local.GetConfiguration()
+	local.GetConfiguration(log.GetContext())
 
 	go docker.HandleDockerEvents()
 	go serve("tcp", name, secret)

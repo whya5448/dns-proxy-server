@@ -7,9 +7,10 @@ import (
 	"bufio"
 	"github.com/mageddo/dns-proxy-server/utils"
 	"errors"
+	"golang.org/x/net/context"
 )
 
-var confPath string = "conf/config.json"
+var confPath string = utils.GetPath("conf/config.json")
 var configuration = LocalConfiguration{
 	Envs: make([]EnvVo, 0),
 	RemoteDnsServers: make([][4]byte, 0),
@@ -17,16 +18,19 @@ var configuration = LocalConfiguration{
 
 func init(){
 	if len(os.Args) > 2 {
-		confPath = os.Args[2];
+		confPath = utils.GetPath(os.Args[2]);
 		log.Logger.Infof("m=init, status=changed-confpath, confpath=%s", utils.GetPath(confPath))
 	}
 
 }
 
-func LoadConfiguration(){
+func LoadConfiguration(ctx context.Context){
+
+	logger := log.GetLogger(ctx)
+	logger.Infof("status=begin, confPath=%s", confPath)
 
 	if _, err := os.Stat(confPath); err == nil {
-
+		logger.Info("status=openingFile")
 		f, _ := os.Open(confPath)
 
 		defer func(){
@@ -35,33 +39,36 @@ func LoadConfiguration(){
 
 		dec := json.NewDecoder(f)
 		dec.Decode(&configuration)
-		SaveConfiguration(&configuration)
-
+		SaveConfiguration(ctx, &configuration)
+		logger.Info("status=success")
 	}else{
-		err := os.MkdirAll("conf", 0755)
+		logger.Info("status=create-new-conf")
+		err := os.MkdirAll(confPath, 0755)
 		if err != nil {
-			log.Logger.Errorf("status=error-to-create-conf-folder, err=%v", err)
+			logger.Errorf("status=error-to-create-conf-folder, err=%v", err)
 			return
 		}
-		SaveConfiguration(&configuration)
+		SaveConfiguration(ctx, &configuration)
+		logger.Info("status=success")
 	}
 
 }
-func SaveConfiguration(c *LocalConfiguration) {
-	log.Logger.Infof("m=SaveConfiguration, status=begin, configuration=%+v", c)
+func SaveConfiguration(ctx context.Context, c *LocalConfiguration) {
+	logger := log.GetLogger(ctx)
+	logger.Infof("m=SaveConfiguration, status=begin, configuration=%+v", c)
 	if len(c.Envs) == 0 {
 		c.Envs = NewEmptyEnv()
 	}
 
 	js,_ := json.Marshal(&c)
-	log.Logger.Infof("m=SaveConfiguration, status=save, data=%s", js)
+	logger.Infof("m=SaveConfiguration, status=save, data=%s", js)
 
-	f, err := os.OpenFile(utils.GetPath(confPath), os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0777)
+	f, err := os.OpenFile(confPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0777)
 	defer func(){
 		f.Close()
 	}()
 	if err != nil {
-		log.Logger.Errorf("status=error-to-create-conf-file, err=%v", err)
+		logger.Errorf("status=error-to-create-conf-file, err=%v", err)
 		return
 	}
 	wr := bufio.NewWriter(f)
@@ -71,15 +78,15 @@ func SaveConfiguration(c *LocalConfiguration) {
 	enc := json.NewEncoder(wr)
 	err = enc.Encode(c)
 	if err != nil {
-		log.Logger.Errorf("status=error-to-encode, error=%v", err)
+		logger.Errorf("status=error-to-encode, error=%v", err)
 	}
 
-	log.Logger.Infof("m=SaveConfiguration, status=success")
+	logger.Infof("m=SaveConfiguration, status=success")
 
 }
 
-func GetConfiguration() LocalConfiguration {
-	LoadConfiguration()
+func GetConfiguration(ctx context.Context) LocalConfiguration {
+	LoadConfiguration(ctx)
 	return configuration
 }
 
@@ -137,43 +144,43 @@ func(env *EnvVo) GetHostname(hostname string) *HostnameVo {
 	return nil
 }
 
-func (lc *LocalConfiguration) AddEnv(env EnvVo){
+func (lc *LocalConfiguration) AddEnv(ctx context.Context, env EnvVo){
 	lc.Envs = append(lc.Envs, env)
-	SaveConfiguration(lc)
+	SaveConfiguration(ctx, lc)
 }
 
-func (lc *LocalConfiguration) RemoveEnv(index int){
+func (lc *LocalConfiguration) RemoveEnv(ctx context.Context,index int){
 	lc.Envs = append(lc.Envs[:index], lc.Envs[index+1:]...)
-	SaveConfiguration(lc)
+	SaveConfiguration(ctx,lc)
 }
 
-func (lc *LocalConfiguration) AddDns(dns [4]byte){
+func (lc *LocalConfiguration) AddDns(ctx context.Context, dns [4]byte){
 	lc.RemoteDnsServers = append(lc.RemoteDnsServers, dns)
-	SaveConfiguration(lc)
+	SaveConfiguration(ctx, lc)
 }
 
-func (lc *LocalConfiguration) RemoveDns(index int){
+func (lc *LocalConfiguration) RemoveDns(ctx context.Context, index int){
 	lc.RemoteDnsServers = append(lc.RemoteDnsServers[:index], lc.RemoteDnsServers[index+1:]...)
-	SaveConfiguration(lc)
+	SaveConfiguration(ctx, lc)
 }
 
 
-func AddHostname(envName string, hostname HostnameVo) error {
+func AddHostname(ctx context.Context, envName string, hostname HostnameVo) error {
 	log.Logger.Infof("m=AddHostname, status=begin, evnName=%s, hostname=%+v", envName, hostname)
 	err := configuration.AddHostnameToEnv(envName, &hostname)
 	if err != nil {
 		return err
 	}
-	SaveConfiguration(&configuration)
+	SaveConfiguration(ctx, &configuration)
 	log.Logger.Infof("m=AddHostname, status=success, configuration=%+v", configuration)
 	return nil
 }
 
-func RemoveHostname(envIndex int, hostIndex int){
+func RemoveHostname(ctx context.Context, envIndex int, hostIndex int){
 	env := configuration.Envs[envIndex];
 	t := append(env.Hostnames[:hostIndex], env.Hostnames[hostIndex+1:]...)
 	env.Hostnames = t
-	SaveConfiguration(&configuration)
+	SaveConfiguration(ctx, &configuration)
 }
 
 func NewEmptyEnv() []EnvVo {
