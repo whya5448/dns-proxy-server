@@ -63,9 +63,7 @@ func SaveConfiguration(ctx context.Context, c *LocalConfiguration) {
 		c.Envs = NewEmptyEnv()
 	}
 
-	jsonStr,_ := json.MarshalIndent(&c, "", "\t")
-	logger.Infof("m=SaveConfiguration, status=save, dataLength=%d", len(jsonStr))
-
+	logger.Infof("m=SaveConfiguration, status=save")
 	f, err := os.OpenFile(confPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0777)
 	defer func(){
 		f.Close()
@@ -79,6 +77,7 @@ func SaveConfiguration(ctx context.Context, c *LocalConfiguration) {
 		wr.Flush()
 	}()
 	enc := json.NewEncoder(wr)
+	enc.SetIndent("", "\t")
 	err = enc.Encode(c)
 	if err != nil {
 		logger.Errorf("status=error-to-encode, error=%v", err)
