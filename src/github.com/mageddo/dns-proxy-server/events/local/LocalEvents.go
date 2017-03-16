@@ -8,6 +8,7 @@ import (
 	"github.com/mageddo/dns-proxy-server/utils"
 	"errors"
 	"golang.org/x/net/context"
+	"time"
 )
 
 var confPath string = utils.GetPath("conf/config.json")
@@ -56,13 +57,14 @@ func LoadConfiguration(ctx context.Context){
 }
 func SaveConfiguration(ctx context.Context, c *LocalConfiguration) {
 	logger := log.GetLogger(ctx)
-	logger.Infof("m=SaveConfiguration, status=begin, configuration=%+v", c)
+
+	logger.Infof("m=SaveConfiguration, status=begin, time=%s", time.Now())
 	if len(c.Envs) == 0 {
 		c.Envs = NewEmptyEnv()
 	}
 
-	js,_ := json.Marshal(&c)
-	logger.Infof("m=SaveConfiguration, status=save, data=%s", js)
+	jsonStr,_ := json.MarshalIndent(&c, "", "\t")
+	logger.Infof("m=SaveConfiguration, status=save, dataLength=%d", len(jsonStr))
 
 	f, err := os.OpenFile(confPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0777)
 	defer func(){
