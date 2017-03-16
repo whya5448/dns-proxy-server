@@ -54,6 +54,10 @@ func Put(path string, fn func(context.Context, http.ResponseWriter, *http.Reques
 	MapReq(PUT, path, fn)
 }
 
+func Delete(path string, fn func(context.Context, http.ResponseWriter, *http.Request, string)) {
+	MapReq(DELETE, path, fn)
+}
+
 func MapReq(method Method, path string, fn func(context.Context, http.ResponseWriter, *http.Request, string)) {
 
 	_, mapped := maps[path]
