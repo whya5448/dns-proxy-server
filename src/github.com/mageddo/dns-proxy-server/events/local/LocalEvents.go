@@ -171,19 +171,22 @@ func (lc *LocalConfiguration) AddEnv(ctx context.Context, env EnvVo) error {
 func (lc *LocalConfiguration) RemoveEnvByName(ctx context.Context, name string) error {
 	logger := log.GetLogger(ctx)
 	logger.Infof("m=RemoveEnvByName, status=begin, env=%s", name)
-	env, _ := lc.GetEnv(name)
+	env, i := lc.GetEnv(name)
 	if env == nil {
 		return errors.New(fmt.Sprintf("The env '%s' was not found", name))
 	}
-	lc.RemoveEnv(ctx, env)
+	lc.RemoveEnv(ctx, i)
 	SaveConfiguration(ctx,lc)
 	logger.Infof("m=RemoveEnvByName, status=success, env=%s", name)
 	return nil
 }
 
-func (lc *LocalConfiguration) RemoveEnv(ctx context.Context,index int){
+func (lc *LocalConfiguration) RemoveEnv(ctx context.Context, index int){
+	logger := log.GetLogger(ctx)
+	logger.Infof("m=RemoveEnv, status=begin, index=%d", index)
 	lc.Envs = append(lc.Envs[:index], lc.Envs[index+1:]...)
 	SaveConfiguration(ctx,lc)
+	logger.Infof("m=RemoveEnv, status=success, index=%d", index)
 }
 
 func (lc *LocalConfiguration) AddDns(ctx context.Context, dns [4]byte){
