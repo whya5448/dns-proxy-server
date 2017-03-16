@@ -3,6 +3,8 @@ package utils
 import (
 	"path/filepath"
 	"os"
+	"encoding/json"
+	"io"
 )
 
 var QTypeCodes = map[uint16] string {
@@ -155,4 +157,10 @@ func GetPath(path string) string {
 		path = "/" + path
 	}
 	return GetCurrentPath() + path
+}
+
+func GetJsonEncoder(w io.Writer) *json.Encoder {
+	decoder := json.NewEncoder(w)
+	decoder.SetIndent("", "\t")
+	return decoder
 }

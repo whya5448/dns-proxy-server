@@ -155,9 +155,30 @@ func(env *EnvVo) GetHostname(hostname string) (*HostnameVo, int) {
 	return nil, -1
 }
 
-func (lc *LocalConfiguration) AddEnv(ctx context.Context, env EnvVo){
+func (lc *LocalConfiguration) AddEnv(ctx context.Context, env EnvVo) error {
+	logger := log.GetLogger(ctx)
+	logger.Infof("m=AddEnv, status=begin, env=%s", env.Name)
+	foundEnv, _ := lc.GetEnv(env.Name)
+	if foundEnv != nil {
+		return errors.New(fmt.Sprintf("The '%s' env already exists", env.Name))
+	}
 	lc.Envs = append(lc.Envs, env)
 	SaveConfiguration(ctx, lc)
+	logger.Infof("m=AddEnv, status=success, env=%s", env.Name)
+	return nil
+}
+
+func (lc *LocalConfiguration) RemoveEnvByName(ctx context.Context, name string) error {
+	logger := log.GetLogger(ctx)
+	logger.Infof("m=RemoveEnvByName, status=begin, env=%s", name)
+	env, _ := lc.GetEnv(name)
+	if env == nil {
+		return errors.New(fmt.Sprintf("The env '%s' was not found", name))
+	}
+	lc.RemoveEnv(ctx, env)
+	SaveConfiguration(ctx,lc)
+	logger.Infof("m=RemoveEnvByName, status=success, env=%s", name)
+	return nil
 }
 
 func (lc *LocalConfiguration) RemoveEnv(ctx context.Context,index int){
