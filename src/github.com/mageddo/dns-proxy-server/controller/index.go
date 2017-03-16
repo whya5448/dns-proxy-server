@@ -28,7 +28,7 @@ func init(){
 		err := local.GetConfiguration(ctx).AddHostname(ctx, hostname.Env, hostname)
 		if err != nil {
 			logger.Infof("m=/hostname/, status=error, action=create-hostname, err=%+v", err)
-			BadRequest(res, "Env not found")
+			BadRequest(res, err.Error())
 		}
 		logger.Infof("m=/hostname/, status=success, action=create-hostname")
 	})
@@ -43,7 +43,7 @@ func init(){
 		err := local.GetConfiguration(ctx).RemoveHostnameByEnvAndHostname(ctx, hostname.Env, hostname.Hostname)
 		if err != nil {
 			logger.Infof("m=/hostname/, status=error, action=delete-hostname, err=%+v", err)
-			BadRequest(res, "Env not found")
+			BadRequest(res, err.Error())
 		}
 		logger.Infof("m=/hostname/, status=success, action=delete-hostname")
 	})
