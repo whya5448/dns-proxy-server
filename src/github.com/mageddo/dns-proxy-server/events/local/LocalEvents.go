@@ -9,6 +9,7 @@ import (
 	"errors"
 	"golang.org/x/net/context"
 	"time"
+	"fmt"
 )
 
 var confPath string = utils.GetPath("conf/config.json")
@@ -130,6 +131,11 @@ func (lc *LocalConfiguration) AddHostnameToEnv(ctx context.Context, env string, 
 	if foundEnv == nil {
 		return errors.New("env not found")
 	}
+	foundHost, _ := foundEnv.GetHostname(hostname.Hostname)
+	if foundHost != nil {
+		return errors.New(fmt.Sprintf("The host '%s' already exists", hostname.Hostname))
+	}
+
 	(*foundEnv).Hostnames = append(foundEnv.Hostnames, *hostname)
 	logger.Infof("m=AddHostnameToEnv, status=success, foundEnv=%+v, hostnames=%d", foundEnv, len(lc.Envs))
 	return nil
