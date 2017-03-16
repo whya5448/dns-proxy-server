@@ -86,9 +86,9 @@ func SaveConfiguration(ctx context.Context, c *LocalConfiguration) {
 
 }
 
-func GetConfiguration(ctx context.Context) LocalConfiguration {
+func GetConfiguration(ctx context.Context) *LocalConfiguration {
 	LoadConfiguration(ctx)
-	return configuration
+	return &configuration
 }
 
 
@@ -132,14 +132,14 @@ func (lc *LocalConfiguration) AddHostnameToEnv(env string, hostname *HostnameVo)
 	return nil
 }
 
-func (lc *LocalConfiguration) GetActiveEnv() *EnvVo {
+func (lc *LocalConfiguration) GetActiveEnv() (*EnvVo, int) {
 	return lc.GetEnv(lc.ActiveEnv)
 }
 
 func(env *EnvVo) GetHostname(hostname string) (*HostnameVo, int) {
 	for i := range env.Hostnames {
 		host := &env.Hostnames[i]
-		if *host.Hostname == hostname {
+		if (*host).Hostname == hostname {
 			return host, i
 		}
 	}
@@ -179,6 +179,8 @@ func (lc *LocalConfiguration) AddHostname(ctx context.Context, envName string, h
 }
 
 func (lc *LocalConfiguration) RemoveHostnameByEnvAndHostname(ctx context.Context, envName string, hostname string) error {
+	logger := log.GetLogger(ctx)
+	logger.Infof("m=RemoveHostnameByEnvAndHostname, status=begin, envName=%s, hostname=%s", envName, hostname)
 	env, envIndex := lc.GetEnv(envName)
 	if envIndex == -1 {
 		return errors.New("env not found")
@@ -188,14 +190,18 @@ func (lc *LocalConfiguration) RemoveHostnameByEnvAndHostname(ctx context.Context
 		return errors.New("hostname not found")
 	}
 	lc.RemoveHostname(ctx, envIndex, hostIndex)
+	logger.Infof("m=RemoveHostnameByEnvAndHostname, status=success, envName=%s, hostname=%s", envName, hostname)
 	return nil
 }
 
 func (lc *LocalConfiguration) RemoveHostname(ctx context.Context, envIndex int, hostIndex int){
+	logger := log.GetLogger(ctx)
+	logger.Infof("m=RemoveHostname, status=begin, envIndex=%s, hostIndex=%s", envIndex, hostIndex)
 	env := lc.Envs[envIndex];
 	t := append(env.Hostnames[:hostIndex], env.Hostnames[hostIndex+1:]...)
 	env.Hostnames = t
 	SaveConfiguration(ctx, lc)
+	logger.Infof("m=RemoveHostname, status=success, envIndex=%s, hostIndex=%s", envIndex, hostIndex)
 }
 
 func NewEmptyEnv() []EnvVo {

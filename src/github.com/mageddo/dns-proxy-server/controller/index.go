@@ -25,7 +25,7 @@ func init(){
 		var hostname local.HostnameVo
 		json.NewDecoder(req.Body).Decode(&hostname)
 		logger.Infof("m=/hostname/, status=parsed-host, host=%+v", hostname)
-		err := local.AddHostname(ctx, hostname.Env, hostname)
+		err := local.GetConfiguration(ctx).AddHostname(ctx, hostname.Env, hostname)
 		if err != nil {
 			logger.Infof("m=/hostname/, status=error, action=create-hostname, err=%+v", err)
 			BadRequest(res, "Env not found")
@@ -40,7 +40,7 @@ func init(){
 		var hostname local.HostnameVo
 		json.NewDecoder(req.Body).Decode(&hostname)
 		logger.Infof("m=/hostname/, status=parsed-host, action=delete-hostname, host=%+v", hostname)
-		err := local.RemoveHostname(ctx, hostname.Env, hostname)
+		err := local.GetConfiguration(ctx).RemoveHostnameByEnvAndHostname(ctx, hostname.Env, hostname.Hostname)
 		if err != nil {
 			logger.Infof("m=/hostname/, status=error, action=delete-hostname, err=%+v", err)
 			BadRequest(res, "Env not found")

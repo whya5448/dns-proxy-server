@@ -17,13 +17,13 @@ func (LocalDnsSolver) Solve(ctx context.Context, question dns.Question) (*dns.Ms
 
 	key := question.Name[:len(question.Name)-1]
 	conf := local.GetConfiguration(ctx)
-	activeEnv := conf.GetActiveEnv()
+	activeEnv,_ := conf.GetActiveEnv()
 
 	if activeEnv == nil {
 		return nil, errors.New("original env")
 	}
 
-	hostname := activeEnv.GetHostname(key)
+	hostname,_ := activeEnv.GetHostname(key)
 	if  hostname != nil {
 		rr := &dns.A{
 			Hdr: dns.RR_Header{Name: question.Name, Rrtype: dns.TypeA, Class: dns.ClassINET, Ttl: 0},
