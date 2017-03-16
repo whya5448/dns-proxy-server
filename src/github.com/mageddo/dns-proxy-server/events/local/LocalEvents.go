@@ -196,12 +196,11 @@ func (lc *LocalConfiguration) RemoveHostnameByEnvAndHostname(ctx context.Context
 
 func (lc *LocalConfiguration) RemoveHostname(ctx context.Context, envIndex int, hostIndex int){
 	logger := log.GetLogger(ctx)
-	logger.Infof("m=RemoveHostname, status=begin, envIndex=%s, hostIndex=%s", envIndex, hostIndex)
-	env := lc.Envs[envIndex];
-	t := append(env.Hostnames[:hostIndex], env.Hostnames[hostIndex+1:]...)
-	env.Hostnames = t
+	logger.Infof("m=RemoveHostname, status=begin, envIndex=%d, hostIndex=%d", envIndex, hostIndex)
+	env := &lc.Envs[envIndex];
+	(*env).Hostnames = append((*env).Hostnames[:hostIndex], (*env).Hostnames[hostIndex+1:]...)
 	SaveConfiguration(ctx, lc)
-	logger.Infof("m=RemoveHostname, status=success, envIndex=%s, hostIndex=%s", envIndex, hostIndex)
+	logger.Infof("m=RemoveHostname, status=success, envIndex=%d, hostIndex=%d", envIndex, hostIndex)
 }
 
 func NewEmptyEnv() []EnvVo {
