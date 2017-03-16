@@ -12,7 +12,7 @@ import (
 func init(){
 	Get("/env/", func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
 		res.Header().Add("Content-Type", "application/json")
-		utils.GetJsonEncoder(res).Encode(local.GetConfiguration(ctx))
+		utils.GetJsonEncoder(res).Encode(local.GetConfiguration(ctx).Envs)
 	})
 
 	Post("/env/", func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){

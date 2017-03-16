@@ -6,12 +6,20 @@ import (
 	"github.com/mageddo/dns-proxy-server/events/local"
 	"golang.org/x/net/context"
 	"github.com/mageddo/log"
+	"fmt"
 )
 
 func init(){
 	Get("/hostname/", func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
 		res.Header().Add("Content-Type", "application/json")
-		json.NewEncoder(res).Encode(local.GetConfiguration(ctx))
+		c := local.GetConfiguration(ctx)
+		envName := req.URL.Query().Get("env")
+		env, _ := c.GetEnv(envName)
+		if env == nil {
+			BadRequest(res, fmt.Sprintf("Env %s not found", envName))
+			return
+		}
+		json.NewEncoder(res).Encode(env)
 	})
 
 	Post("/hostname/", func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
