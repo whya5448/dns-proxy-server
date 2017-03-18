@@ -191,7 +191,7 @@ angular.module("myApp", ["ngTable"]);
 		configureDefaults.$inject = ["ngTableDefaults"];
 
 		function configureDefaults(ngTableDefaults) {
-				ngTableDefaults.params.count = 5;
+				ngTableDefaults.params.count = 500000;
 				ngTableDefaults.settings.counts = [];
 		}
 })();
