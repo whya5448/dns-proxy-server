@@ -76,15 +76,23 @@ angular.module("myApp", ["ngTable"]);
 				}
 
 				function del(row) {
-						_.remove(originalData, function(item) {
-								return row === item;
-						});
+					console.debug('m=del, hostname=%s', row.hostname)
+					_.remove(originalData, function(item) {
+							return row === item;
+					});
+					$http.delete('/hostname', row).then(function(data) {
+						console.debug('m=del, status=scucess')
 						self.tableParams.reload().then(function(data) {
-								if (data.length === 0 && self.tableParams.total() > 0) {
-										self.tableParams.page(self.tableParams.page() - 1);
-										self.tableParams.reload();
-								}
+							if (data.length === 0 && self.tableParams.total() > 0) {
+									self.tableParams.page(self.tableParams.page() - 1);
+									self.tableParams.reload();
+							}
 						});
+					}, function(err){
+						console.error('m=save, status=error', err);
+
+					});
+
 				}
 
 				function resetRow(row, rowForm){
@@ -99,6 +107,13 @@ angular.module("myApp", ["ngTable"]);
 					console.debug('m=save, hostname=%s', row.hostname)
 					var originalRow = resetRow(row, rowForm);
 					angular.extend(originalRow, row);
+
+					$http.put('/hostname', row).then(function(data) {
+						console.debug('m=save, status=scucess')
+					}, function(err){
+						console.error('m=save, status=error', err);
+					});
+
 				}
 
 				function saveNewLine(line, form){
