@@ -201,13 +201,14 @@ func (lc *LocalConfiguration) RemoveDns(ctx context.Context, index int){
 
 
 func (lc *LocalConfiguration) AddHostname(ctx context.Context, envName string, hostname HostnameVo) error {
-	log.Logger.Infof("m=AddHostname, status=begin, evnName=%s, hostname=%+v", envName, hostname)
+	logger := log.GetLogger(ctx)
+	logger.Infof("status=begin, evnName=%s, hostname=%+v", envName, hostname)
 	err := lc.AddHostnameToEnv(ctx, envName, &hostname)
 	if err != nil {
 		return err
 	}
 	SaveConfiguration(ctx, lc)
-	log.Logger.Infof("m=AddHostname, status=success, configuration=%+v", lc)
+	logger.Infof("status=success")
 	return nil
 }
 

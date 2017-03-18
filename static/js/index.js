@@ -29,6 +29,10 @@ angular.module("myApp", ["ngTable"]);
 				link: function(scope, elm, attrs, ctrl) {
 					ctrl.$validators.ip = function(modelValue, viewValue) {
 
+						if( ctrl.$isEmpty(modelValue)){
+							return true;
+						}
+
 						if (/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(viewValue)) {
 							console.debug('m=ip, status=valid');
 							return true;
@@ -43,8 +47,6 @@ angular.module("myApp", ["ngTable"]);
 
 		function demoController(NgTableParams, $http, $scope) {
 				var self = this;
-
-				var originalData = dataFactory();
 
 				self.tableParams = new NgTableParams({}, {
 						filterDelay: 0,
@@ -97,36 +99,34 @@ angular.module("myApp", ["ngTable"]);
 					angular.extend(originalRow, row);
 				}
 
-				function saveNewLine(line){
+				function saveNewLine(line, form){
+					console.debug('m=saveNewLine, statys=begin, valid=%s', form.$valid)
+					if(!form.$valid){
+						return ;
+					}
+					line = angular.copy(line);
+					console.debug('m=saveNewLine, status=begin, hostname=%o', line);
+					line.ip = line.ip.split('\.').map(n => { return parseInt(n) });
 
-					 $scope.$watch('saveform.$valid', function(valid) {
-					 		console.debug('m=saveNewLine, statys=begin, valid=%s', valid)
-					 		if(!valid){
-					 			return ;
-					 		}
-							line = angular.copy(line);
-							console.debug('m=saveNewLine, status=begin, hostname=%o', line);
-							line.ip = line.ip.split('\.').map(n => { return parseInt(n) });
-
-							$http({
-								method: 'POST', url: '/hostname/',
-								data: line,
-								headers: {
-									'Content-Type': 'application/json'
+					$http({
+						method: 'POST', url: '/hostname/',
+						data: line,
+						headers: {
+							'Content-Type': 'application/json'
+						}
+					}).then(function(data){
+						console.debug('m=saveNewLine, status=success');
+						$scope.line = null;
+						self.tableParams.reload().then(function(data) {
+								if (data.length === 0 && self.tableParams.total() > 0) {
+										self.tableParams.page(self.tableParams.page() - 1);
+										self.tableParams.reload();
 								}
-							}).then(function(data){
-								console.debug('m=saveNewLine, status=success');
-								self.tableParams.reload().then(function(data) {
-										if (data.length === 0 && self.tableParams.total() > 0) {
-												self.tableParams.page(self.tableParams.page() - 1);
-												self.tableParams.reload();
-										}
-								});
-							}, function(err){
-								console.error('m=saveNewLine, status=error', err);
-							});
 						});
-				}
+					}, function(err){
+						console.error('m=saveNewLine, status=error', err);
+					});
+				};
 		}
 })();
 
