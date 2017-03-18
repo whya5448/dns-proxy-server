@@ -50,11 +50,19 @@ angular.module("myApp", ["ngTable"]);
 				var originalData;
 				$scope.activeEnv = "";
 				$scope.envs = [];
+				$scope.envs = [];
 				$http.get('/env').then(function(data) {
 					console.debug('m=getEnvs, length=%d', data.data.length, data.data);
 					$scope.envs = data.data;
 				}, function(err){
 					console.error('m=getData, status=error', err);
+				});
+
+				$http.get('/env/active').then(function(data) {
+					console.debug('m=getActiveEnv', data.data);
+					$scope.activeEnv = data.data.name;
+				}, function(err){
+					console.error('m=getActiveEnv, status=error', err);
 				});
 
 				self.tableParams = new NgTableParams({}, {
@@ -157,6 +165,15 @@ angular.module("myApp", ["ngTable"]);
 						console.error('m=saveNewLine, status=error', err);
 					});
 				};
+
+				$scope.changeEnv = function(activeEnv){
+					console.debug('m=changeEnv, status=begin, activeEnv=%o', activeEnv)
+					$http.put('/env/active', {name: activeEnv}).then(function(data) {
+						console.debug('m=changeEnv, status=scucess')
+					}, function(err){
+						console.error('m=changeEnv, status=error', err);
+					});
+				}
 		}
 })();
 

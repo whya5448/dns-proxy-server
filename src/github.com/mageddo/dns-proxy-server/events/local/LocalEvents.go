@@ -237,6 +237,20 @@ func (lc *LocalConfiguration) RemoveHostname(ctx context.Context, envIndex int, 
 	logger.Infof("m=RemoveHostname, status=success, envIndex=%d, hostIndex=%d", envIndex, hostIndex)
 }
 
+func (lc *LocalConfiguration) SetActiveEnv(ctx context.Context, env EnvVo) error {
+	logger := log.GetLogger(ctx)
+	logger.Infof("m=SetActiveEnv, status=begin, envActive=%s", env.Name)
+	foundEnv, _ := lc.GetEnv(env.Name)
+	if foundEnv == nil {
+		logger.Warningf("m=SetActiveEnv, status=env-not-found, envName=%s", env.Name)
+		return errors.New("Env not found: " + env.Name)
+	}
+	lc.ActiveEnv = env.Name
+	SaveConfiguration(ctx, lc)
+	logger.Infof("m=SetActiveEnv, status=success")
+	return nil
+}
+
 func NewEmptyEnv() []EnvVo {
 	return []EnvVo{{Hostnames:[]HostnameVo{}, Name:""}}
 }

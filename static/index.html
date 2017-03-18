@@ -30,7 +30,7 @@
 				<li class="active"><a href="#">Home</a></li>
 				<li><a href="#about">About</a></li>
 				<li style="margin-top: 8px;">
-					<select ng-model="activeEnv" ng-options="a.name as a.name for a in envs" class="form-control"></select>
+					<select ng-model="activeEnv" ng-change="changeEnv(activeEnv)" ng-options="a.name as a.name for a in envs" class="form-control"></select>
 				</li>
 			</ul>
 		</div><!--/.nav-collapse -->
