@@ -78,16 +78,16 @@
 						<col width="15%" />
 					</colgroup>
 					<tr ng-repeat="row in $data" ng-form="rowForm" demo-tracked-table-row="row">
-						<td title="'Hostname'" filter="{name: 'text'}" sortable="'name'" ng-switch="row.isEditing" ng-class="name.$dirty ? 'bg-warning' : ''" ng-form="name" demo-tracked-table-cell>
-							<span ng-switch-default class="editable-text">{{row.name}}</span>
-							<div class="controls" ng-class="name.$invalid && name.$dirty ? 'has-error' : ''" ng-switch-when="true">
-								<input type="text" name="name" ng-model="row.name" class="editable-input form-control input-sm" required />
+						<td title="'Hostname'" filter="{name: 'text'}" sortable="'hostname'" ng-switch="row.isEditing" ng-class="hostname.$dirty ? 'bg-warning' : ''" ng-form="hostname" demo-tracked-table-cell>
+							<span ng-switch-default class="editable-text">{{row.hostname}}</span>
+							<div class="controls" ng-class="hostname.$invalid && hostname.$dirty ? 'has-error' : ''" ng-switch-when="true">
+								<input type="text" name="hostname" ng-model="row.hostname" class="editable-input form-control input-sm" required />
 							</div>
 						</td>
-						<td title="'IP'" filter="{ip: 'number'}" sortable="'ip'" ng-switch="row.isEditing" ng-class="ip.$dirty ? 'bg-warning' : ''" ng-form="ip" demo-tracked-table-cell>
-							<span ng-switch-default class="editable-text">{{row.ip}}</span>
+						<td title="'IP'" filter="{ip: 'text'}" sortable="'ip'"  ng-switch="row.isEditing" ng-class="ip.$dirty ? 'bg-warning' : ''" ng-form="ip" demo-tracked-table-cell>
+							<span ng-switch-default class="editable-text">{{row.ip | ipArray }}</span>
 							<div class="controls" ng-class="ip.$invalid && ip.$dirty ? 'has-error' : ''" ng-switch-when="true">
-								<input type="number" name="ip" ng-model="row.ip" class="editable-input form-control input-sm" required/>
+								<input type="text" array-to-string name="ip" ng-model="row.ip" class="editable-input form-control input-sm" required/>
 							</div>
 						</td>
 						<td title="'TTL'" filter="{ttl: 'number'}" sortable="'ttl'" ng-switch="row.isEditing" ng-class="ttl.$dirty ? 'bg-warning' : ''" ng-form="ttl" demo-tracked-table-cell>

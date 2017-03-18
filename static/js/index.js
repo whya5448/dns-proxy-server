@@ -2,8 +2,27 @@ angular.module("myApp", ["ngTable"]);
 
 (function() {
 		"use strict";
-
-		angular.module("myApp").controller("demoController", ["NgTableParams", "$http", demoController]);
+		
+		angular.module('myApp')
+		.filter('ipArray', function($filter) {
+			return (ipArray, errorMessage) => {
+				return ipArray.join('.');
+			}
+		})
+		.controller("demoController", ["NgTableParams", "$http", demoController])
+		.directive('arrayToString', function() {
+			return {
+				require: 'ngModel',
+				link: function(scope, element, attrs, ngModel) {
+					ngModel.$parsers.push(function(value) {
+						return value.split('\\.');
+					});
+					ngModel.$formatters.push(function(value) {
+						return value.join('.');
+					});
+				}
+			};
+		});;
 
 		function demoController(NgTableParams, $http) {
 				var self = this;
@@ -18,7 +37,8 @@ angular.module("myApp", ["ngTable"]);
 							// ajax request to api
 							return $http.get('/hostname').then(function(data) {
 								params.total(data.inlineCount); // recal. page nav controls
-								return data.results;
+								console.debug('loaded data', data);
+								return data.data.hostnames;
 							}, function(err){
 								console.debug('err', err);
 							});
