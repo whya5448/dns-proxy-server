@@ -86,11 +86,15 @@ angular.module("myApp", ["ngTable"]);
 
 				function del(row) {
 					console.debug('m=del, hostname=%s', row.hostname)
-					_.remove(originalData, function(item) {
-							return row === item;
-					});
-					$http.delete('/hostname', {env: $scope.activeEnv, hostname: row.hostname}).then(function(data) {
+					$http({
+						url: '/hostname',
+						method: 'DELETE',
+						data: {env: $scope.activeEnv, hostname: row.hostname}
+					}).then(function(data) {
 						console.debug('m=del, status=scucess')
+						_.remove(originalData, function(item) {
+								return row === item;
+						});
 						self.tableParams.reload().then(function(data) {
 							if (data.length === 0 && self.tableParams.total() > 0) {
 									self.tableParams.page(self.tableParams.page() - 1);
