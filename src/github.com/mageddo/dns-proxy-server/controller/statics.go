@@ -4,13 +4,15 @@ import (
 	"net/http"
 	"github.com/mageddo/dns-proxy-server/utils"
 	"github.com/mageddo/log"
-	"golang.org/x/net/context"
 )
 
 func init(){
-	Get("/static/", func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
+
+	http.HandleFunc("/static/", func(res http.ResponseWriter, req *http.Request){
+		logger := log.GetLogger(log.GetContext())
+
 		staticPath := utils.GetPath("/")
-		log.Logger.Infof("path=%v", staticPath)
+		logger.Infof("urlPath=%s", req.URL.Path)
 		hd := http.FileServer(http.Dir(staticPath))
 		hd.ServeHTTP(res, req)
 	})
