@@ -51,14 +51,15 @@ angular.module("myApp", ["ngTable"]);
 				self.tableParams = new NgTableParams({}, {
 						filterDelay: 0,
 						getData: function(params) {
-							console.debug('loading data');
-							// ajax request to api
 							return $http.get('/hostname').then(function(data) {
-								params.total(data.inlineCount); // recal. page nav controls
-								console.debug('loaded data', data);
+								params.total(data.data.hostnames.length); // recal. page nav controls
+								console.debug('m=getData, length=%d', data.data.hostnames.length, data.data.hostnames);
+								for(var i=0; i < data.data.hostnames.length; i++){
+									data.data.hostnames[i].id = Math.ceil(Math.random() * new Date().getTime());
+								}
 								return data.data.hostnames;
 							}, function(err){
-								console.debug('err', err);
+								console.error('m=getData, status=error', err);
 							});
 						}
 				});
