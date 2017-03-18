@@ -137,7 +137,7 @@ func (lc *LocalConfiguration) AddHostnameToEnv(ctx context.Context, env string, 
 	}
 
 	(*foundEnv).Hostnames = append(foundEnv.Hostnames, *hostname)
-	logger.Infof("m=AddHostnameToEnv, status=success, foundEnv=%+v, hostnames=%d", foundEnv, len(lc.Envs))
+	logger.Infof("status=success, foundEnv=%s, hostnames=%d", foundEnv.Name, len(lc.Envs))
 	return nil
 }
 

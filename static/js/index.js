@@ -9,7 +9,7 @@ angular.module("myApp", ["ngTable"]);
 				return ipArray.join('.');
 			}
 		})
-		.controller("demoController", ["NgTableParams", "$http", demoController])
+		.controller("demoController", ["NgTableParams", "$http", "$scope", demoController])
 		.directive('arrayToString', function() {
 			return {
 				require: 'ngModel',
@@ -21,17 +21,33 @@ angular.module("myApp", ["ngTable"]);
 						return value.join('.');
 					});
 				}
-			};
-		});;
+			}
+		})
+		.directive('ip', function() {
+			return {
+				require: 'ngModel',
+				link: function(scope, elm, attrs, ctrl) {
+					ctrl.$validators.ip = function(modelValue, viewValue) {
 
-		function demoController(NgTableParams, $http) {
+						if (/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(viewValue)) {
+							console.debug('m=ip, status=valid');
+							return true;
+						}
+
+						console.debug('m=ip, status=INvalid');
+						return false;
+					}
+				}
+			}
+		});
+
+		function demoController(NgTableParams, $http, $scope) {
 				var self = this;
 
 				var originalData = dataFactory();
 
 				self.tableParams = new NgTableParams({}, {
 						filterDelay: 0,
-//						dataset: angular.copy(originalData),
 						getData: function(params) {
 							console.debug('loading data');
 							// ajax request to api
@@ -49,9 +65,6 @@ angular.module("myApp", ["ngTable"]);
 				self.del = del;
 				self.save = save;
 				self.saveNewLine = saveNewLine;
-
-				//////////
-
 
 				function cancel(row, rowForm) {
 						var originalRow = resetRow(row, rowForm);
@@ -73,34 +86,45 @@ angular.module("myApp", ["ngTable"]);
 				function resetRow(row, rowForm){
 						row.isEditing = false;
 						rowForm.$setPristine();
-						//self.tableTracker.untrack(row);
 						return _.findWhere(originalData, function(r){
 								return r.id === row.id;
 						});
 				}
 
 				function save(row, rowForm) {
-						var originalRow = resetRow(row, rowForm);
-						angular.extend(originalRow, row);
+					console.debug('m=save, hostname=%s', row.hostname)
+					var originalRow = resetRow(row, rowForm);
+					angular.extend(originalRow, row);
 				}
 
 				function saveNewLine(line){
-						line = angular.copy(line);
 
-						$http({method: 'POST', url: '/hostname/new/', data: line, headers: {'Content-Type': 'application/json'}}).then(function(data){
-							console.debug('success', data);
-						}, function(err){
-							console.debug('err', err);
-						});
+					 $scope.$watch('saveform.$valid', function(valid) {
+					 		console.debug('m=saveNewLine, statys=begin, valid=%s', valid)
+					 		if(!valid){
+					 			return ;
+					 		}
+							line = angular.copy(line);
+							console.debug('m=saveNewLine, status=begin, hostname=%o', line);
+							line.ip = line.ip.split('\.').map(n => { return parseInt(n) });
 
-						line.id = new Date().getTime();
-						console.debug('m=saveNewLine, line=%o', line, self.tableParams, self.tableParams.settings());
-//						self.tableParams.settings().dataset.push(line);
-						self.tableParams.reload().then(function(data) {
-								if (data.length === 0 && self.tableParams.total() > 0) {
-										self.tableParams.page(self.tableParams.page() - 1);
-										self.tableParams.reload();
+							$http({
+								method: 'POST', url: '/hostname/',
+								data: line,
+								headers: {
+									'Content-Type': 'application/json'
 								}
+							}).then(function(data){
+								console.debug('m=saveNewLine, status=success');
+								self.tableParams.reload().then(function(data) {
+										if (data.length === 0 && self.tableParams.total() > 0) {
+												self.tableParams.page(self.tableParams.page() - 1);
+												self.tableParams.reload();
+										}
+								});
+							}, function(err){
+								console.error('m=saveNewLine, status=error', err);
+							});
 						});
 				}
 		}
@@ -119,9 +143,3 @@ angular.module("myApp", ["ngTable"]);
 				ngTableDefaults.settings.counts = [];
 		}
 })();
-
-
-
-function  dataFactory() {
-		return [{"id":1,"name":"Nissim","age":41,"money":454},{"id":2,"name":"Mariko","age":10,"money":-100},{"id":3,"name":"Mark","age":39,"money":291},{"id":4,"name":"Allen","age":85,"money":871},{"id":5,"name":"Dustin","age":10,"money":378},{"id":6,"name":"Macon","age":9,"money":128},{"id":7,"name":"Ezra","age":78,"money":11},{"id":8,"name":"Fiona","age":87,"money":285},{"id":9,"name":"Ira","age":7,"money":816},{"id":10,"name":"Barbara","age":46,"money":44},{"id":11,"name":"Lydia","age":56,"money":494},{"id":12,"name":"Carlos","age":80,"money":193}];
-}
