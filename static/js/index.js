@@ -9,6 +9,11 @@ angular.module("myApp", ["ngTable"]);
 				return ipArray.join('.');
 			}
 		})
+		.filter('envFormatter', function($filter) {
+			return (env, errorMessage) => {
+				return env ? env : 'Default';
+			}
+		})
 		.controller("demoController", ["NgTableParams", "$http", "$scope", demoController])
 		.directive('arrayToString', function() {
 			return {
@@ -50,6 +55,7 @@ angular.module("myApp", ["ngTable"]);
 				var originalData;
 				$scope.activeEnv = "";
 				$scope.envs = [];
+				$scope.envs = [];
 				$http.get('/env').then(function(data) {
 					console.debug('m=getEnvs, length=%d', data.data.length, data.data);
 					$scope.envs = data.data;
@@ -57,10 +63,18 @@ angular.module("myApp", ["ngTable"]);
 					console.error('m=getData, status=error', err);
 				});
 
+				$http.get('/env/active').then(function(data) {
+					console.debug('m=getActiveEnv', data.data);
+					$scope.activeEnv = data.data.name;
+					reloadTable();
+				}, function(err){
+					console.error('m=getActiveEnv, status=error', err);
+				});
+
 				self.tableParams = new NgTableParams({}, {
 						filterDelay: 0,
 						getData: function(params) {
-							return $http.get('/hostname').then(function(data) {
+							return $http.get('/hostname/?env=' + $scope.activeEnv).then(function(data) {
 								params.total(data.data.hostnames.length); // recal. page nav controls
 								console.debug('m=getData, length=%d', data.data.hostnames.length, data.data.hostnames);
 								for(var i=0; i < data.data.hostnames.length; i++){
@@ -95,12 +109,7 @@ angular.module("myApp", ["ngTable"]);
 						_.remove(originalData, function(item) {
 								return row === item;
 						});
-						self.tableParams.reload().then(function(data) {
-							if (data.length === 0 && self.tableParams.total() > 0) {
-									self.tableParams.page(self.tableParams.page() - 1);
-									self.tableParams.reload();
-							}
-						});
+						reloadTable();
 					}, function(err){
 						console.error('m=save, status=error', err);
 
@@ -118,11 +127,10 @@ angular.module("myApp", ["ngTable"]);
 
 				function save(row, rowForm) {
 					console.debug('m=save, hostname=%s', row.hostname)
-					var originalRow = resetRow(row, rowForm);
-					angular.extend(originalRow, row);
-
 					$http.put('/hostname', {env: $scope.activeEnv, hostname: row.hostname, ip: row.ip, ttl: ip.ttl}).then(function(data) {
 						console.debug('m=save, status=scucess')
+						var originalRow = resetRow(row, rowForm);
+						angular.extend(originalRow, row);
 					}, function(err){
 						console.error('m=save, status=error', err);
 					});
@@ -147,16 +155,30 @@ angular.module("myApp", ["ngTable"]);
 					}).then(function(data){
 						console.debug('m=saveNewLine, status=success');
 						$scope.line = null;
-						self.tableParams.reload().then(function(data) {
-								if (data.length === 0 && self.tableParams.total() > 0) {
-										self.tableParams.page(self.tableParams.page() - 1);
-										self.tableParams.reload();
-								}
-						});
+						reloadTable();
 					}, function(err){
 						console.error('m=saveNewLine, status=error', err);
 					});
 				};
+
+				$scope.changeEnv = function(activeEnv){
+					console.debug('m=changeEnv, status=begin, activeEnv=%o', activeEnv)
+					$http.put('/env/active', {name: activeEnv}).then(function(data) {
+						console.debug('m=changeEnv, status=scucess')
+						reloadTable();
+					}, function(err){
+						console.error('m=changeEnv, status=error', err);
+					});
+				}
+
+				function reloadTable(){
+					self.tableParams.reload().then(function(data) {
+						if (data.length === 0 && self.tableParams.total() > 0) {
+								self.tableParams.page(self.tableParams.page() - 1);
+								self.tableParams.reload();
+						}
+					});
+				}
 		}
 })();
 

@@ -33,6 +33,7 @@ func init(){
 		if err != nil {
 			logger.Infof("m=/hostname/, status=error, action=create-hostname, err=%+v", err)
 			BadRequest(res, err.Error())
+			return
 		}
 		logger.Infof("m=/hostname/, status=success, action=create-hostname")
 	})
@@ -48,6 +49,7 @@ func init(){
 		if err != nil {
 			logger.Infof("m=/hostname/, status=error, action=delete-hostname, err=%+v", err)
 			BadRequest(res, err.Error())
+			return
 		}
 		logger.Infof("m=/hostname/, status=success, action=delete-hostname")
 	})
