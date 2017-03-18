@@ -48,6 +48,15 @@ angular.module("myApp", ["ngTable"]);
 		function demoController(NgTableParams, $http, $scope) {
 				var self = this;
 				var originalData;
+				$scope.activeEnv = "";
+				$scope.envs = [];
+				$http.get('/env').then(function(data) {
+					console.debug('m=getEnvs, length=%d', data.data.length, data.data);
+					$scope.envs = data.data;
+				}, function(err){
+					console.error('m=getData, status=error', err);
+				});
+
 				self.tableParams = new NgTableParams({}, {
 						filterDelay: 0,
 						getData: function(params) {
@@ -80,7 +89,7 @@ angular.module("myApp", ["ngTable"]);
 					_.remove(originalData, function(item) {
 							return row === item;
 					});
-					$http.delete('/hostname', row).then(function(data) {
+					$http.delete('/hostname', {env: $scope.activeEnv, hostname: row.hostname}).then(function(data) {
 						console.debug('m=del, status=scucess')
 						self.tableParams.reload().then(function(data) {
 							if (data.length === 0 && self.tableParams.total() > 0) {
@@ -108,7 +117,7 @@ angular.module("myApp", ["ngTable"]);
 					var originalRow = resetRow(row, rowForm);
 					angular.extend(originalRow, row);
 
-					$http.put('/hostname', row).then(function(data) {
+					$http.put('/hostname', {env: $scope.activeEnv, hostname: row.hostname, ip: row.ip, ttl: ip.ttl}).then(function(data) {
 						console.debug('m=save, status=scucess')
 					}, function(err){
 						console.error('m=save, status=error', err);
@@ -127,7 +136,7 @@ angular.module("myApp", ["ngTable"]);
 
 					$http({
 						method: 'POST', url: '/hostname/',
-						data: line,
+						data: {env: $scope.activeEnv, hostname: line.hostname, ip: line.ip, ttl: ip.ttl},
 						headers: {
 							'Content-Type': 'application/json'
 						}

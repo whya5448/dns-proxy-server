@@ -12,7 +12,7 @@
 	<script src="/static/js/ng-table.min.js"></script>
 	<script src="/static/js/index.js"></script>
 </head>
-<body >
+<body ng-app="myApp" ng-controller="demoController as demo" >
 <nav class="navbar navbar-inverse navbar-fixed-top">
 	<div class="container">
 		<div class="navbar-header">
@@ -29,17 +29,21 @@
 			<ul class="nav navbar-nav">
 				<li class="active"><a href="#">Home</a></li>
 				<li><a href="#about">About</a></li>
-				<li><a href="#contact">Contact</a></li>
+				<li style="margin-top: 8px;">
+					<select ng-model="activeEnv" ng-options="a.name as a.name for a in envs" class="form-control"></select>
+				</li>
 			</ul>
 		</div><!--/.nav-collapse -->
 	</div>
 </nav>
 
 <div class="container">
-	<div ng-app="myApp" class="container-fluid">
+	<div  class="container-fluid">
 		<div class="container">
-			<div ng-controller="demoController as demo">
+			<div>
 				<h3>ngTable directive</h3>
+
+
 				<form ng-submit="demo.saveNewLine(line, saveform)" name="saveform" ng-model-options="{ updateOn: 'submit' }" novalidate>
 					<table class="table table-bordered table-hover table-condensed " >
 						<colgroup>
