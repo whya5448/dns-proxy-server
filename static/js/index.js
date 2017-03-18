@@ -47,7 +47,7 @@ angular.module("myApp", ["ngTable"]);
 
 		function demoController(NgTableParams, $http, $scope) {
 				var self = this;
-
+				var originalData;
 				self.tableParams = new NgTableParams({}, {
 						filterDelay: 0,
 						getData: function(params) {
@@ -57,6 +57,7 @@ angular.module("myApp", ["ngTable"]);
 								for(var i=0; i < data.data.hostnames.length; i++){
 									data.data.hostnames[i].id = Math.ceil(Math.random() * new Date().getTime());
 								}
+								originalData = data.data.hostnames;
 								return data.data.hostnames;
 							}, function(err){
 								console.error('m=getData, status=error', err);
@@ -75,7 +76,7 @@ angular.module("myApp", ["ngTable"]);
 				}
 
 				function del(row) {
-						_.remove(self.tableParams.settings().dataset, function(item) {
+						_.remove(originalData, function(item) {
 								return row === item;
 						});
 						self.tableParams.reload().then(function(data) {
