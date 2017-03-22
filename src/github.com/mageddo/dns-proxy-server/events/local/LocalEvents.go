@@ -42,6 +42,18 @@ func LoadConfiguration(ctx context.Context){
 
 		dec := json.NewDecoder(f)
 		dec.Decode(&configuration)
+
+		for i := range configuration.Envs {
+			env := &configuration.Envs[i]
+			for j := range env.Hostnames {
+				host := &env.Hostnames[j]
+				if host.Id <= 0 {
+					logger.Infof("status=without-id, hostname=%s, id=%d", host.Hostname, host.Id)
+					host.Id = time.Now().UnixNano()
+				}
+			}
+		}
+
 		SaveConfiguration(ctx, &configuration)
 		logger.Info("status=success")
 	}else{
@@ -106,6 +118,7 @@ type EnvVo struct {
 }
 
 type HostnameVo struct {
+	Id int64 `json:"id"`
 	Hostname string `json:"hostname"`
 	Ip [4]byte `json:"ip"`
 	Ttl int `json:"ttl"`
@@ -149,6 +162,16 @@ func(env *EnvVo) GetHostname(hostname string) (*HostnameVo, int) {
 	for i := range env.Hostnames {
 		host := &env.Hostnames[i]
 		if (*host).Hostname == hostname {
+			return host, i
+		}
+	}
+	return nil, -1
+}
+
+func(env *EnvVo) GetHostnameById(id int64) (*HostnameVo, int) {
+	for i := range env.Hostnames {
+		host := &env.Hostnames[i]
+		if (*host).Id == id {
 			return host, i
 		}
 	}
@@ -202,11 +225,33 @@ func (lc *LocalConfiguration) RemoveDns(ctx context.Context, index int){
 
 func (lc *LocalConfiguration) AddHostname(ctx context.Context, envName string, hostname HostnameVo) error {
 	logger := log.GetLogger(ctx)
+	hostname.Id = time.Now().UnixNano()
 	logger.Infof("status=begin, evnName=%s, hostname=%+v", envName, hostname)
 	err := lc.AddHostnameToEnv(ctx, envName, &hostname)
 	if err != nil {
 		return err
 	}
+	SaveConfiguration(ctx, lc)
+	logger.Infof("status=success")
+	return nil
+}
+
+func (lc *LocalConfiguration) UpdateHostname(ctx context.Context, envName string, hostname HostnameVo) error {
+	logger := log.GetLogger(ctx)
+	logger.Infof("status=begin, evnName=%s, hostname=%+v", envName, hostname)
+	env, _ := lc.GetEnv(envName)
+	if(env == nil){
+		return errors.New("env not found")
+	}
+	foundHostName, _ := env.GetHostnameById(hostname.Id)
+	if foundHostName == nil {
+		return errors.New("not hostname found")
+	}
+
+	foundHostName.Ip = hostname.Ip;
+	foundHostName.Ttl = hostname.Ttl;
+	foundHostName.Hostname = hostname.Hostname;
+
 	SaveConfiguration(ctx, lc)
 	logger.Infof("status=success")
 	return nil

@@ -38,6 +38,22 @@ func init(){
 		logger.Infof("m=/hostname/, status=success, action=create-hostname")
 	})
 
+	Put("/hostname/", func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
+		logger := log.GetLogger(ctx)
+		res.Header().Add("Content-Type", "application/json")
+		logger.Infof("m=/hostname/, status=begin, action=update-hostname")
+		var hostname local.HostnameVo
+		json.NewDecoder(req.Body).Decode(&hostname)
+		logger.Infof("m=/hostname/, status=parsed-host, host=%+v", hostname)
+		err := local.GetConfiguration(ctx).AddHostname(ctx, hostname.Env, hostname)
+		if err != nil {
+			logger.Infof("m=/hostname/, status=error, action=update-hostname, err=%+v", err)
+			BadRequest(res, err.Error())
+			return
+		}
+		logger.Infof("m=/hostname/, status=success, action=update-hostname")
+	})
+
 	Delete("/hostname/", func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
 		logger := log.GetLogger(ctx)
 		res.Header().Add("Content-Type", "application/json")
