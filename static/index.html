@@ -82,30 +82,30 @@
 						<col width="10%" />
 						<col width="15%" />
 					</colgroup>
-					<tr ng-repeat="row in $data" ng-form="rowForm" demo-tracked-table-row="row">
-						<td title="'Hostname'" ng-switch="row.isEditing" ng-class="hostname.$dirty ? 'bg-warning' : ''" ng-form="hostname" demo-tracked-table-cell>
-							<span ng-switch-default class="editable-text">{{row.hostname}}</span>
+					<tr ng-repeat="rowLine in $data" ng-form="rowForm" >
+						<td title="'Hostname'" ng-switch="rowLine.isEditing" ng-class="hostname.$dirty ? 'bg-warning' : ''" ng-form="hostname" demo-tracked-table-cell>
+							<span ng-switch-default class="editable-text">{{rowLine.hostname}}</span>
 							<div class="controls" ng-class="hostname.$invalid && hostname.$dirty ? 'has-error' : ''" ng-switch-when="true">
-								<input type="text" name="hostname" ng-model="row.hostname" class="editable-input form-control input-sm" required />
+								<input type="text" name="hostname" ng-model="rowLine.hostname" class="editable-input form-control input-sm" required />
 							</div>
 						</td>
-						<td title="'IP'" ng-switch="row.isEditing" ng-class="ip.$dirty ? 'bg-warning' : ''" ng-form="ip" demo-tracked-table-cell>
-							<span ng-switch-default class="editable-text">{{row.ip | ipArray }}</span>
+						<td title="'IP'" ng-switch="rowLine.isEditing" ng-class="ip.$dirty ? 'bg-warning' : ''" ng-form="ip" demo-tracked-table-cell>
+							<span ng-switch-default class="editable-text">{{rowLine.ip | ipArray }}</span>
 							<div class="controls" ng-class="ip.$invalid && ip.$dirty ? 'has-error' : ''" ng-switch-when="true">
-								<input type="text" array-to-string name="ip" ng-model="row.ip" class="editable-input form-control input-sm" required/>
+								<input type="text" array-to-string name="ip" ng-model="rowLine.ip" class="editable-input form-control input-sm" required/>
 							</div>
 						</td>
-						<td title="'TTL'"  ng-switch="row.isEditing" ng-class="ttl.$dirty ? 'bg-warning' : ''" ng-form="ttl" demo-tracked-table-cell>
-							<span ng-switch-default class="editable-text">{{row.ttl}}</span>
+						<td title="'TTL'"  ng-switch="rowLine.isEditing" ng-class="ttl.$dirty ? 'bg-warning' : ''" ng-form="ttl" demo-tracked-table-cell>
+							<span ng-switch-default class="editable-text">{{rowLine.ttl}}</span>
 							<div class="controls" ng-class="ttl.$invalid && ttl.$dirty ? 'has-error' : ''" ng-switch-when="true">
-								<input type="number" name="ttl" ng-model="row.ttl" class="editable-input form-control input-sm" required/>
+								<input type="number" name="ttl" ng-model="rowLine.ttl" class="editable-input form-control input-sm" required/>
 							</div>
 						</td>
 						<td>
-							<button class="btn btn-primary btn-sm" ng-click="demo.save(row, rowForm)" ng-if="row.isEditing" ng-disabled="rowForm.$pristine || rowForm.$invalid"><span class="glyphicon glyphicon-ok"></span></button>
-							<button class="btn btn-default btn-sm" ng-click="demo.cancel(row, rowForm)" ng-if="row.isEditing"><span class="glyphicon glyphicon-remove"></span></button>
-							<button class="btn btn-default btn-sm" ng-click="row.isEditing = true" ng-if="!row.isEditing"><span class="glyphicon glyphicon-pencil"></span></button>
-							<button class="btn btn-danger btn-sm" ng-click="demo.del(row)" ng-if="!row.isEditing"><span class="glyphicon glyphicon-trash"></span></button>
+							<button class="btn btn-primary btn-sm" ng-click="demo.save(rowLine, rowForm)" ng-if="rowLine.isEditing" ng-disabled="rowForm.$pristine || rowForm.$invalid"><span class="glyphicon glyphicon-ok"></span></button>
+							<button class="btn btn-default btn-sm" ng-click="demo.cancel(rowLine, rowForm)" ng-if="rowLine.isEditing"><span class="glyphicon glyphicon-remove"></span></button>
+							<button class="btn btn-default btn-sm" ng-click="demo.requestEdit(rowLine)" ng-if="!rowLine.isEditing"><span class="glyphicon glyphicon-pencil"></span></button>
+							<button class="btn btn-danger btn-sm" ng-click="demo.del(rowLine)" ng-if="!rowLine.isEditing"><span class="glyphicon glyphicon-trash"></span></button>
 						</td>
 					</tr>
 				</table>

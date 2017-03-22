@@ -77,9 +77,6 @@ angular.module("myApp", ["ngTable"]);
 							return $http.get('/hostname/?env=' + $scope.activeEnv).then(function(data) {
 								params.total(data.data.hostnames.length); // recal. page nav controls
 								console.debug('m=getData, length=%d', data.data.hostnames.length, data.data.hostnames);
-								for(var i=0; i < data.data.hostnames.length; i++){
-									data.data.hostnames[i].id = Math.ceil(Math.random() * new Date().getTime());
-								}
 								originalData = data.data.hostnames;
 								return data.data.hostnames;
 							}, function(err){
@@ -92,10 +89,18 @@ angular.module("myApp", ["ngTable"]);
 				self.del = del;
 				self.save = save;
 				self.saveNewLine = saveNewLine;
+				self.requestEdit = requestEdit;
 
 				function cancel(row, rowForm) {
-						var originalRow = resetRow(row, rowForm);
-						angular.extend(row, originalRow);
+					console.debug('m=cancel, status=begin, row=%o', row);
+					var originalRow = resetRow(row, rowForm);
+					console.debug('m=cancel, status=success, foundRow=%o', originalRow);
+//					angular.extend(row, originalRow);
+				}
+
+				function requestEdit(row){
+					console.debug('m=requestEdit, status=begin, row=%o', row);
+					row.isEditing = true;
 				}
 
 				function del(row) {
@@ -107,7 +112,7 @@ angular.module("myApp", ["ngTable"]);
 					}).then(function(data) {
 						console.debug('m=del, status=scucess')
 						_.remove(originalData, function(item) {
-								return row === item;
+								return row.hostname === item.hostname;
 						});
 						reloadTable();
 					}, function(err){
@@ -121,7 +126,7 @@ angular.module("myApp", ["ngTable"]);
 						row.isEditing = false;
 						rowForm.$setPristine();
 						return _.findWhere(originalData, function(r){
-								return r.id === row.id;
+								return r.hostname === row.hostname;
 						});
 				}
 
