@@ -20,7 +20,7 @@ angular.module("myApp", ["ngTable"]);
 				require: 'ngModel',
 				link: function(scope, element, attrs, ngModel) {
 					ngModel.$parsers.push(function(value) {
-						return value.split('\\.');
+						return value.split('\.').map(ip => {return parseInt(ip);});
 					});
 					ngModel.$formatters.push(function(value) {
 						return value.join('.');
@@ -123,16 +123,17 @@ angular.module("myApp", ["ngTable"]);
 				}
 
 				function resetRow(row, rowForm){
-						row.isEditing = false;
-						rowForm.$setPristine();
-						return _.findWhere(originalData, function(r){
-								return r.id === row.id;
-						});
+					row.isEditing = false;
+					rowForm.$setPristine();
+					console.debug('m=originalData, status=begin, originalData=%o', originalData);
+					return _.find(originalData, function(r){
+						return r.id === row.id;
+					});
 				}
 
 				function save(row, rowForm) {
-					console.debug('m=save, hostname=%s', row.hostname)
-					$http.put('/hostname', {env: $scope.activeEnv, hostname: row.hostname, ip: row.ip, ttl: ip.ttl}).then(function(data) {
+					console.debug('m=save, hostname=%o', row)
+					$http.put('/hostname', {id: row.id, env: $scope.activeEnv, hostname: row.hostname, ip: row.ip, ttl: row.ttl}).then(function(data) {
 						console.debug('m=save, status=scucess')
 						var originalRow = resetRow(row, rowForm);
 						angular.extend(originalRow, row);
@@ -153,7 +154,7 @@ angular.module("myApp", ["ngTable"]);
 
 					$http({
 						method: 'POST', url: '/hostname/',
-						data: {env: $scope.activeEnv, hostname: line.hostname, ip: line.ip, ttl: ip.ttl},
+						data: {env: $scope.activeEnv, hostname: line.hostname, ip: line.ip, ttl: line.ttl},
 						headers: {
 							'Content-Type': 'application/json'
 						}

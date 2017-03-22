@@ -49,7 +49,7 @@ func LoadConfiguration(ctx context.Context){
 				host := &env.Hostnames[j]
 				if host.Id <= 0 {
 					logger.Infof("status=without-id, hostname=%s, id=%d", host.Hostname, host.Id)
-					host.Id = time.Now().UnixNano()
+					host.Id = configuration.nextId()
 				}
 			}
 		}
@@ -110,6 +110,7 @@ type LocalConfiguration struct {
 	RemoteDnsServers [][4]byte `json:"remoteDnsServers"`
 	Envs []EnvVo `json:"envs"`
 	ActiveEnv string `json:"activeEnv"`
+	LastId int `json:"lastId"`
 }
 
 type EnvVo struct {
@@ -118,7 +119,7 @@ type EnvVo struct {
 }
 
 type HostnameVo struct {
-	Id int64 `json:"id"`
+	Id int `json:"id"`
 	Hostname string `json:"hostname"`
 	Ip [4]byte `json:"ip"`
 	Ttl int `json:"ttl"`
@@ -168,7 +169,7 @@ func(env *EnvVo) GetHostname(hostname string) (*HostnameVo, int) {
 	return nil, -1
 }
 
-func(env *EnvVo) GetHostnameById(id int64) (*HostnameVo, int) {
+func(env *EnvVo) GetHostnameById(id int) (*HostnameVo, int) {
 	for i := range env.Hostnames {
 		host := &env.Hostnames[i]
 		if (*host).Id == id {
@@ -225,7 +226,7 @@ func (lc *LocalConfiguration) RemoveDns(ctx context.Context, index int){
 
 func (lc *LocalConfiguration) AddHostname(ctx context.Context, envName string, hostname HostnameVo) error {
 	logger := log.GetLogger(ctx)
-	hostname.Id = time.Now().UnixNano()
+	hostname.Id = lc.nextId()
 	logger.Infof("status=begin, evnName=%s, hostname=%+v", envName, hostname)
 	err := lc.AddHostnameToEnv(ctx, envName, &hostname)
 	if err != nil {
@@ -234,6 +235,11 @@ func (lc *LocalConfiguration) AddHostname(ctx context.Context, envName string, h
 	SaveConfiguration(ctx, lc)
 	logger.Infof("status=success")
 	return nil
+}
+
+func (lc *LocalConfiguration) nextId() int {
+	lc.LastId++;
+	return lc.LastId;
 }
 
 func (lc *LocalConfiguration) UpdateHostname(ctx context.Context, envName string, hostname HostnameVo) error {

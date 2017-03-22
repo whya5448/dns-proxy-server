@@ -5,6 +5,7 @@ import (
 	"os"
 	"encoding/json"
 	"io"
+	"time"
 )
 
 var QTypeCodes = map[uint16] string {
@@ -163,4 +164,8 @@ func GetJsonEncoder(w io.Writer) *json.Encoder {
 	decoder := json.NewEncoder(w)
 	decoder.SetIndent("", "\t")
 	return decoder
+}
+
+func GetUUID() int64 {
+	return time.Now().UnixNano()
 }

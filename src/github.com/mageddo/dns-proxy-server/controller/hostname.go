@@ -45,7 +45,7 @@ func init(){
 		var hostname local.HostnameVo
 		json.NewDecoder(req.Body).Decode(&hostname)
 		logger.Infof("m=/hostname/, status=parsed-host, host=%+v", hostname)
-		err := local.GetConfiguration(ctx).AddHostname(ctx, hostname.Env, hostname)
+		err := local.GetConfiguration(ctx).UpdateHostname(ctx, hostname.Env, hostname)
 		if err != nil {
 			logger.Infof("m=/hostname/, status=error, action=update-hostname, err=%+v", err)
 			BadRequest(res, err.Error())
