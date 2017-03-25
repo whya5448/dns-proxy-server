@@ -105,6 +105,10 @@ func serve(net, name, secret string) {
 }
 
 func main() {
+
+	context := log.GetContext()
+	logger := log.GetLogger(context)
+
 	var name, secret string
 	flag.Usage = func() {
 		flag.PrintDefaults()
@@ -117,7 +121,7 @@ func main() {
 	if *cpuprofile != "" {
 		f, err := os.Create(*cpuprofile)
 		if err != nil {
-			log.Logger.Fatal(err)
+			logger.Fatal(err)
 		}
 		pprof.StartCPUProfile(f)
 		defer pprof.StopCPUProfile()
@@ -125,14 +129,23 @@ func main() {
 
 	dns.HandleFunc(".", handleQuestion)
 
-	local.GetConfiguration(log.GetContext())
+	local.GetConfiguration(context)
 
 	go docker.HandleDockerEvents()
 	go serve("tcp", name, secret)
 	go serve("udp", name, secret)
+	go func(){
+		webPort := 8080;
+		logger.Infof("status=web-server-starting, port=%d", webPort)
+		if err := http.ListenAndServe(fmt.Sprintf(":%d", webPort), nil); err != nil {
+			logger.Errorf("status=failed-start-web-server, err=%v, port=%d", err, webPort)
+		}else{
+			logger.Infof("status=web-server-started, port=%d", webPort)
+		}
+	}()
 
 	controller.MapRequests()
-	go http.ListenAndServe(":8080", nil)
+
 	sig := make(chan os.Signal)
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
 	s := <-sig
