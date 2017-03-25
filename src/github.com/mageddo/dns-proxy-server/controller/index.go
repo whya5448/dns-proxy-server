@@ -8,8 +8,9 @@ import (
 )
 
 func init(){
-	Get("/hello/", func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
-		res.Write([]byte("It works from controller!!!"))
+	Get("/", func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
+		res.Header().Add("Location", "/static")
+		res.WriteHeader(301)
 	})
 
 	Get("/configuration/", func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
