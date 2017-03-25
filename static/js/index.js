@@ -11,7 +11,7 @@ angular.module("myApp", ["ngTable"]);
 		})
 		.filter('envFormatter', function($filter) {
 			return (env, errorMessage) => {
-				return env ? env : 'Default';
+				return env ? env : 'Default Environment';
 			}
 		})
 		.controller("demoController", ["NgTableParams", "$http", "$scope", demoController])
