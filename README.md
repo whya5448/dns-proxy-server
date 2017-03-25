@@ -27,10 +27,23 @@ This tool is in the version 2 from nodejs version, improving:
 * Code design quality
 * And more
 
-# Installing
+# Installing from binary
+
+~~not documented yet~~
+
+# Building from source
+
+clone the repository
 
 	git submodule init && git submodule update
 
+compile the packages
+
+>~~not documented yet~~
+
+Installing
+
+>~~not documented yet~~
 
 
 # Test hostnames
