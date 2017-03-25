@@ -1,4 +1,4 @@
-Obs: The version 2 is in development and this documentation is being built
+**Obs**: The version 2 is in development(the main features are working but in beta) and this documentation is being built
 
 # Features
 dns-proxy-server is a end user(developers, Server Administrators) DNS server tool with some extra features like:
