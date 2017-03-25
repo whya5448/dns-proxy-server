@@ -74,11 +74,16 @@ angular.module("myApp", ["ngTable"]);
 				self.tableParams = new NgTableParams({}, {
 						filterDelay: 0,
 						getData: function(params) {
-							return $http.get('/hostname/?env=' + $scope.activeEnv).then(function(data) {
-								params.total(data.data.hostnames.length); // recal. page nav controls
-								console.debug('m=getData, length=%d', data.data.hostnames.length, data.data.hostnames);
-								originalData = data.data.hostnames;
-								return angular.copy(data.data.hostnames);
+							console.debug('m=getData, status=begin, params=%o', params);
+							var hostname = params._params.filter.name ? params._params.filter.name : '';
+
+							return $http.get('/hostname/find/?env=' + $scope.activeEnv + '&hostname=' + hostname).then(function(data) {
+
+								params.total(data.data.length); // recal. page nav controls
+								console.debug('m=getData, length=%d', data.data.length, data.data);
+								originalData = data.data;
+								return angular.copy(data.data);
+
 							}, function(err){
 								console.error('m=getData, status=error', err);
 							});
