@@ -20,7 +20,8 @@ The Dns Proxy Server basically follow the bellow order to solve the names:
 * then from local database file
 * then from 3rd configured remote DNS servers
 
-This tool is in the version 2 from nodejs version, improving:
+# Version 2 Improvements
+This tool comes from from nodejs version(1.0), improving:
 * Performance - this version uses much less RAM and is much faster
 * Bug fixes
 * Binary distribution - now you can simply download a linux executable and use it, without need to install anything
