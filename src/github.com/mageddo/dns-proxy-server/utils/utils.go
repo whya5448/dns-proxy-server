@@ -1,5 +1,13 @@
 package utils
 
+import (
+	"path/filepath"
+	"os"
+	"encoding/json"
+	"io"
+	"time"
+)
+
 var QTypeCodes = map[uint16] string {
 0 : "TypeNone",
 1 : "TypeA",
@@ -132,4 +140,32 @@ var opCodes  = map[uint16] string {
 
 func DnsQTypeCodeToName(code uint16) string {
 	return QTypeCodes[code]
+}
+
+func GetCurrentPath() string {
+
+	currDIr := os.Getenv("MG_WORK_DIR")
+	if len(currDIr) != 0 {
+		return currDIr
+	}
+	currentPath, _ := filepath.Abs(filepath.Dir("."))
+	return currentPath
+
+}
+
+func GetPath(path string) string {
+	if path[:1] != "/" {
+		path = "/" + path
+	}
+	return GetCurrentPath() + path
+}
+
+func GetJsonEncoder(w io.Writer) *json.Encoder {
+	decoder := json.NewEncoder(w)
+	decoder.SetIndent("", "\t")
+	return decoder
+}
+
+func GetUUID() int64 {
+	return time.Now().UnixNano()
 }
