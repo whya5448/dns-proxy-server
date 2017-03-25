@@ -83,7 +83,8 @@
 						<col width="15%" />
 					</colgroup>
 					<tr ng-repeat="rowLine in $data" ng-form="rowForm" >
-						<td title="'Hostname'" ng-switch="rowLine.isEditing" ng-class="hostname.$dirty ? 'bg-warning' : ''" ng-form="hostname" demo-tracked-table-cell>
+						<td filter="{name: 'text'}" sortable="'name'"
+								title="'Hostname'" ng-switch="rowLine.isEditing" ng-class="hostname.$dirty ? 'bg-warning' : ''" ng-form="hostname" demo-tracked-table-cell>
 							<span ng-switch-default class="editable-text">{{rowLine.hostname}}</span>
 							<div class="controls" ng-class="hostname.$invalid && hostname.$dirty ? 'has-error' : ''" ng-switch-when="true">
 								<input type="text" name="hostname" ng-model="rowLine.hostname" class="editable-input form-control input-sm" required />

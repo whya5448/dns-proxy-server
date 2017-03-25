@@ -22,6 +22,19 @@ func init(){
 		json.NewEncoder(res).Encode(env)
 	})
 
+	Get("/hostname/find/", func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
+		res.Header().Add("Content-Type", "application/json")
+		c := local.GetConfiguration(ctx)
+		env := req.URL.Query().Get("env")
+		hostname := req.URL.Query().Get("hostname")
+		hostnames, err := c.FindHostnameByNameAndEnv(ctx, env, hostname)
+		if err != nil {
+			BadRequest(res, fmt.Sprintf(err.Error()))
+			return
+		}
+		json.NewEncoder(res).Encode(hostnames)
+	})
+
 	Post("/hostname/", func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
 		logger := log.GetLogger(ctx)
 		res.Header().Add("Content-Type", "application/json")

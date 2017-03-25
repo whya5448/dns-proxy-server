@@ -10,6 +10,7 @@ import (
 	"golang.org/x/net/context"
 	"time"
 	"fmt"
+	"regexp"
 )
 
 var confPath string = utils.GetPath("conf/config.json")
@@ -166,6 +167,30 @@ func(env *EnvVo) GetHostname(hostname string) (*HostnameVo, int) {
 		}
 	}
 	return nil, -1
+}
+
+func(env *EnvVo) FindHostnameByName(ctx context.Context, hostname string) *[]HostnameVo {
+	logger := log.GetLogger(ctx)
+	logger.Infof("status=begin, hostname=%s", hostname)
+	hostList := []HostnameVo{}
+	for _, host := range env.Hostnames {
+		if matched, _ := regexp.MatchString(fmt.Sprintf(".*%s.*", hostname), host.Hostname); matched {
+			hostList = append(hostList, host)
+		}
+	}
+	logger.Infof("status=success, hostname=%s, length=%d", hostname, len(hostList))
+	return &hostList
+}
+
+func(lc *LocalConfiguration) FindHostnameByNameAndEnv(ctx context.Context, envName, hostname string) (*[]HostnameVo, error) {
+	logger := log.GetLogger(ctx)
+	logger.Infof("status=begin, envName=%s, hostname=%s", envName, hostname)
+	env,_ := lc.GetEnv(envName)
+	if env == nil {
+		return nil, errors.New("env not found")
+	}
+	logger.Infof("status=success, envName=%s, hostname=%s", envName, hostname)
+	return env.FindHostnameByName(ctx, hostname), nil
 }
 
 func(env *EnvVo) GetHostnameById(id int) (*HostnameVo, int) {
