@@ -137,11 +137,10 @@ func (lc *LocalConfiguration) GetEnv(envName string) (*EnvVo, int) {
 	return nil, -1
 }
 
-func (lc *LocalConfiguration) AddHostnameToEnv(ctx context.Context, env string, hostname *HostnameVo) error {
+func (foundEnv *EnvVo) AddHostname(ctx context.Context, hostname *HostnameVo) error {
 
 	logger := log.GetLogger(ctx)
-	logger.Infof("m=AddHostnameToEnv, status=begin, env=%+v, hostname=%+v", env, hostname)
-	foundEnv, _ := lc.GetEnv(env)
+	logger.Infof("m=AddHostnameToEnv, status=begin, env=%s, hostname=%+v", foundEnv.Name, hostname)
 	if foundEnv == nil {
 		return errors.New("env not found")
 	}
@@ -151,7 +150,7 @@ func (lc *LocalConfiguration) AddHostnameToEnv(ctx context.Context, env string, 
 	}
 
 	(*foundEnv).Hostnames = append(foundEnv.Hostnames, *hostname)
-	logger.Infof("status=success, foundEnv=%s, hostnames=%d", foundEnv.Name, len(lc.Envs))
+	logger.Infof("status=success, foundEnv=%s", foundEnv.Name)
 	return nil
 }
 
@@ -228,7 +227,11 @@ func (lc *LocalConfiguration) AddHostname(ctx context.Context, envName string, h
 	logger := log.GetLogger(ctx)
 	hostname.Id = lc.nextId()
 	logger.Infof("status=begin, evnName=%s, hostname=%+v", envName, hostname)
-	err := lc.AddHostnameToEnv(ctx, envName, &hostname)
+	foundEnv, _ := lc.GetEnv(envName)
+	if foundEnv == nil {
+		return errors.New("env not found")
+	}
+	err := foundEnv.AddHostname(ctx, &hostname)
 	if err != nil {
 		return err
 	}
@@ -249,17 +252,27 @@ func (lc *LocalConfiguration) UpdateHostname(ctx context.Context, envName string
 	if(env == nil){
 		return errors.New("env not found")
 	}
-	foundHostName, _ := env.GetHostnameById(hostname.Id)
-	if foundHostName == nil {
-		return errors.New("not hostname found")
-	}
 
-	foundHostName.Ip = hostname.Ip;
-	foundHostName.Ttl = hostname.Ttl;
-	foundHostName.Hostname = hostname.Hostname;
+	err := env.UpdateHostname(hostname)
+	if err != nil {
+		return err
+	}
 
 	SaveConfiguration(ctx, lc)
 	logger.Infof("status=success")
+	return nil
+}
+
+func (env *EnvVo) UpdateHostname(hostname HostnameVo) error {
+
+	foundHostname, _ := env.GetHostnameById(hostname.Id)
+	if foundHostname == nil {
+		return errors.New("not hostname found")
+	}
+	foundHostname.Ip = hostname.Ip;
+	foundHostname.Ttl = hostname.Ttl;
+	foundHostname.Hostname = hostname.Hostname;
+
 	return nil
 }
 
@@ -280,12 +293,14 @@ func (lc *LocalConfiguration) RemoveHostnameByEnvAndHostname(ctx context.Context
 }
 
 func (lc *LocalConfiguration) RemoveHostname(ctx context.Context, envIndex int, hostIndex int){
+
 	logger := log.GetLogger(ctx)
 	logger.Infof("m=RemoveHostname, status=begin, envIndex=%d, hostIndex=%d", envIndex, hostIndex)
 	env := &lc.Envs[envIndex];
 	(*env).Hostnames = append((*env).Hostnames[:hostIndex], (*env).Hostnames[hostIndex+1:]...)
 	SaveConfiguration(ctx, lc)
 	logger.Infof("m=RemoveHostname, status=success, envIndex=%d, hostIndex=%d", envIndex, hostIndex)
+
 }
 
 func (lc *LocalConfiguration) SetActiveEnv(ctx context.Context, env EnvVo) error {
