@@ -1,6 +1,8 @@
 <html>
 <head>
 	<meta charset="utf-8">
+	<title>DNS Proxy</title>
+
 	<link rel="stylesheet" type="text/css" href="/static/css/bootstrap.min.css"/>
 	<link rel="stylesheet" type="text/css" href="/static/css/bootstrap-theme.min.css"/>
 
@@ -23,12 +25,10 @@
 				<span class="icon-bar"></span>
 				<span class="icon-bar"></span>
 			</button>
-			<a class="navbar-brand" href="#">Project name</a>
+			<a class="navbar-brand" href="#">DNS Proxy</a>
 		</div>
 		<div id="navbar" class="collapse navbar-collapse">
 			<ul class="nav navbar-nav">
-				<li class="active"><a href="#">Home</a></li>
-				<li><a href="#about">About</a></li>
 				<li style="margin-top: 8px;">
 					<select ng-model="activeEnv" ng-change="changeEnv(activeEnv)" ng-options="a.name as a.name | envFormatter for a in envs" class="form-control"></select>
 				</li>
@@ -41,9 +41,7 @@
 	<div  class="container-fluid">
 		<div class="container">
 			<div>
-				<h3>ngTable directive</h3>
-
-
+				<h3>New Hostname</h3>
 				<form ng-submit="demo.saveNewLine(line, saveform)" name="saveform" ng-model-options="{ updateOn: 'submit' }" novalidate>
 					<table class="table table-bordered table-hover table-condensed " >
 						<colgroup>
@@ -75,6 +73,8 @@
 						</tr>
 					</table>
 				</form>
+
+				<h3>Hostnames</h3>
 				<table ng-table="demo.tableParams" class="table table-bordered table-hover table-condensed editable-table demoTable table-hostnames" ng-form="demo.tableForm" disable-filter="demo.isAdding" demo-tracked-table="demo.tableTracker">
 					<colgroup>
 						<col width="65%" />
@@ -114,5 +114,12 @@
 		</div>
 	</div>
 </div><!-- /.container -->
+<footer>
+	<div class="container">
+		<center>
+			MAGEDDO &copy; 2016 - Licensed by <a href="https://www.apache.org/licenses/LICENSE-2.0">Apache License 2.0</a>
+		</center>
+	</div>
+</footer>
 </body>
 </html>
