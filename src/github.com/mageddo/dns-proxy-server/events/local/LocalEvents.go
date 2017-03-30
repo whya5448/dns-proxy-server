@@ -14,7 +14,7 @@ import (
 	"github.com/mageddo/dns-proxy-server/flags"
 )
 
-var confPath string = utils.GetPath(flags.ConfPath)
+var confPath string = utils.GetPath(*flags.ConfPath)
 var configuration = LocalConfiguration{
 	Envs: make([]EnvVo, 0),
 	RemoteDnsServers: make([][4]byte, 0),
