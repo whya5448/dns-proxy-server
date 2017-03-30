@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"os"
 	"os/signal"
@@ -15,15 +14,9 @@ import (
 	"github.com/mageddo/dns-proxy-server/utils"
 	"github.com/mageddo/dns-proxy-server/events/local"
 	"github.com/mageddo/dns-proxy-server/events/docker"
-	"strconv"
 	"net/http"
 	"github.com/mageddo/dns-proxy-server/controller"
-)
-
-var (
-	cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
-	compress   = flag.Bool("compress", false, "compress replies")
-	tsig       = flag.String("tsig", "", "use MD5 hmac tsig: keyname:base64")
+	"github.com/mageddo/dns-proxy-server/flags"
 )
 
 func handleQuestion(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
@@ -70,7 +63,7 @@ func handleQuestion(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 			logger.Infof("status=resolved, solver=%s, alength=%d, answer=%v", solverID, answerLenth, firstAnswer)
 
 			resp.SetReply(reqMsg)
-			resp.Compress = *compress
+			resp.Compress = flags.Compress
 			respWriter.WriteMsg(resp)
 			break
 		}
@@ -81,25 +74,18 @@ func handleQuestion(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 
 }
 
-
 func serve(net, name, secret string) {
-	argsWithoutProg := os.Args[1:]
-	serverPort := 53
-
-	if len(argsWithoutProg) > 0 {
-		serverPort, _ = strconv.Atoi(argsWithoutProg[0])
-	}
-	var port string = fmt.Sprintf(":%d", serverPort)
+	port := fmt.Sprintf(":%d", flags.DnsServerPort)
 	switch name {
 	case "":
 		server := &dns.Server{Addr: port, Net: net, TsigSecret: nil}
 		if err := server.ListenAndServe(); err != nil {
-			fmt.Printf("Failed to setup the "+net+" server: %s\n", err.Error())
+			fmt.Printf("Failed to setup the %s server: %s\n", net, err.Error())
 		}
 	default:
 		server := &dns.Server{Addr: port, Net: net, TsigSecret: map[string]string{name: secret}}
 		if err := server.ListenAndServe(); err != nil {
-			fmt.Printf("Failed to setup the "+net+" server: %s\n", err.Error())
+			fmt.Printf("Failed to setup the %s server: %s\n", net, err.Error())
 		}
 	}
 }
@@ -110,16 +96,12 @@ func main() {
 	logger := log.GetLogger(context)
 
 	var name, secret string
-	flag.Usage = func() {
-		flag.PrintDefaults()
-	}
-	flag.Parse()
-	if *tsig != "" {
-		a := strings.SplitN(*tsig, ":", 2)
+	if flags.Tsig != "" {
+		a := strings.SplitN(flags.Tsig, ":", 2)
 		name, secret = dns.Fqdn(a[0]), a[1] // fqdn the name, which everybody forgets...
 	}
-	if *cpuprofile != "" {
-		f, err := os.Create(*cpuprofile)
+	if flags.Cpuprofile != "" {
+		f, err := os.Create(flags.Cpuprofile)
 		if err != nil {
 			logger.Fatal(err)
 		}
@@ -135,7 +117,7 @@ func main() {
 	go serve("tcp", name, secret)
 	go serve("udp", name, secret)
 	go func(){
-		webPort := 8080;
+		webPort := flags.WebServerPort;
 		logger.Infof("status=web-server-starting, port=%d", webPort)
 		if err := http.ListenAndServe(fmt.Sprintf(":%d", webPort), nil); err != nil {
 			logger.Errorf("status=failed-start-web-server, err=%v, port=%d", err, webPort)
