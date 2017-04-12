@@ -16,7 +16,7 @@ import (
 	"github.com/mageddo/dns-proxy-server/events/docker"
 	"net/http"
 	"github.com/mageddo/dns-proxy-server/controller"
-	"github.com/mageddo/dns-proxy-server/flags"
+	"github.com/mageddo/dns-proxy-server/conf"
 )
 
 func handleQuestion(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
@@ -63,7 +63,7 @@ func handleQuestion(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 			logger.Infof("status=resolved, solver=%s, alength=%d, answer=%v", solverID, answerLenth, firstAnswer)
 
 			resp.SetReply(reqMsg)
-			resp.Compress = *flags.Compress
+			resp.Compress = conf.Compress()
 			respWriter.WriteMsg(resp)
 			break
 		}
@@ -75,7 +75,7 @@ func handleQuestion(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 }
 
 func serve(net, name, secret string) {
-	port := fmt.Sprintf(":%d", *flags.DnsServerPort)
+	port := fmt.Sprintf(":%d", conf.DnsServerPort())
 	switch name {
 	case "":
 		server := &dns.Server{Addr: port, Net: net, TsigSecret: nil}
@@ -98,12 +98,12 @@ func main() {
 	logger := log.GetLogger(context)
 
 	var name, secret string
-	if *flags.Tsig != "" {
-		a := strings.SplitN(*flags.Tsig, ":", 2)
+	if conf.Tsig() != "" {
+		a := strings.SplitN(conf.Tsig(), ":", 2)
 		name, secret = dns.Fqdn(a[0]), a[1] // fqdn the name, which everybody forgets...
 	}
-	if *flags.Cpuprofile != "" {
-		f, err := os.Create(*flags.Cpuprofile)
+	if conf.CpuProfile() != "" {
+		f, err := os.Create(conf.CpuProfile())
 		if err != nil {
 			logger.Fatal(err)
 		}
@@ -119,7 +119,7 @@ func main() {
 	go serve("tcp", name, secret)
 	go serve("udp", name, secret)
 	go func(){
-		webPort := *flags.WebServerPort;
+		webPort := conf.WebServerPort();
 		logger.Infof("status=web-server-starting, port=%d", webPort)
 		if err := http.ListenAndServe(fmt.Sprintf(":%d", webPort), nil); err != nil {
 			logger.Errorf("status=failed-start-web-server, err=%v, port=%d", err, webPort)

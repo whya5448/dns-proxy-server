@@ -97,6 +97,9 @@ func SaveConfiguration(ctx context.Context, c *LocalConfiguration) {
 
 }
 
+func GetConfigurationNoCtx() *LocalConfiguration {
+	return GetConfiguration(log.GetContext())
+}
 func GetConfiguration(ctx context.Context) *LocalConfiguration {
 	LoadConfiguration(ctx)
 	return &configuration
@@ -108,6 +111,10 @@ type LocalConfiguration struct {
 	Envs []EnvVo `json:"envs"`
 	ActiveEnv string `json:"activeEnv"`
 	LastId int `json:"lastId"`
+
+	/// ----
+	WebServerPort int `json:"webServerPort"`
+	DnsServerPort int `json:"dnsServerPort"`
 }
 
 type EnvVo struct {
