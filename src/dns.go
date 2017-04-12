@@ -74,8 +74,9 @@ func handleQuestion(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 
 }
 
-func serve(net, name, secret string) {
+func serve(net, name, secret string, logger *log.IdLogger) {
 	port := fmt.Sprintf(":%d", conf.DnsServerPort())
+	logger.Infof("status=begin, port=%d", conf.DnsServerPort())
 	switch name {
 	case "":
 		server := &dns.Server{Addr: port, Net: net, TsigSecret: nil}
@@ -116,8 +117,8 @@ func main() {
 	local.GetConfiguration(context)
 
 	go docker.HandleDockerEvents()
-	go serve("tcp", name, secret)
-	go serve("udp", name, secret)
+	go serve("tcp", name, secret, logger)
+	go serve("udp", name, secret, logger)
 	go func(){
 		webPort := conf.WebServerPort();
 		logger.Infof("status=web-server-starting, port=%d", webPort)
