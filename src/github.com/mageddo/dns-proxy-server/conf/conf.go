@@ -73,26 +73,41 @@ func SetMachineDNSServer(serverIP string) error {
 	log.Logger.Infof("m=SetMachineDNSServer, status=open-conf-file, file=%s", fileRead.Name())
 
 	scanner := bufio.NewScanner(fileRead)
-	hasContent := false
+	var (
+		hasContent = false
+		foundDnsProxyEntry = false
+	)
+
 	for scanner.Scan() {
 		hasContent = true
 		line := scanner.Text()
-		if strings.HasSuffix(line, "# dns-proxy-server") { // this line is dns proxy server nameserver entry
+		if strings.HasSuffix(line, "# dns-proxy-server") {
+
+			// this line is dns proxy server nameserver entry
 			log.Logger.Infof("m=SetMachineDNSServer, status=found-dns-proxy-entry")
 			newResolvConfBuff.WriteString(getDNSLine(serverIP))
-		}else if strings.HasPrefix(line, "#") { // linha comentada
+			foundDnsProxyEntry = true
+
+		} else if strings.HasPrefix(line, "#") {
+
+			// linha comentada
 			log.Logger.Infof("m=SetMachineDNSServer, status=commented-line")
 			newResolvConfBuff.WriteString(line)
+
 		} else if strings.HasPrefix(line, "nameserver") {
+
 			log.Logger.Infof("m=SetMachineDNSServer, status=nameserver-line")
 			newResolvConfBuff.WriteString("# " + line)
+
 		} else {
+
 			log.Logger.Infof("m=SetMachineDNSServer, status=else-line")
 			newResolvConfBuff.WriteString(line)
+
 		}
 		newResolvConfBuff.WriteByte('\n')
 	}
-	if !hasContent {
+	if !hasContent || !foundDnsProxyEntry {
 		newResolvConfBuff.WriteString(getDNSLine(serverIP))
 	}
 	stats, _ := fileRead.Stat()

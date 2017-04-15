@@ -6,6 +6,7 @@ import (
 	"os"
 	"github.com/mageddo/dns-proxy-server/utils/env"
 	"io/ioutil"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestGetCurrentIpAddress(t *testing.T){
@@ -32,9 +33,7 @@ func TestSetMachineDNSServer_EmptyFileSuccess(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	fmt.Println(string(bytes))
-
-	// Output: nameserver 9.9.9.9 # dns-proxy-server
+	assert.Equal(t, "nameserver 9.9.9.9 # dns-proxy-server", string(bytes))
 
 }
 
@@ -58,18 +57,8 @@ func TestSetMachineDNSServer_WithPreviousDnsServerAndCommentSuccess(t *testing.T
 	}
 	fmt.Println(string(bytes))
 
-	AssertEqual(t, `nameserver 9.9.9.9 # dns-proxy-server
-	# Provided by test
-	nameserver 8.8.8.8`, string(bytes), "not match")
+	assert.Equal(t, `# Provided by test
+# nameserver 8.8.8.8
+nameserver 9.9.9.9 # dns-proxy-server`, string(bytes))
 
-}
-
-func AssertEqual(t *testing.T, a interface{}, b interface{}, message string) {
-	if a == b {
-		return
-	}
-	if len(message) == 0 {
-		message = fmt.Sprintf("%v != %v", a, b)
-	}
-	t.Fatal(message)
 }
