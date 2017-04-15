@@ -116,7 +116,7 @@ func main() {
 
 	dns.HandleFunc(".", handleQuestion)
 
-	local.GetConfiguration(context)
+	local.LoadConfiguration(context)
 
 	go docker.HandleDockerEvents()
 	go serve("tcp", name, secret, logger)
@@ -134,39 +134,8 @@ func main() {
 
 	controller.MapRequests()
 
-	var buffer bytes.Buffer
-
-	fmt.Println(buffer.String())
-	file, err := os.Open("/path/to/file.txt")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer file.Close()
-
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-
-		line := scanner.Text()
-
-		if strings.HasSuffix(line, "# dns-proxy-server") { // this line is dns proxy server nameserver entry
-			ip := "" // TODO recuperar o IP da maquina aqui
-			buffer.WriteString(ip + "# dns-proxy-server")
-		}else if strings.HasPrefix(line, "#") { // linha comentada
-			buffer.WriteString(line)
-		} else if strings.HasPrefix(line, "nameserver") {
-			buffer.WriteString("# " + line)
-		} else {
-			//
-		}
-		buffer.WriteString("\n")
 
 
-		buffer.WriteString()
-	}
-
-	if err := scanner.Err(); err != nil {
-		log.Fatal(err)
-	}
 
 	sig := make(chan os.Signal)
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)

@@ -20,10 +20,6 @@ var configuration = LocalConfiguration{
 	RemoteDnsServers: make([][4]byte, 0),
 }
 
-func init(){
-	LoadConfiguration(log.GetContext())
-}
-
 func LoadConfiguration(ctx context.Context){
 
 	logger := log.GetLogger(ctx)
