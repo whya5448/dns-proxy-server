@@ -133,9 +133,9 @@ func main() {
 	}()
 
 	controller.MapRequests()
-
-
-
+	if conf.SetupResolvConf() {
+		conf.SetCurrentDNSServerToMachine()
+	}
 
 	sig := make(chan os.Signal)
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)

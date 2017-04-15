@@ -4,11 +4,13 @@ import (
 	"github.com/mageddo/dns-proxy-server/events/local"
 	"github.com/mageddo/dns-proxy-server/flags"
 	"bytes"
-	"fmt"
 	"os"
 	"bufio"
 	"strings"
 	"net"
+	"github.com/mageddo/log"
+	"github.com/mageddo/dns-proxy-server/utils/env"
+	"io/ioutil"
 )
 
 func CpuProfile() string {
@@ -47,39 +49,68 @@ func ConfPath() string {
 	return *flags.ConfPath
 }
 
+func GetString(value, defaultValue string) string {
+
+	if len(value) == 0 {
+		return defaultValue
+	}
+	return value
+}
+
 func SetMachineDNSServer(serverIP string) error {
 
 	var newResolvConfBuff bytes.Buffer
 
-	fmt.Println(newResolvConfBuff.String())
-	file, err := os.Open("/etc/resolv.conf")
+	log.Logger.Infof("m=SetMachineDNSServer, status=begin")
+
+	resolvconf := GetString(os.Getenv(env.MG_RESOLVCONF), "/etc/resolv.conf")
+	fileRead, err := os.Open(resolvconf)
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer fileRead.Close()
 
-	scanner := bufio.NewScanner(file)
+	log.Logger.Infof("m=SetMachineDNSServer, status=open-conf-file, file=%s", fileRead.Name())
+
+	scanner := bufio.NewScanner(fileRead)
+	hasContent := false
 	for scanner.Scan() {
-
+		hasContent = true
 		line := scanner.Text()
 		if strings.HasSuffix(line, "# dns-proxy-server") { // this line is dns proxy server nameserver entry
-			newResolvConfBuff.WriteString(serverIP + "# dns-proxy-server")
+			log.Logger.Infof("m=SetMachineDNSServer, status=found-dns-proxy-entry")
+			newResolvConfBuff.WriteString(getDNSLine(serverIP))
 		}else if strings.HasPrefix(line, "#") { // linha comentada
+			log.Logger.Infof("m=SetMachineDNSServer, status=commented-line")
 			newResolvConfBuff.WriteString(line)
 		} else if strings.HasPrefix(line, "nameserver") {
+			log.Logger.Infof("m=SetMachineDNSServer, status=nameserver-line")
 			newResolvConfBuff.WriteString("# " + line)
 		} else {
+			log.Logger.Infof("m=SetMachineDNSServer, status=else-line")
 			newResolvConfBuff.WriteString(line)
 		}
 		newResolvConfBuff.WriteByte('\n')
-
 	}
-	newResolvConfBuff.WriteTo(bufio.NewWriter(file))
+	if !hasContent {
+		newResolvConfBuff.WriteString(getDNSLine(serverIP))
+	}
+	stats, _ := fileRead.Stat()
+	length := newResolvConfBuff.Len()
+	err = ioutil.WriteFile(resolvconf, newResolvConfBuff.Bytes(), stats.Mode())
+	if err != nil {
+		return err
+	}
+	log.Logger.Infof("m=SetMachineDNSServer, status=success, buffLength=%d", length)
 	return nil
 }
+func getDNSLine(serverIP string) string {
+	return "nameserver " + serverIP + " # dns-proxy-server"
+}
 
-func SetCurrentDNSServerToMachine(serverIP string) error {
+func SetCurrentDNSServerToMachine() error {
 
+	log.Logger.Infof("m=SetCurrentDNSServerToMachine, status=begin")
 	ip, err := getCurrentIpAddress()
 	if err != nil {
 		return err
