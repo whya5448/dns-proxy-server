@@ -17,8 +17,7 @@ import (
 	"net/http"
 	"github.com/mageddo/dns-proxy-server/controller"
 	"github.com/mageddo/dns-proxy-server/conf"
-	"bufio"
-	"bytes"
+	"github.com/mageddo/dns-proxy-server/utils/exitcodes"
 )
 
 func handleQuestion(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
@@ -84,13 +83,13 @@ func serve(net, name, secret string, logger *log.IdLogger) {
 		server := &dns.Server{Addr: port, Net: net, TsigSecret: nil}
 		if err := server.ListenAndServe(); err != nil {
 			fmt.Printf("Failed to setup the %s server: %s\n", net, err.Error())
-			os.Exit(2)
+			exitcodes.Exit(exitcodes.FAIL_START_DNS_SERVER)
 		}
 	default:
 		server := &dns.Server{Addr: port, Net: net, TsigSecret: map[string]string{name: secret}}
 		if err := server.ListenAndServe(); err != nil {
 			fmt.Printf("Failed to setup the %s server: %s\n", net, err.Error())
-			os.Exit(2)
+			exitcodes.Exit(exitcodes.FAIL_START_DNS_SERVER)
 		}
 	}
 }
@@ -126,7 +125,7 @@ func main() {
 		logger.Infof("status=web-server-starting, port=%d", webPort)
 		if err := http.ListenAndServe(fmt.Sprintf(":%d", webPort), nil); err != nil {
 			logger.Errorf("status=failed-start-web-server, err=%v, port=%d", err, webPort)
-			os.Exit(3)
+			exitcodes.Exit(exitcodes.FAIL_START_WEB_SERVER)
 		}else{
 			logger.Infof("status=web-server-started, port=%d", webPort)
 		}
@@ -134,7 +133,12 @@ func main() {
 
 	controller.MapRequests()
 	if conf.SetupResolvConf() {
-		conf.SetCurrentDNSServerToMachine()
+		logger.Infof("status=setResolvconf")
+		err := conf.SetCurrentDNSServerToMachine()
+		if err != nil {
+			logger.Errorf("status=setResolvconf, err=%v", err)
+			exitcodes.Exit(exitcodes.FAIL_SET_DNS_AS_DEFAULT)
+		}
 	}
 
 	sig := make(chan os.Signal)

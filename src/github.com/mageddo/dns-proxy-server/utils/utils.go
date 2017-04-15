@@ -139,6 +139,7 @@ var opCodes  = map[uint16] string {
 	5 : "OpcodeUpdate",
 }
 
+
 func DnsQTypeCodeToName(code uint16) string {
 	return QTypeCodes[code]
 }

@@ -61,7 +61,7 @@ func SetMachineDNSServer(serverIP string) error {
 
 	var newResolvConfBuff bytes.Buffer
 
-	log.Logger.Infof("m=SetMachineDNSServer, status=begin")
+	log.Logger.Infof("m=SetMachineDNSServer, status=begin, ip=%s", serverIP)
 
 	resolvconf := GetString(os.Getenv(env.MG_RESOLVCONF), "/etc/resolv.conf")
 	fileRead, err := os.Open(resolvconf)
