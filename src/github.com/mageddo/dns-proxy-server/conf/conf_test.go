@@ -64,7 +64,7 @@ nameserver 9.9.9.9 # dns-proxy-server`, string(bytes))
 }
 
 
-func TestRestoreResolvconfToDefault(t *testing.T) {
+func TestRestoreResolvconfToDefault_Success(t *testing.T) {
 	const TMP_RESOLV_FILE = "/tmp/test-resolv.conf"
 	os.Setenv(env.MG_RESOLVCONF, TMP_RESOLV_FILE)
 

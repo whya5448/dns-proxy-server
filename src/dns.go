@@ -145,5 +145,5 @@ func main() {
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
 	s := <-sig
 	conf.RestoreResolvconfToDefault();
-	logger.Warningf("exiting, signal=%v", s)
+	logger.Warningf("status=exiting, signal=%v", s)
 }
