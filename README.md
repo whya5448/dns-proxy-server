@@ -82,7 +82,7 @@ Installing
   "activeEnv": "", // what is default env name 
   "lastId": 1, // hostnames sequence
   "webServerPort": 0, // web admin port, when 0 the default value is used
-  "dnsServerPort": 0 // dns server port, when 0 the default value is used
+  "dnsServerPort": 8980 // dns server port, when 0 the default value is used
 }
 ```
 
