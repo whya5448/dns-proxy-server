@@ -88,23 +88,24 @@ Installing
 
 # Commandline help Documentation
 
-	-compress
-			compress replies
-	-conf-path string
-			The config file path  (default "conf/config.json")
-	-cpuprofile string
-			write cpu profile to file
-	-default-dns
-			This DNS server will be the default server for this machine (default true)
-	-help
-			This message
-	-server-port int
-			The DNS server to start into (default 53)
-	-tsig string
-			use MD5 hmac tsig: keyname:base64
-	-web-server-port int
-			The web server port (default 5380)
-
+```
+-compress
+  compress replies
+-conf-path string
+  The config file path  (default "conf/config.json")
+-cpuprofile string
+  write cpu profile to file
+-default-dns
+  This DNS server will be the default server for this machine (default true)
+-help
+  This message
+-server-port int
+  The DNS server to start into (default 53)
+-tsig string
+  use MD5 hmac tsig: keyname:base64
+-web-server-port int
+  The web server port (default 5380)
+```
 
 # Test hostnames
 
