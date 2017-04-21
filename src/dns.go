@@ -144,5 +144,6 @@ func main() {
 	sig := make(chan os.Signal)
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
 	s := <-sig
-	fmt.Printf("Signal (%s) received, stopping\n", s)
+	conf.RestoreResolvconfToDefault();
+	logger.Warningf("exiting, signal=%v", s)
 }

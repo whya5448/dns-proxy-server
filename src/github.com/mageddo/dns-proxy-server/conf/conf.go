@@ -17,6 +17,21 @@ import (
 	"fmt"
 )
 
+type DnsEntry int
+
+const(
+	COMMENT DnsEntry = iota
+	COMMENTED_SERVER DnsEntry = iota
+	SERVER DnsEntry = iota
+	PROXY DnsEntry = iota
+	ELSE DnsEntry = iota
+)
+
+type DnsHandler interface {
+	process(line string, entryType DnsEntry) *string
+	afterProcess(hasContent bool, foundDnsProxy bool) *string
+}
+
 func CpuProfile() string {
 return *flags.Cpuprofile
 }
@@ -61,11 +76,20 @@ func GetString(value, defaultValue string) string {
 	return value
 }
 
+func RestoreResolvconfToDefault() error {
+	hd := newDNSServerCleanerHandler()
+	return ProcessResolvconf(hd)
+}
+
 func SetMachineDNSServer(serverIP string) error {
+	hd := newSetMachineDnsServerHandler(serverIP)
+	return ProcessResolvconf(hd)
+}
+
+func ProcessResolvconf( handler DnsHandler ) error {
 
 	var newResolvConfBuff bytes.Buffer
-
-	log.Logger.Infof("m=SetMachineDNSServer, status=begin, ip=%s", serverIP)
+	log.Logger.Infof("m=ProcessResolvconf, status=begin")
 
 	resolvconf := getResolvConf()
 	fileRead, err := os.Open(resolvconf)
@@ -74,57 +98,53 @@ func SetMachineDNSServer(serverIP string) error {
 	}
 	defer fileRead.Close()
 
-	log.Logger.Infof("m=SetMachineDNSServer, status=open-conf-file, file=%s", fileRead.Name())
-
-	scanner := bufio.NewScanner(fileRead)
 	var (
 		hasContent = false
 		foundDnsProxyEntry = false
 	)
-
+	log.Logger.Infof("m=ProcessResolvconf, status=open-conf-file, file=%s", fileRead.Name())
+	scanner := bufio.NewScanner(fileRead)
 	for scanner.Scan() {
-		hasContent = true
 		line := scanner.Text()
-		if strings.HasSuffix(line, "# dns-proxy-server") {
-
-			// this line is dns proxy server nameserver entry
-			log.Logger.Infof("m=SetMachineDNSServer, status=found-dns-proxy-entry")
-			newResolvConfBuff.WriteString(getDNSLine(serverIP))
-			foundDnsProxyEntry = true
-
-		} else if strings.HasPrefix(line, "#") {
-
-			// linha comentada
-			log.Logger.Infof("m=SetMachineDNSServer, status=commented-line")
-			newResolvConfBuff.WriteString(line)
-
-		} else if strings.HasPrefix(line, "nameserver") {
-
-			log.Logger.Infof("m=SetMachineDNSServer, status=nameserver-line")
-			newResolvConfBuff.WriteString("# " + line)
-
-		} else {
-
-			log.Logger.Infof("m=SetMachineDNSServer, status=else-line")
-			newResolvConfBuff.WriteString(line)
-
+		hasContent = true
+		entryType := getDnsEntryType(line)
+		if r := handler.process(line, entryType); r != nil {
+			newResolvConfBuff.WriteString(*r)
+			newResolvConfBuff.WriteByte('\n')
 		}
+	}
+	if r := handler.afterProcess(hasContent, foundDnsProxyEntry); r != nil {
+		newResolvConfBuff.WriteString(*r)
 		newResolvConfBuff.WriteByte('\n')
 	}
-	if !hasContent || !foundDnsProxyEntry {
-		newResolvConfBuff.WriteString(getDNSLine(serverIP))
-	}
+
 	stats, _ := fileRead.Stat()
 	length := newResolvConfBuff.Len()
 	err = ioutil.WriteFile(resolvconf, newResolvConfBuff.Bytes(), stats.Mode())
 	if err != nil {
 		return err
 	}
-	log.Logger.Infof("m=SetMachineDNSServer, status=success, buffLength=%d", length)
+	log.Logger.Infof("m=ProcessResolvconf, status=success, buffLength=%d", length)
 	return nil
 }
+
 func getDNSLine(serverIP string) string {
 	return "nameserver " + serverIP + " # dns-proxy-server"
+}
+
+func getDnsEntryType(line string) DnsEntry {
+
+	if strings.HasSuffix(line, "# dns-proxy-server") {
+		return PROXY
+	} else if strings.HasPrefix(line, "# nameserver ") {
+		return COMMENTED_SERVER
+	} else if strings.HasPrefix(line, "#") {
+		return COMMENT
+	} else if strings.HasPrefix(line, "nameserver") {
+		return SERVER
+	} else {
+		return ELSE
+	}
 }
 
 func SetCurrentDNSServerToMachineAndLockIt() error {
