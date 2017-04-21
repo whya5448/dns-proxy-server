@@ -11,21 +11,13 @@ import (
 	"time"
 	"fmt"
 	"regexp"
+	"github.com/mageddo/dns-proxy-server/flags"
 )
 
-var confPath string = utils.GetPath("conf/config.json")
+var confPath string = utils.GetPath(*flags.ConfPath)
 var configuration = LocalConfiguration{
 	Envs: make([]EnvVo, 0),
 	RemoteDnsServers: make([][4]byte, 0),
-}
-
-func init(){
-	if len(os.Args) > 2 {
-		confPath = utils.GetPath(os.Args[2]);
-		log.Logger.Infof("m=init, status=changed-confpath, confpath=%s", utils.GetPath(confPath))
-	}
-	LoadConfiguration(log.GetContext())
-
 }
 
 func LoadConfiguration(ctx context.Context){
@@ -101,6 +93,9 @@ func SaveConfiguration(ctx context.Context, c *LocalConfiguration) {
 
 }
 
+func GetConfigurationNoCtx() *LocalConfiguration {
+	return GetConfiguration(log.GetContext())
+}
 func GetConfiguration(ctx context.Context) *LocalConfiguration {
 	LoadConfiguration(ctx)
 	return &configuration
@@ -112,6 +107,10 @@ type LocalConfiguration struct {
 	Envs []EnvVo `json:"envs"`
 	ActiveEnv string `json:"activeEnv"`
 	LastId int `json:"lastId"`
+
+	/// ----
+	WebServerPort int `json:"webServerPort"`
+	DnsServerPort int `json:"dnsServerPort"`
 }
 
 type EnvVo struct {

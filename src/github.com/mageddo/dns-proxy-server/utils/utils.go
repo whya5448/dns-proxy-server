@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"io"
 	"time"
+	"github.com/mageddo/dns-proxy-server/utils/env"
 )
 
 var QTypeCodes = map[uint16] string {
@@ -138,13 +139,14 @@ var opCodes  = map[uint16] string {
 	5 : "OpcodeUpdate",
 }
 
+
 func DnsQTypeCodeToName(code uint16) string {
 	return QTypeCodes[code]
 }
 
 func GetCurrentPath() string {
 
-	currDIr := os.Getenv("MG_WORK_DIR")
+	currDIr := os.Getenv(env.MG_WORK_DIR)
 	if len(currDIr) != 0 {
 		return currDIr
 	}

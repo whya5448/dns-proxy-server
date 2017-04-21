@@ -4,7 +4,6 @@ import (
 	"os"
 	"github.com/mageddo/go-logging"
 	"strings"
-	"log"
 	"io"
 	"fmt"
 	"golang.org/x/net/context"
@@ -19,11 +18,10 @@ func init(){
 }
 
 func setup() {
-	log.Println("m=init, msg=logger, status=starting logger")
+
 	Logger = logging.MustGetLogger("main")
 	mode := getMode()
 	backend := logging.NewLogBackend(getOut(), "", 0)
-	log.Printf("m=init, mode=%s", mode)
 
 	// setando o log dependendo do ambiente
 	switch mode {

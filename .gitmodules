@@ -34,3 +34,6 @@
 	path = src/github.com/docker/go-units
 	url  = https://github.com/docker/go-units
 
+[submodule "src/github.com/stretchr/testify"]
+	path = src/github.com/stretchr/testify
+	url  = https://github.com/stretchr/testify.git
