@@ -17,14 +17,14 @@ import (
 	"fmt"
 )
 
-type DnsEntry int
+type DnsEntry string
 
 const(
-	COMMENT DnsEntry = iota
-	COMMENTED_SERVER DnsEntry = iota
-	SERVER DnsEntry = iota
-	PROXY DnsEntry = iota
-	ELSE DnsEntry = iota
+	COMMENT DnsEntry = "COMMENT"
+	COMMENTED_SERVER DnsEntry = "COMMENTED_SERVER"
+	SERVER DnsEntry = "SERVER"
+	PROXY DnsEntry = "PROXY"
+	ELSE DnsEntry = "ELSE"
 )
 
 type DnsHandler interface {
@@ -108,6 +108,7 @@ func ProcessResolvconf( handler DnsHandler ) error {
 		line := scanner.Text()
 		hasContent = true
 		entryType := getDnsEntryType(line)
+		log.Logger.Debugf("m=ProcessResolvconf, status=readline, line=%s, type=%s", line,  entryType)
 		if r := handler.process(line, entryType); r != nil {
 			newResolvConfBuff.WriteString(*r)
 			newResolvConfBuff.WriteByte('\n')

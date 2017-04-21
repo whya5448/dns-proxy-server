@@ -10,21 +10,17 @@ func (hd dnsServerCleanerHandler) process(line string, entryType DnsEntry) *stri
 	switch entryType {
 	case PROXY:
 		return nil
-	case SERVER:
-		panic("it can not happen")
 	case COMMENTED_SERVER:
 		v := line[2:]
 		return &v
+	case SERVER:
+		panic("it can not happen")
 	default:
 		return &line
 	}
 }
 
 func (hd dnsServerCleanerHandler) afterProcess(hasContent bool, foundDnsProxy bool) *string {
-	if !hasContent || !foundDnsProxy {
-		v := getDNSLine(hd.serverIP)
-		return &v
-	}
 	return nil
 }
 

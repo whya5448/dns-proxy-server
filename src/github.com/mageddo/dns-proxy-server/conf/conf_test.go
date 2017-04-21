@@ -62,3 +62,28 @@ func TestSetMachineDNSServer_WithPreviousDnsServerAndCommentSuccess(t *testing.T
 nameserver 9.9.9.9 # dns-proxy-server`, string(bytes))
 
 }
+
+
+func TestRestoreResolvconfToDefault(t *testing.T) {
+	const TMP_RESOLV_FILE = "/tmp/test-resolv.conf"
+	os.Setenv(env.MG_RESOLVCONF, TMP_RESOLV_FILE)
+
+	err := ioutil.WriteFile(TMP_RESOLV_FILE, []byte("# Provided by test\n# nameserver 8.8.8.8\nnameserver 9.9.9.9 # dns-proxy-server"), 0666)
+	if err != nil {
+		t.Error(err)
+	}
+
+	err = RestoreResolvconfToDefault()
+	if err != nil {
+		t.Error(err)
+	}
+	bytes, err := ioutil.ReadFile(TMP_RESOLV_FILE)
+	if err != nil {
+		t.Error(err)
+	}
+	fmt.Println(string(bytes))
+
+	assert.Equal(t, `# Provided by test
+nameserver 8.8.8.8
+`, string(bytes))
+}
