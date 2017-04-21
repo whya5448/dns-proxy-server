@@ -6,7 +6,7 @@ dns-proxy-server is a end user(developers, Server Administrators) DNS server too
 * Solve names from local configuration database
 * Solve names from docker containers using docker **hostname** option or **HOSTNAMES** env
 * Solve names from a list of configured DNS servers(as a proxy) if no answer of two above
-* Graphic interface to manage it
+* [Graphic interface to manage it](http:/127.0.0.1:5380/static/)
 	* List and edit DNS local entries
 	* ~~List docker containers hostnames~~
 * ~~Cache for remote DNS increasing internet velocity, and options to enable/disable~~
@@ -30,7 +30,22 @@ This tool comes from from nodejs version(1.0), improving:
 
 # Installing from binary
 
-~~not documented yet~~
+>~~not documented yet~~
+
+# Running it
+
+### Default start server
+ 
+	$ ./dns-proxy-server
+
+### Help view
+
+	$ ./dns-proxy-server --help
+
+
+# Testing
+
+	$ go test -cover=false ./src/github.com/mageddo/dns-proxy-server/.../
 
 # Building from source
 
@@ -45,6 +60,50 @@ compile the packages
 Installing
 
 >~~not documented yet~~
+
+# Configuration and data
+
+```javascript
+{
+"remoteDnsServers": [], // not used
+	"envs": [ // there areall possible environments 
+		{
+			"name": "", // empty string is the default
+			"hostnames": [ // there are all local hostnames entries
+				{
+					"id": 1,
+					"hostname": "github.com",
+					"ip": [192, 168, 0, 1],
+					"ttl": 255
+				}
+			]
+		}
+	],
+	"activeEnv": "", // what is default env name 
+	"lastId": 1, // hostnames sequence
+	"webServerPort": 0, // web admin port, when 0 the default value is used
+	"dnsServerPort": 0 // dns server port, when 0 the default value is used
+}
+```
+
+# Commandline help Documentation
+
+	-compress
+			compress replies
+	-conf-path string
+			The config file path  (default "conf/config.json")
+	-cpuprofile string
+			write cpu profile to file
+	-default-dns
+			This DNS server will be the default server for this machine (default true)
+	-help
+			This message
+	-server-port int
+			The DNS server to start into (default 53)
+	-tsig string
+			use MD5 hmac tsig: keyname:base64
+	-web-server-port int
+			The web server port (default 5380)
 
 
 # Test hostnames

@@ -33,7 +33,7 @@ func TestSetMachineDNSServer_EmptyFileSuccess(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	assert.Equal(t, "nameserver 9.9.9.9 # dns-proxy-server", string(bytes))
+	assert.Equal(t, "nameserver 9.9.9.9 # dns-proxy-server\n", string(bytes))
 
 }
 
@@ -59,7 +59,8 @@ func TestSetMachineDNSServer_WithPreviousDnsServerAndCommentSuccess(t *testing.T
 
 	assert.Equal(t, `# Provided by test
 # nameserver 8.8.8.8
-nameserver 9.9.9.9 # dns-proxy-server`, string(bytes))
+nameserver 9.9.9.9 # dns-proxy-server
+`, string(bytes))
 
 }
 

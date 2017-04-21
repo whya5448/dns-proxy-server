@@ -1,4 +1,20 @@
 {
-	"RemoteDnsServers": [],
-	"Envs": []
+	"remoteDnsServers": [], // not used
+	"envs": [ // there areall possible environments
+		{
+			"name": "", // empty string is the default
+			"hostnames": [ // there are all local hostnames entries
+				{
+					"id": 1,
+					"hostname": "github.com",
+					"ip": [192, 168, 0, 1],
+					"ttl": 255
+				}
+			]
+		}
+	],
+	"activeEnv": "", // what is default env name
+	"lastId": 1, // hostnames sequence
+	"webServerPort": 0, // web admin port, when 0 the default value is used
+	"dnsServerPort": 0 // dns server port, when 0 the default value is used
 }
