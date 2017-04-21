@@ -11,6 +11,10 @@ import (
 	"github.com/mageddo/log"
 	"github.com/mageddo/dns-proxy-server/utils/env"
 	"io/ioutil"
+	"os/exec"
+	"syscall"
+	"errors"
+	"fmt"
 )
 
 func CpuProfile() string {
@@ -63,7 +67,7 @@ func SetMachineDNSServer(serverIP string) error {
 
 	log.Logger.Infof("m=SetMachineDNSServer, status=begin, ip=%s", serverIP)
 
-	resolvconf := GetString(os.Getenv(env.MG_RESOLVCONF), "/etc/resolv.conf")
+	resolvconf := getResolvConf()
 	fileRead, err := os.Open(resolvconf)
 	if err != nil {
 		return err
@@ -123,6 +127,16 @@ func getDNSLine(serverIP string) string {
 	return "nameserver " + serverIP + " # dns-proxy-server"
 }
 
+func SetCurrentDNSServerToMachineAndLockIt() error {
+
+	err := SetCurrentDNSServerToMachine()
+	if err != nil {
+		return err
+	}
+	return LockResolvConf()
+
+}
+
 func SetCurrentDNSServerToMachine() error {
 
 	log.Logger.Infof("m=SetCurrentDNSServerToMachine, status=begin")
@@ -131,6 +145,39 @@ func SetCurrentDNSServerToMachine() error {
 		return err
 	}
 	return SetMachineDNSServer(ip)
+}
+
+func LockResolvConf() error {
+	return LockFile(true, getResolvConf())
+}
+
+func UnlockResolvConf() error {
+	return LockFile(true, getResolvConf())
+}
+
+func LockFile(lock bool, file string) error {
+
+	log.Logger.Infof("m=Lockfile, status=begin, lock=%t, file=%s", lock, file)
+	flag := "-i"
+	if lock {
+		flag = "+i"
+	}
+	cmd := exec.Command("chattr", flag, file)
+	err := cmd.Run()
+	if err != nil {
+		log.Logger.Warningf("m=Lockfile, status=error-at-execute, lock=%t, file=%s, err=%v", lock, file, err)
+		return err
+	}
+	//bytes, err := cmd.CombinedOutput()
+
+	status := cmd.ProcessState.Sys().(syscall.WaitStatus)
+	if status.ExitStatus() != 0 {
+		log.Logger.Warningf("m=Lockfile, status=bad-exit-code, lock=%t, file=%s", lock, file)
+		return errors.New(fmt.Sprintf("Failed to lock file %d", status.ExitStatus()))
+	}
+	log.Logger.Infof("m=Lockfile, status=success, lock=%t, file=%s", lock, file)
+	return nil
+
 }
 
 func getCurrentIpAddress() (string, error) {
@@ -149,4 +196,8 @@ func getCurrentIpAddress() (string, error) {
 	}
 	return "", nil
 
+}
+
+func getResolvConf() string {
+	return GetString(os.Getenv(env.MG_RESOLVCONF), "/etc/resolv.conf")
 }
