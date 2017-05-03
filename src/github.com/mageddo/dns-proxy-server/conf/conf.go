@@ -15,6 +15,7 @@ import (
 	"syscall"
 	"errors"
 	"fmt"
+	"github.com/mageddo/dns-proxy-server/utils"
 )
 
 type DnsEntry string
@@ -66,6 +67,10 @@ func SetupResolvConf() bool {
 
 func ConfPath() string {
 	return *flags.ConfPath
+}
+
+func SetupService() bool {
+	return *flags.SetupService
 }
 
 func GetString(value, defaultValue string) string {
@@ -221,4 +226,28 @@ func getCurrentIpAddress() (string, error) {
 
 func getResolvConf() string {
 	return GetString(os.Getenv(env.MG_RESOLVCONF), "/etc/resolv.conf")
+}
+
+func ConfigSetupService(){
+
+	log.Logger.Infof("m=ConfigSetupService, status=begin")
+	err := utils.Copy("dns-proxy-server", "/etc/init.d/dns-proxy-server")
+	//err = ioutil.WriteFile(resolvconf, newResolvConfBuff.Bytes(), stats.Mode())
+	if err != nil {
+		log.Logger.Fatalf("status=error-copy-service, msg=%s", err.Error())
+	}
+	err = utils.Copy("docker-compose.yml", "/etc/init.d/dns-proxy-server.yml")
+	if err != nil {
+		log.Logger.Fatalf("status=error-copy-yml, msg=%s", err.Error())
+	}
+	err = utils.Exec("/usr/sbin/update-rc.d", "dns-proxy-server", "defaults")
+	if err != nil {
+		log.Logger.Fatalf("status=fatal-install-service, msg=%s", err.Error())
+	}
+	err = utils.Exec("/usr/sbin/service", "dns-proxy-server", "start")
+	if err != nil {
+		log.Logger.Fatalf("status=start-service, msg=%s", err.Error())
+	}
+	log.Logger.Infof("m=ConfigSetupService, status=success")
+
 }

@@ -7,6 +7,11 @@ import (
 	"io"
 	"time"
 	"github.com/mageddo/dns-proxy-server/utils/env"
+	"os/exec"
+	"syscall"
+	"errors"
+	"fmt"
+	"github.com/mageddo/log"
 )
 
 var QTypeCodes = map[uint16] string {
@@ -170,4 +175,36 @@ func GetJsonEncoder(w io.Writer) *json.Encoder {
 
 func GetUUID() int64 {
 	return time.Now().UnixNano()
+}
+
+func Copy(src, dst string) error {
+	in, err := os.Open(src)
+	if err != nil { return err }
+	defer in.Close()
+	out, err := os.OpenFile(dst, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
+	if err != nil { return err }
+	defer out.Close()
+	_, err = io.Copy(out, in)
+	cerr := out.Close()
+	if err != nil { return err }
+	return cerr
+}
+
+func Exec(cmd string, args ...string) error {
+
+	exec := exec.Command(cmd, args...)
+	err := exec.Run()
+	if err != nil {
+		log.Logger.Warningf("m=Exec, status=error-at-execute, cmd=%s, args=%v, err=%v", cmd, args, err)
+		bts, _ := exec.CombinedOutput()
+		return errors.New(fmt.Sprintf("%s - %s", err.Error(), string(bts)))
+	}
+
+	status := exec.ProcessState.Sys().(syscall.WaitStatus)
+	if status.ExitStatus() != 0 {
+		log.Logger.Warningf("m=Exec, status=bad-exit-code, status=%d", status)
+		return errors.New(fmt.Sprintf("Failed to lock file %d", status.ExitStatus()))
+	}
+	log.Logger.Infof("m=Exec, status=success, cmd=%s", cmd)
+	return nil
 }

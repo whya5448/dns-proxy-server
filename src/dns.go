@@ -141,6 +141,11 @@ func main() {
 		}
 	}
 
+	if conf.SetupService() {
+		conf.ConfigSetupService()
+		os.Exit(0)
+	}
+
 	sig := make(chan os.Signal)
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
 	s := <-sig
