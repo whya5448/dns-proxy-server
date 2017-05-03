@@ -8,7 +8,7 @@
 # Description:       DNS PROXY SERVER
 ### END INIT INFO
 
-SCRIPT='docker-compose -f dns-proxy-server.yml up prod-dns-proy-server'
+SCRIPT='docker-compose -f /etc/init.d/dns-proxy-server.yml up prod-dns-proy-server'
 RUNAS=root
 
 PIDFILE=/var/run/dns-proxy-server.pid
