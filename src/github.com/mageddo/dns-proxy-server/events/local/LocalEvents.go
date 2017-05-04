@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"regexp"
 	"github.com/mageddo/dns-proxy-server/flags"
+	"strings"
 )
 
 var confPath string = utils.GetPath(*flags.ConfPath)
@@ -51,7 +52,7 @@ func LoadConfiguration(ctx context.Context){
 		logger.Info("status=success")
 	}else{
 		logger.Info("status=create-new-conf")
-		err := os.MkdirAll(confPath, 0755)
+		err := os.MkdirAll(confPath[:strings.LastIndex(confPath, "/")], 0755)
 		if err != nil {
 			logger.Errorf("status=error-to-create-conf-folder, err=%v", err)
 			return

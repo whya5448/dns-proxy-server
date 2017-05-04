@@ -12,6 +12,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/mageddo/log"
+	"strings"
 )
 
 var QTypeCodes = map[uint16] string {
@@ -156,15 +157,20 @@ func GetCurrentPath() string {
 		return currDIr
 	}
 	currentPath, _ := filepath.Abs(filepath.Dir("."))
+	log.Logger.Infof("m=GetCurrentPath, currentPath=%s", currentPath)
 	return currentPath
 
 }
 
 func GetPath(path string) string {
-	if path[:1] != "/" {
+	if !strings.HasPrefix(path, "/") {
 		path = "/" + path
 	}
-	return GetCurrentPath() + path
+	currentPath := GetCurrentPath();
+	if strings.HasSuffix(currentPath, "/") {
+		currentPath = currentPath[0:len(currentPath)-1];
+	}
+	return currentPath + path
 }
 
 func GetJsonEncoder(w io.Writer) *json.Encoder {

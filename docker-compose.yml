@@ -1,18 +1,7 @@
 version: '2'
 services:
-  prod-dns-proy-server:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: docker-dns-server
-    image: reg.mageddo.com:5000/mageddo/docker-dns-server:2.0.1
-    hostname: dns.mageddo
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    ports:
-      - 5380:5380
-    network_mode: bridge
-  gocompiler:
+
+  gocompiler-docker-dns-proxy: # base compiler
     image: golang:1.7.4
     container_name: gocompiler
     volumes:
@@ -27,7 +16,25 @@ services:
     ports:
       - 5380:5380
     network_mode: bridge
-  prod-build-dns-proxy-server:
-    extends: gocompiler
+  prod-docker-dns-proy-server: # run from a docker image
+    container_name: docker-dns-server
+    image: reg.mageddo.com:5000/mageddo/docker-dns-server:2.0.2
+    hostname: dns.mageddo
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /etc/resolv.conf:/etc/resolv.conf
+    ports:
+      - 5380:5380
+    network_mode: bridge
+  prod-build-docker-dns-proy-server: # build the docker image
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: docker-dns-server-docker-compiler
+    image: reg.mageddo.com:5000/mageddo/docker-dns-server:2.0.2
+    volumes:
+      - ./:/app
+  prod-build-dns-proxy-server: # build the binary
+    extends: gocompiler-docker-dns-proxy
     container_name: docker-dns-server-compiler
-    command: bash -c "mkdir -p build/ && cd src && go build -v -o ../build/docker-dns-server"
+    command: bash -c "mkdir -p build/ && cd src && go build -v -o ../build/docker-dns-server && cp -r ../static ../build/ && cp ../docker-compose.yml ../build/dns-proxy-server.yml"
