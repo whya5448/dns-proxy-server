@@ -55,7 +55,8 @@ clone the repository
 
 compile the packages
 
->~~not documented yet~~
+	$ docker rm -f docker-dns-server-compiler && \
+	docker-compose up prod-build-dns-proxy-server
 
 Installing
 
