@@ -76,7 +76,15 @@ func ConfPath() string {
 }
 
 func SetupService() bool {
+	return *flags.SetupService == "normal"
+}
+
+func SetupServiceVal() string {
 	return *flags.SetupService
+}
+
+func SetupDockerService() bool {
+	return *flags.SetupService == "docker"
 }
 
 func GetString(value, defaultValue string) string {
@@ -119,6 +127,9 @@ func ProcessResolvconf( handler DnsHandler ) error {
 		line := scanner.Text()
 		hasContent = true
 		entryType := getDnsEntryType(line)
+		if entryType == PROXY {
+			foundDnsProxyEntry = true
+		}
 		log.Logger.Debugf("m=ProcessResolvconf, status=readline, line=%s, type=%s", line,  entryType)
 		if r := handler.process(line, entryType); r != nil {
 			newResolvConfBuff.WriteString(*r)
@@ -171,8 +182,8 @@ func SetCurrentDNSServerToMachineAndLockIt() error {
 
 func SetCurrentDNSServerToMachine() error {
 
-	log.Logger.Infof("m=SetCurrentDNSServerToMachine, status=begin")
 	ip, err := getCurrentIpAddress()
+	log.Logger.Infof("m=SetCurrentDNSServerToMachine, status=begin, ip=%s, err=%s", ip, err)
 	if err != nil {
 		return err
 	}
@@ -236,24 +247,39 @@ func getResolvConf() string {
 
 func ConfigSetupService(){
 
-	log.Logger.Infof("m=ConfigSetupService, status=begin")
-	err := utils.Copy("dns-proxy-server", "/etc/init.d/dns-proxy-server")
-	//err = ioutil.WriteFile(resolvconf, newResolvConfBuff.Bytes(), stats.Mode())
+	log.Logger.Infof("m=ConfigSetupDockerService, status=begin, setupService=%s", SetupServiceVal())
+	servicePath := "/etc/init.d/dns-proxy-server"
+	err := utils.Copy("dns-proxy-service", servicePath)
 	if err != nil {
 		log.Logger.Fatalf("status=error-copy-service, msg=%s", err.Error())
+	}
+
+	var script string
+	if SetupService() {
+		script = utils.GetPath("/dns-proxy-server")
+	} else if SetupDockerService() {
+		script = "docker rm -f dns-proxy-server >&2; docker-compose -f /etc/init.d/dns-proxy-server.yml up prod-docker-dns-prod-server"
+	}
+	script = strings.Replace(script, "/", "\\/", -1)
+	script = strings.Replace(script, "&", "\\&", -1)
+
+	log.Logger.Infof("m=ConfigSetupDockerService, status=script, script=%s", script)
+	err = utils.Exec("sed", "-i", fmt.Sprintf("s/%s/%s/g", "<SCRIPT>", script), servicePath)
+	if err != nil {
+		log.Logger.Fatalf("status=error-prepare-service, msg=%s", err.Error())
 	}
 	err = utils.Copy("docker-compose.yml", "/etc/init.d/dns-proxy-server.yml")
 	if err != nil {
 		log.Logger.Fatalf("status=error-copy-yml, msg=%s", err.Error())
 	}
-	err = utils.Exec("/usr/sbin/update-rc.d", "dns-proxy-server", "defaults")
+	err = utils.Exec("update-rc.d", "dns-proxy-server", "defaults")
 	if err != nil {
 		log.Logger.Fatalf("status=fatal-install-service, msg=%s", err.Error())
 	}
-	err = utils.Exec("/usr/sbin/service", "dns-proxy-server", "start")
+	err = utils.Exec("service", "dns-proxy-server", "start")
 	if err != nil {
 		log.Logger.Fatalf("status=start-service, msg=%s", err.Error())
 	}
-	log.Logger.Infof("m=ConfigSetupService, status=success")
+	log.Logger.Infof("m=ConfigSetupDockerService, status=success")
 
 }

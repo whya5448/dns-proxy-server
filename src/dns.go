@@ -141,7 +141,7 @@ func main() {
 		}
 	}
 
-	if conf.SetupService() {
+	if conf.SetupServiceVal() != "default" {
 		conf.ConfigSetupService()
 		os.Exit(0)
 	}
