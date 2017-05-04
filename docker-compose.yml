@@ -16,11 +16,12 @@ services:
     ports:
       - 5380:5380
     network_mode: bridge
-  prod-docker-dns-proy-server: # run from a docker image
+  prod-docker-dns-prod-server: # run from a docker image
     container_name: docker-dns-server
     image: reg.mageddo.com:5000/mageddo/docker-dns-server:2.0.2
     hostname: dns.mageddo
     volumes:
+      - /opt/dns-proxy-server/conf:/app/conf
       - /var/run/docker.sock:/var/run/docker.sock
       - /etc/resolv.conf:/etc/resolv.conf
     ports:

@@ -46,11 +46,11 @@ return *flags.Tsig
 }
 
 func WebServerPort() int {
-port := local.GetConfigurationNoCtx().WebServerPort
-if port <= 0 {
-return *flags.WebServerPort
-}
-return port
+	port := local.GetConfigurationNoCtx().WebServerPort
+	if port <= 0 {
+		return *flags.WebServerPort
+	}
+	return port
 }
 
 func DnsServerPort() int {
@@ -62,7 +62,13 @@ func DnsServerPort() int {
 }
 
 func SetupResolvConf() bool {
-	return *flags.SetupResolvconf
+
+	defaultDns := local.GetConfigurationNoCtx().DefaultDns
+	if defaultDns == nil {
+		return *flags.SetupResolvconf
+	}
+	return *defaultDns
+
 }
 
 func ConfPath() string {

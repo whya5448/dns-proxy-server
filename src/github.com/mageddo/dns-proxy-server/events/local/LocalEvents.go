@@ -112,6 +112,7 @@ type LocalConfiguration struct {
 	/// ----
 	WebServerPort int `json:"webServerPort"`
 	DnsServerPort int `json:"dnsServerPort"`
+	DefaultDns *bool `json:"defaultDns"`
 }
 
 type EnvVo struct {
