@@ -25,6 +25,16 @@ func TestExecExitSuccess(t *testing.T) {
 
 }
 
+func TestExecCommandThatNotExistsSuccess(t *testing.T) {
+
+	out, err, code := Exec("notExists")
+
+	assert.Equal(t, "", string(out))
+	assert.Equal(t, "m=Exec, exitcode=-255, err=exec: \"notExists\": executable file not found in $PATH, out=", err.Error())
+	assert.Equal(t, -255, code)
+
+}
+
 func TestExistsSuccess(t *testing.T) {
 	exists := Exists("which")
 	assert.Equal(t, true, exists)
