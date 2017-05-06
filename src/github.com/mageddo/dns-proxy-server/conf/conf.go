@@ -258,7 +258,7 @@ func ConfigSetupService(){
 	if SetupService() {
 		script = utils.GetPath("/dns-proxy-server")
 	} else if SetupDockerService() {
-		script = "'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin && docker rm -f dns-proxy-server >&2; docker-compose -f /etc/init.d/dns-proxy-server.yml up prod-docker-dns-prod-server'"
+		script = "'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin && docker rm -f dns-proxy-server &> /dev/null; docker-compose -f /etc/init.d/dns-proxy-server.yml up prod-docker-dns-prod-server'"
 	}
 	script = strings.Replace(script, "/", "\\/", -1)
 	script = strings.Replace(script, "&", "\\&", -1)
