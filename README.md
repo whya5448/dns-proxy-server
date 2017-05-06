@@ -49,6 +49,13 @@ This tool comes from from nodejs version(1.0), improving:
 
 # Building from source
 
+Requirements
+
+* Docker
+* Docker Compose
+* Git
+
+
 clone the repository
 
 	git submodule init && git submodule update
