@@ -247,7 +247,7 @@ func getResolvConf() string {
 
 func ConfigSetupService(){
 
-	log.Logger.Infof("m=ConfigSetupDockerService, status=begin, setupService=%s", SetupServiceVal())
+	log.Logger.Infof("m=ConfigSetupService, status=begin, setupService=%s", SetupServiceVal())
 	servicePath := "/etc/init.d/dns-proxy-server"
 	err := utils.Copy("dns-proxy-service", servicePath)
 	if err != nil {
@@ -263,8 +263,8 @@ func ConfigSetupService(){
 	script = strings.Replace(script, "/", "\\/", -1)
 	script = strings.Replace(script, "&", "\\&", -1)
 
-	log.Logger.Infof("m=ConfigSetupDockerService, status=script, script=%s", script)
-	err = utils.Exec("sed", "-i", fmt.Sprintf("s/%s/%s/g", "<SCRIPT>", script), servicePath)
+	log.Logger.Infof("m=ConfigSetupService, status=script, script=%s", script)
+	_, err, _ = utils.Exec("sed", "-i", fmt.Sprintf("s/%s/%s/g", "<SCRIPT>", script), servicePath)
 	if err != nil {
 		log.Logger.Fatalf("status=error-prepare-service, msg=%s", err.Error())
 	}
@@ -272,14 +272,25 @@ func ConfigSetupService(){
 	if err != nil {
 		log.Logger.Fatalf("status=error-copy-yml, msg=%s", err.Error())
 	}
-	err = utils.Exec("update-rc.d", "dns-proxy-server", "defaults")
-	if err != nil {
-		log.Logger.Fatalf("status=fatal-install-service, msg=%s", err.Error())
+
+	if utils.Exists("update-rc.d") {
+		_, err, _ = utils.Exec("update-rc.d", "dns-proxy-server", "defaults")
+		if err != nil {
+			log.Logger.Fatalf("status=fatal-install-service, service=update-rc.d, msg=%s", err.Error())
+		}
+	} else if utils.Exists("chkconfig") {
+		_, err, _ = utils.Exec("chkconfig", "dns-proxy-server", "on")
+		if err != nil {
+			log.Logger.Fatalf("status=fatal-install-service, service=chkconfig, msg=%s", err.Error())
+		}
+	} else {
+		log.Logger.Warningf("m=ConfigSetupService, status=impossible to setup to start at boot")
 	}
-	err = utils.Exec("service", "dns-proxy-server", "start")
+
+	_, err, _ = utils.Exec("service", "dns-proxy-server", "start")
 	if err != nil {
 		log.Logger.Fatalf("status=start-service, msg=%s", err.Error())
 	}
-	log.Logger.Infof("m=ConfigSetupDockerService, status=success")
+	log.Logger.Infof("m=ConfigSetupService, status=success")
 
 }
