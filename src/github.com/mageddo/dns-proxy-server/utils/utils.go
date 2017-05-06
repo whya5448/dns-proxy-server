@@ -156,7 +156,7 @@ func GetCurrentPath() string {
 	if len(currDIr) != 0 {
 		return currDIr
 	}
-	currentPath, _ := filepath.Abs(filepath.Dir("."))
+	currentPath, _ := filepath.Abs(filepath.Dir(os.Args[0]))
 	log.Logger.Infof("m=GetCurrentPath, currentPath=%s", currentPath)
 	return currentPath
 

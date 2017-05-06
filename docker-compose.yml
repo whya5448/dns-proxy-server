@@ -13,8 +13,6 @@ services:
       - GOPATH=/app
     working_dir: /app
     hostname: gocompiler.dev
-    ports:
-      - 5380:5380
     network_mode: bridge
   prod-docker-dns-prod-server: # run from a docker image
     container_name: docker-dns-server
