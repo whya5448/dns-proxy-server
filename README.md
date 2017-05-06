@@ -55,7 +55,7 @@ clone the repository
 
 compile the packages
 
-	$ docker rm -f docker-dns-server-compiler && \
+	$ docker rm -f docker-dns-server-compiler || true && \
 	docker-compose up prod-build-dns-proxy-server && \
 	docker-compose build prod-build-docker-dns-proy-server
 
