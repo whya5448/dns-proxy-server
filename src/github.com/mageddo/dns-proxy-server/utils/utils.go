@@ -7,10 +7,6 @@ import (
 	"io"
 	"time"
 	"github.com/mageddo/dns-proxy-server/utils/env"
-	"os/exec"
-	"syscall"
-	"errors"
-	"fmt"
 	"github.com/mageddo/log"
 	"strings"
 )
@@ -196,21 +192,3 @@ func Copy(src, dst string) error {
 	return cerr
 }
 
-func Exec(cmd string, args ...string) error {
-
-	exec := exec.Command(cmd, args...)
-	err := exec.Run()
-	if err != nil {
-		log.Logger.Warningf("m=Exec, status=error-at-execute, cmd=%s, args=%v, err=%v", cmd, args, err)
-		bts, _ := exec.CombinedOutput()
-		return errors.New(fmt.Sprintf("%s - %s", err.Error(), string(bts)))
-	}
-
-	status := exec.ProcessState.Sys().(syscall.WaitStatus)
-	if status.ExitStatus() != 0 {
-		log.Logger.Warningf("m=Exec, status=bad-exit-code, status=%d", status)
-		return errors.New(fmt.Sprintf("Failed to lock file %d", status.ExitStatus()))
-	}
-	log.Logger.Infof("m=Exec, status=success, cmd=%s", cmd)
-	return nil
-}
