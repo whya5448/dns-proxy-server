@@ -2,8 +2,6 @@ package utils
 
 import (
 	"os/exec"
-	"errors"
-	"fmt"
 	"syscall"
 	"github.com/mageddo/log"
 	"reflect"
@@ -21,11 +19,9 @@ func Exec(cmd string, args ...string) ( out []byte, err error, exitCode int ){
 		log.Logger.Infof("m=Exec, status=error, type=%v, err=%v", reflect.TypeOf(err), err)
 		if exitError, ok := err.(*exec.ExitError); ok {
 			exitCode = exitError.Sys().(syscall.WaitStatus).ExitStatus()
-			err = errors.New(fmt.Sprintf("m=Exec, exitcode=%d, err=%s, out=%s", exitCode, err.Error(), string(out)))
 			return
 		} else {
 			exitCode = -255
-			err = errors.New(fmt.Sprintf("m=Exec, exitcode=%d, err=%s, out=%s", exitCode, err.Error(), string(out)))
 			return
 		}
 	} else {

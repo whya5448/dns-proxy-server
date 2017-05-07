@@ -289,6 +289,10 @@ func ConfigSetupService(){
 		log.Logger.Warningf("m=ConfigSetupService, status=impossible to setup to start at boot")
 	}
 
+	out, err, _ := utils.Exec("service", "dns-proxy-server", "stop")
+	if err != nil {
+		log.Logger.Debugf("status=stop-service, msg=out=%s", string(out))
+	}
 	_, err, _ = utils.Exec("service", "dns-proxy-server", "start")
 	if err != nil {
 		log.Logger.Fatalf("status=start-service, msg=%s", err.Error())
