@@ -306,7 +306,7 @@ func UninstallService(){
 	log.Logger.Infof("m=UninstallService, status=begin")
 	var err error
 
-	if out, err, _ := utils.Exec("service", "dns-proxy-server", "start"); err != nil {
+	if out, err, _ := utils.Exec("service", "dns-proxy-server", "stop"); err != nil {
 		log.Logger.Infof("m=UninstallService, status=stop-fail, msg=maibe-no-running, out=%s", string(out))
 	}
 
