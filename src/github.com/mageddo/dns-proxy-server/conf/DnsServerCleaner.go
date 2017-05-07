@@ -14,7 +14,7 @@ func (hd dnsServerCleanerHandler) process(line string, entryType DnsEntry) *stri
 		v := line[2:]
 		return &v
 	case SERVER:
-		panic("it can not happen")
+		return &line
 	default:
 		return &line
 	}

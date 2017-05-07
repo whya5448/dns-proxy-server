@@ -114,3 +114,26 @@ func TestRestoreResolvconfToDefault_Success(t *testing.T) {
 nameserver 8.8.8.8
 `, string(bytes))
 }
+
+func TestRestoreResolvconfToDefault_ConfFileAlreadyOk(t *testing.T) {
+	const TMP_RESOLV_FILE = "/tmp/test-resolv.conf"
+	os.Setenv(env.MG_RESOLVCONF, TMP_RESOLV_FILE)
+
+	originalFileContent := "# Provided by test\n# nameserver 8.8.8.8\nnameserver 9.9.9.9\n"
+	err := ioutil.WriteFile(TMP_RESOLV_FILE, []byte(originalFileContent), 0666)
+	if err != nil {
+		t.Error(err)
+	}
+
+	err = RestoreResolvconfToDefault()
+	if err != nil {
+		t.Error(err)
+	}
+	bytes, err := ioutil.ReadFile(TMP_RESOLV_FILE)
+	if err != nil {
+		t.Error(err)
+	}
+	fmt.Println(string(bytes))
+
+	assert.Equal(t, originalFileContent, string(bytes))
+}

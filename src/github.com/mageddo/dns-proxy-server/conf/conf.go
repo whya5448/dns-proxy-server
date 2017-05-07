@@ -162,7 +162,7 @@ func getDnsEntryType(line string) DnsEntry {
 
 	if strings.HasSuffix(line, "# dns-proxy-server") {
 		return PROXY
-	} else if strings.HasPrefix(line, "# nameserver ") {
+	} else if strings.HasPrefix(line, "# nameserver ") && strings.HasSuffix(line, "# commented-by-dps") {
 		return COMMENTED_SERVER
 	} else if strings.HasPrefix(line, "#") {
 		return COMMENT
