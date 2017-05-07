@@ -99,6 +99,16 @@ func main() {
 	context := log.GetContext()
 	logger := log.GetLogger(context)
 
+	switch conf.SetupServiceVal() {
+	case "docker":
+	case "normal":
+		conf.ConfigSetupService()
+		os.Exit(0)
+	case "uninstall":
+		conf.UninstallService()
+		os.Exit(0)
+	}
+
 	var name, secret string
 	if conf.Tsig() != "" {
 		a := strings.SplitN(conf.Tsig(), ":", 2)
@@ -139,16 +149,6 @@ func main() {
 			logger.Errorf("status=setResolvconf, err=%v", err)
 			exitcodes.Exit(exitcodes.FAIL_SET_DNS_AS_DEFAULT)
 		}
-	}
-
-	switch conf.SetupServiceVal() {
-	case "docker":
-	case "normal":
-		conf.ConfigSetupService()
-		os.Exit(0)
-	case "uninstall":
-		conf.UninstallService()
-		os.Exit(0)
 	}
 
 	sig := make(chan os.Signal)
