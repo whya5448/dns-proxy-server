@@ -249,7 +249,7 @@ func ConfigSetupService(){
 
 	log.Logger.Infof("m=ConfigSetupService, status=begin, setupService=%s", SetupServiceVal())
 	servicePath := "/etc/init.d/dns-proxy-server"
-	err := utils.Copy("dns-proxy-service", servicePath)
+	err := utils.Copy(utils.GetPath("/dns-proxy-service"), servicePath)
 	if err != nil {
 		log.Logger.Fatalf("status=error-copy-service, msg=%s", err.Error())
 	}
@@ -270,7 +270,7 @@ func ConfigSetupService(){
 	if err != nil {
 		log.Logger.Fatalf("status=error-prepare-service, msg=%s", err.Error())
 	}
-	err = utils.Copy("docker-compose.yml", "/etc/init.d/dns-proxy-server.yml")
+	err = utils.Copy(utils.GetPath("docker-compose.yml"), "/etc/init.d/dns-proxy-server.yml")
 	if err != nil {
 		log.Logger.Fatalf("status=error-copy-yml, msg=%s", err.Error())
 	}
