@@ -302,8 +302,14 @@ func ConfigSetupService(){
 }
 
 func UninstallService(){
+
 	log.Logger.Infof("m=UninstallService, status=begin")
 	var err error
+
+	if out, err, _ := utils.Exec("service", "dns-proxy-server", "start"); err != nil {
+		log.Logger.Infof("m=UninstallService, status=stop-fail, msg=maibe-no-running, out=%s", string(out))
+	}
+
 	if utils.Exists("update-rc.d") {
 		_, err, _ = utils.Exec("update-rc.d", "-f", "dns-proxy-server", "remove")
 	} else if utils.Exists("chkconfig") {
