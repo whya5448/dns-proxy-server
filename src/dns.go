@@ -142,8 +142,8 @@ func main() {
 	}
 
 	switch conf.SetupServiceVal() {
-	case "normal":
 	case "docker":
+	case "normal":
 		conf.ConfigSetupService()
 		os.Exit(0)
 	case "uninstall":
