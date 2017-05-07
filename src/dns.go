@@ -99,9 +99,9 @@ func main() {
 	context := log.GetContext()
 	logger := log.GetLogger(context)
 
+	logger.Infof("setupservice=%s", conf.SetupServiceVal())
 	switch conf.SetupServiceVal() {
-	case "docker":
-	case "normal":
+	case "docker", "normal":
 		conf.ConfigSetupService()
 		os.Exit(0)
 	case "uninstall":
