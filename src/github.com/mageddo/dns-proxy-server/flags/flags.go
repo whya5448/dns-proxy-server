@@ -13,7 +13,9 @@ var (
 	DnsServerPort = flag.Int("server-port", 53, "The DNS server to start into")
 	SetupResolvconf = flag.Bool("default-dns", true, "This DNS server will be the default server for this machine")
 	ConfPath = flag.String("conf-path", "conf/config.json", "The config file path ")
-	SetupService = flag.String("service", "default", "Setup as service, docker = to start as docker service, normal = to start as normal service, default = to do not start as service")
+	SetupService = flag.String("service", "default", `Setup as service, docker = to start as docker service,
+		normal = to start as normal service, default = to do not start as service,
+		uninstall = Uninstall the service from machine `)
 	Help = flag.Bool("help", false, "This message")
 )
 

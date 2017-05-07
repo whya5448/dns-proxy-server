@@ -258,7 +258,9 @@ func ConfigSetupService(){
 	if SetupService() {
 		script = utils.GetPath("/dns-proxy-server")
 	} else if SetupDockerService() {
-		script = "'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin && docker rm -f dns-proxy-server &> /dev/null; docker-compose -f /etc/init.d/dns-proxy-server.yml up prod-docker-dns-prod-server'"
+		script = `'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin ;
+		 docker rm -f dns-proxy-server &> /dev/null ;
+		 docker-compose -f /etc/init.d/dns-proxy-server.yml up prod-docker-dns-prod-server'`
 	}
 	script = strings.Replace(script, "/", "\\/", -1)
 	script = strings.Replace(script, "&", "\\&", -1)
@@ -293,4 +295,20 @@ func ConfigSetupService(){
 	}
 	log.Logger.Infof("m=ConfigSetupService, status=success")
 
+}
+
+func UninstallService(){
+	log.Logger.Infof("m=UninstallService, status=begin")
+	var err error
+	if utils.Exists("update-rc.d") {
+		_, err, _ = utils.Exec("update-rc.d", "-f", "dns-proxy-server", "remove")
+	} else if utils.Exists("chkconfig") {
+		_, err, _ = utils.Exec("chkconfig", "dns-proxy-server", "off")
+	} else {
+		log.Logger.Warningf("m=ConfigSetupService, status=impossible to remove service")
+	}
+	if err != nil {
+		log.Logger.Fatalf("status=fatal-remove-service, msg=%s", err.Error())
+	}
+	log.Logger.Infof("m=UninstallService, status=success")
 }
