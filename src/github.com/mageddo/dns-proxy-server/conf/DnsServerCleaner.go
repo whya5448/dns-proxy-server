@@ -1,5 +1,6 @@
 package conf
 
+import "strings"
 
 type dnsServerCleanerHandler struct {
 	serverIP string
@@ -11,7 +12,7 @@ func (hd dnsServerCleanerHandler) process(line string, entryType DnsEntry) *stri
 	case PROXY:
 		return nil
 	case COMMENTED_SERVER:
-		v := line[2:]
+		v := line[2: strings.Index(line, " # dps-comment")]
 		return &v
 	case SERVER:
 		return &line

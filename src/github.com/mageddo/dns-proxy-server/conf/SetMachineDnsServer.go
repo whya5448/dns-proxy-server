@@ -17,7 +17,7 @@ func (hd *setMachineDNSServerHandler) process(line string, entryType DnsEntry) *
 		v := getDNSLine(hd.serverIP)
 		return &v
 	case SERVER:
-		v := fmt.Sprintf("# %s", line)
+		v := fmt.Sprintf("# %s # dps-comment", line)
 		return &v
 	default:
 		return &line

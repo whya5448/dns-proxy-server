@@ -155,14 +155,14 @@ func ProcessResolvconf( handler DnsHandler ) error {
 }
 
 func getDNSLine(serverIP string) string {
-	return "nameserver " + serverIP + " # dns-proxy-server"
+	return "nameserver " + serverIP + " # dps-entry"
 }
 
 func getDnsEntryType(line string) DnsEntry {
 
-	if strings.HasSuffix(line, "# dns-proxy-server") {
+	if strings.HasSuffix(line, "# dps-entry") {
 		return PROXY
-	} else if strings.HasPrefix(line, "# nameserver ") && strings.HasSuffix(line, "# commented-by-dps") {
+	} else if strings.HasPrefix(line, "# nameserver ") && strings.HasSuffix(line, "# dps-comment") {
 		return COMMENTED_SERVER
 	} else if strings.HasPrefix(line, "#") {
 		return COMMENT
