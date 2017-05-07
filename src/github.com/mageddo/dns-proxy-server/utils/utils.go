@@ -9,6 +9,8 @@ import (
 	"github.com/mageddo/dns-proxy-server/utils/env"
 	"github.com/mageddo/log"
 	"strings"
+	"os/signal"
+	"syscall"
 )
 
 var QTypeCodes = map[uint16] string {
@@ -141,6 +143,11 @@ var opCodes  = map[uint16] string {
 	5 : "OpcodeUpdate",
 }
 
+var Sig = make(chan os.Signal)
+
+func init(){
+	signal.Notify(Sig, syscall.SIGINT, syscall.SIGTERM)
+}
 
 func DnsQTypeCodeToName(code uint16) string {
 	return QTypeCodes[code]

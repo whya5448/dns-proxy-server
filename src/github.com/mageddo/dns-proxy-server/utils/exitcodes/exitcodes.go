@@ -3,6 +3,8 @@ package exitcodes
 import (
 	"os"
 	"github.com/mageddo/log"
+	"github.com/mageddo/dns-proxy-server/utils"
+	"syscall"
 )
 
 const (
@@ -14,6 +16,9 @@ const (
 
 func Exit(code int){
 	log.Logger.Errorf("m=Exit, status=exiting, code=%d", code)
-	//intCode, _ := code.(int)
-	os.Exit(code)
+	if code != SUCCESS {
+		utils.Sig <- syscall.Signal(code)
+	} else {
+		os.Exit(code)
+	}
 }

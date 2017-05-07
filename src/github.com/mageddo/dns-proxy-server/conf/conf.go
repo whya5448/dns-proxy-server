@@ -96,8 +96,11 @@ func GetString(value, defaultValue string) string {
 }
 
 func RestoreResolvconfToDefault() error {
+	log.Logger.Infof("m=RestoreResolvconfToDefault, status=begin")
 	hd := newDNSServerCleanerHandler()
-	return ProcessResolvconf(hd)
+	err := ProcessResolvconf(hd)
+	log.Logger.Infof("m=RestoreResolvconfToDefault, status=success, err=%v", err)
+	return err
 }
 
 func SetMachineDNSServer(serverIP string) error {
