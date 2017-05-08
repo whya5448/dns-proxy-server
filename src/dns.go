@@ -3,10 +3,8 @@ package main
 import (
 	"fmt"
 	"os"
-	"os/signal"
 	"runtime/pprof"
 	"strings"
-	"syscall"
 	"github.com/miekg/dns"
 	"github.com/mageddo/log"
 	"github.com/mageddo/dns-proxy-server/proxy"
@@ -99,6 +97,16 @@ func main() {
 	context := log.GetContext()
 	logger := log.GetLogger(context)
 
+	logger.Infof("setupservice=%s", conf.SetupServiceVal())
+	switch conf.SetupServiceVal() {
+	case "docker", "normal":
+		conf.ConfigSetupService()
+		os.Exit(0)
+	case "uninstall":
+		conf.UninstallService()
+		os.Exit(0)
+	}
+
 	var name, secret string
 	if conf.Tsig() != "" {
 		a := strings.SplitN(conf.Tsig(), ":", 2)
@@ -141,9 +149,8 @@ func main() {
 		}
 	}
 
-	sig := make(chan os.Signal)
-	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
-	s := <-sig
+	logger.Infof("status=reading...")
+	s := <- utils.Sig
 	conf.RestoreResolvconfToDefault();
 	logger.Warningf("status=exiting, signal=%v", s)
 }

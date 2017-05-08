@@ -1,3 +1,5 @@
 FROM debian:8
-COPY build/docker-dns-server /app/
-CMD ["bash", "-c", "/app/docker-dns-server"]
+COPY build/ /app/
+WORKDIR /app
+VOLUME ["/var/run/docker.sock", "/var/run/docker.sock"]
+CMD ["bash", "-c", "/app/dns-proxy-server"]

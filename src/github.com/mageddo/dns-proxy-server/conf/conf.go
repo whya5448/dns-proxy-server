@@ -15,6 +15,7 @@ import (
 	"syscall"
 	"errors"
 	"fmt"
+	"github.com/mageddo/dns-proxy-server/utils"
 )
 
 type DnsEntry string
@@ -45,11 +46,11 @@ return *flags.Tsig
 }
 
 func WebServerPort() int {
-port := local.GetConfigurationNoCtx().WebServerPort
-if port <= 0 {
-return *flags.WebServerPort
-}
-return port
+	port := local.GetConfigurationNoCtx().WebServerPort
+	if port <= 0 {
+		return *flags.WebServerPort
+	}
+	return port
 }
 
 func DnsServerPort() int {
@@ -61,11 +62,29 @@ func DnsServerPort() int {
 }
 
 func SetupResolvConf() bool {
-	return *flags.SetupResolvconf
+
+	defaultDns := local.GetConfigurationNoCtx().DefaultDns
+	if defaultDns == nil {
+		return *flags.SetupResolvconf
+	}
+	return *defaultDns
+
 }
 
 func ConfPath() string {
 	return *flags.ConfPath
+}
+
+func SetupService() bool {
+	return *flags.SetupService == "normal"
+}
+
+func SetupServiceVal() string {
+	return *flags.SetupService
+}
+
+func SetupDockerService() bool {
+	return *flags.SetupService == "docker"
 }
 
 func GetString(value, defaultValue string) string {
@@ -77,8 +96,11 @@ func GetString(value, defaultValue string) string {
 }
 
 func RestoreResolvconfToDefault() error {
+	log.Logger.Infof("m=RestoreResolvconfToDefault, status=begin")
 	hd := newDNSServerCleanerHandler()
-	return ProcessResolvconf(hd)
+	err := ProcessResolvconf(hd)
+	log.Logger.Infof("m=RestoreResolvconfToDefault, status=success, err=%v", err)
+	return err
 }
 
 func SetMachineDNSServer(serverIP string) error {
@@ -108,6 +130,9 @@ func ProcessResolvconf( handler DnsHandler ) error {
 		line := scanner.Text()
 		hasContent = true
 		entryType := getDnsEntryType(line)
+		if entryType == PROXY {
+			foundDnsProxyEntry = true
+		}
 		log.Logger.Debugf("m=ProcessResolvconf, status=readline, line=%s, type=%s", line,  entryType)
 		if r := handler.process(line, entryType); r != nil {
 			newResolvConfBuff.WriteString(*r)
@@ -130,14 +155,14 @@ func ProcessResolvconf( handler DnsHandler ) error {
 }
 
 func getDNSLine(serverIP string) string {
-	return "nameserver " + serverIP + " # dns-proxy-server"
+	return "nameserver " + serverIP + " # dps-entry"
 }
 
 func getDnsEntryType(line string) DnsEntry {
 
-	if strings.HasSuffix(line, "# dns-proxy-server") {
+	if strings.HasSuffix(line, "# dps-entry") {
 		return PROXY
-	} else if strings.HasPrefix(line, "# nameserver ") {
+	} else if strings.HasPrefix(line, "# nameserver ") && strings.HasSuffix(line, "# dps-comment") {
 		return COMMENTED_SERVER
 	} else if strings.HasPrefix(line, "#") {
 		return COMMENT
@@ -160,8 +185,8 @@ func SetCurrentDNSServerToMachineAndLockIt() error {
 
 func SetCurrentDNSServerToMachine() error {
 
-	log.Logger.Infof("m=SetCurrentDNSServerToMachine, status=begin")
 	ip, err := getCurrentIpAddress()
+	log.Logger.Infof("m=SetCurrentDNSServerToMachine, status=begin, ip=%s, err=%s", ip, err)
 	if err != nil {
 		return err
 	}
@@ -221,4 +246,82 @@ func getCurrentIpAddress() (string, error) {
 
 func getResolvConf() string {
 	return GetString(os.Getenv(env.MG_RESOLVCONF), "/etc/resolv.conf")
+}
+
+func ConfigSetupService(){
+
+	log.Logger.Infof("m=ConfigSetupService, status=begin, setupService=%s", SetupServiceVal())
+	servicePath := "/etc/init.d/dns-proxy-server"
+	err := utils.Copy(utils.GetPath("/dns-proxy-service"), servicePath)
+	if err != nil {
+		log.Logger.Fatalf("status=error-copy-service, msg=%s", err.Error())
+	}
+
+	var script string
+	if SetupService() {
+		script = utils.GetPath("/dns-proxy-server")
+	} else if SetupDockerService() {
+		script = `'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin ; ` +
+		 `docker rm -f dns-proxy-server &> /dev/null ;` +
+		 `docker-compose -f /etc/init.d/dns-proxy-server.yml up prod-docker-dns-prod-server'`
+	}
+	script = strings.Replace(script, "/", "\\/", -1)
+	script = strings.Replace(script, "&", "\\&", -1)
+
+	log.Logger.Infof("m=ConfigSetupService, status=script, script=%s", script)
+	_, err, _ = utils.Exec("sed", "-i", fmt.Sprintf("s/%s/%s/g", "<SCRIPT>", script), servicePath)
+	if err != nil {
+		log.Logger.Fatalf("status=error-prepare-service, msg=%s", err.Error())
+	}
+	err = utils.Copy(utils.GetPath("docker-compose.yml"), "/etc/init.d/dns-proxy-server.yml")
+	if err != nil {
+		log.Logger.Fatalf("status=error-copy-yml, msg=%s", err.Error())
+	}
+
+	if utils.Exists("update-rc.d") {
+		_, err, _ = utils.Exec("update-rc.d", "dns-proxy-server", "defaults")
+		if err != nil {
+			log.Logger.Fatalf("status=fatal-install-service, service=update-rc.d, msg=%s", err.Error())
+		}
+	} else if utils.Exists("chkconfig") {
+		_, err, _ = utils.Exec("chkconfig", "dns-proxy-server", "on")
+		if err != nil {
+			log.Logger.Fatalf("status=fatal-install-service, service=chkconfig, msg=%s", err.Error())
+		}
+	} else {
+		log.Logger.Warningf("m=ConfigSetupService, status=impossible to setup to start at boot")
+	}
+
+	out, err, _ := utils.Exec("service", "dns-proxy-server", "stop")
+	if err != nil {
+		log.Logger.Debugf("status=stop-service, msg=out=%s", string(out))
+	}
+	_, err, _ = utils.Exec("service", "dns-proxy-server", "start")
+	if err != nil {
+		log.Logger.Fatalf("status=start-service, msg=%s", err.Error())
+	}
+	log.Logger.Infof("m=ConfigSetupService, status=success")
+
+}
+
+func UninstallService(){
+
+	log.Logger.Infof("m=UninstallService, status=begin")
+	var err error
+
+	if out, err, _ := utils.Exec("service", "dns-proxy-server", "stop"); err != nil {
+		log.Logger.Infof("m=UninstallService, status=stop-fail, msg=maibe-no-running, out=%s", string(out))
+	}
+
+	if utils.Exists("update-rc.d") {
+		_, err, _ = utils.Exec("update-rc.d", "-f", "dns-proxy-server", "remove")
+	} else if utils.Exists("chkconfig") {
+		_, err, _ = utils.Exec("chkconfig", "dns-proxy-server", "off")
+	} else {
+		log.Logger.Warningf("m=ConfigSetupService, status=impossible to remove service")
+	}
+	if err != nil {
+		log.Logger.Fatalf("status=fatal-remove-service, msg=%s", err.Error())
+	}
+	log.Logger.Infof("m=UninstallService, status=success")
 }

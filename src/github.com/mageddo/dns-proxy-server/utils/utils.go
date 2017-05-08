@@ -7,6 +7,10 @@ import (
 	"io"
 	"time"
 	"github.com/mageddo/dns-proxy-server/utils/env"
+	"github.com/mageddo/log"
+	"strings"
+	"os/signal"
+	"syscall"
 )
 
 var QTypeCodes = map[uint16] string {
@@ -139,6 +143,11 @@ var opCodes  = map[uint16] string {
 	5 : "OpcodeUpdate",
 }
 
+var Sig = make(chan os.Signal)
+
+func init(){
+	signal.Notify(Sig, syscall.SIGINT, syscall.SIGTERM)
+}
 
 func DnsQTypeCodeToName(code uint16) string {
 	return QTypeCodes[code]
@@ -150,16 +159,21 @@ func GetCurrentPath() string {
 	if len(currDIr) != 0 {
 		return currDIr
 	}
-	currentPath, _ := filepath.Abs(filepath.Dir("."))
+	currentPath, _ := filepath.Abs(filepath.Dir(os.Args[0]))
+	log.Logger.Infof("m=GetCurrentPath, currentPath=%s", currentPath)
 	return currentPath
 
 }
 
 func GetPath(path string) string {
-	if path[:1] != "/" {
+	if !strings.HasPrefix(path, "/") {
 		path = "/" + path
 	}
-	return GetCurrentPath() + path
+	currentPath := GetCurrentPath();
+	if strings.HasSuffix(currentPath, "/") {
+		currentPath = currentPath[0:len(currentPath)-1];
+	}
+	return currentPath + path
 }
 
 func GetJsonEncoder(w io.Writer) *json.Encoder {
@@ -171,3 +185,17 @@ func GetJsonEncoder(w io.Writer) *json.Encoder {
 func GetUUID() int64 {
 	return time.Now().UnixNano()
 }
+
+func Copy(src, dst string) error {
+	in, err := os.Open(src)
+	if err != nil { return err }
+	defer in.Close()
+	out, err := os.OpenFile(dst, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
+	if err != nil { return err }
+	defer out.Close()
+	_, err = io.Copy(out, in)
+	cerr := out.Close()
+	if err != nil { return err }
+	return cerr
+}
+
