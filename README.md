@@ -28,31 +28,35 @@ This tool comes from from nodejs version(1.0), improving:
 * Code design quality
 * And more
 
-# Installing from binary
+# Running it from docker
 
->~~not documented yet~~
+Starting the server
 
-# Running it
+	$ sudo ./dns-proxy-server
 
-### Default start server
- 
-	$ ./dns-proxy-server
-
-### Help view
+If you need options 
 
 	$ ./dns-proxy-server --help
+	-compress
+		compress replies
+	-conf-path string
+		The config file path  (default "conf/config.json")
+	-cpuprofile string
+		write cpu profile to file
+	-default-dns
+		This DNS server will be the default server for this machine (default true)
+	-help
+		This message
+	-server-port int
+		The DNS server to start into (default 53)
+	-tsig string
+		use MD5 hmac tsig: keyname:base64
+	-web-server-port int
+		The web server port (default 5380)
 
+You can also configure the options at the configuration file
 
-# Testing
-
-	$ go test -cover=false ./src/github.com/mageddo/dns-proxy-server/.../
-
-
-Installing
-
->~~not documented yet~~
-
-# Configuration and data
+./conf/config.json
 
 ```javascript
 {
@@ -76,28 +80,28 @@ Installing
   "dnsServerPort": 8980 // dns server port, when 0 the default value is used
 }
 ```
+# Testing the DNS server
 
-# Commandline help Documentation
+Testing website
 
-```
--compress
-  compress replies
--conf-path string
-  The config file path  (default "conf/config.json")
--cpuprofile string
-  write cpu profile to file
--default-dns
-  This DNS server will be the default server for this machine (default true)
--help
-  This message
--server-port int
-  The DNS server to start into (default 53)
--tsig string
-  use MD5 hmac tsig: keyname:base64
--web-server-port int
-  The web server port (default 5380)
-```
+	$ nslookup google.com <dns-server-ip>
+	Server:   172.17.0.2
+	Address:  172.17.0.2#53
 
-# Test hostnames
+	Non-authoritative answer:
+	Name: google.com
+	Address: 216.58.202.142
+
+Testing container hostname
+
+	$ nslookup dns.mageddo <dns-server-ip>
+	Server:   172.17.0.2
+	Address:  172.17.0.2#53
+	
+	Non-authoritative answer:
+	Name: dns.mageddo
+	Address: 172.17.0.2
+
+Specifying a port
 
 	nslookup -port=8980 bookmarks-node.mageddo.in 127.0.0.1
