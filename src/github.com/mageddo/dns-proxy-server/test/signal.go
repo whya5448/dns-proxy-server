@@ -7,7 +7,7 @@ import (
 	"fmt"
 )
 
-func main() {
+func main5() {
 
 
 	sig := make(chan os.Signal)

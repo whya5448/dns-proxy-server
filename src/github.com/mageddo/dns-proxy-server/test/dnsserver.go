@@ -98,7 +98,7 @@ func serve(net, name, secret string) {
 	}
 }
 
-func main() {
+func main2() {
 	var name, secret string
 	flag.Usage = func() {
 		flag.PrintDefaults()

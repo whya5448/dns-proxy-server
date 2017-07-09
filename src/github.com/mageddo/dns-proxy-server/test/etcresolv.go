@@ -6,7 +6,7 @@ import (
 	"syscall"
 )
 
-func main(){
+func main3(){
 
 	//config, _ := dns.ClientConfigFromFile("/etc/resolv.conf")
 

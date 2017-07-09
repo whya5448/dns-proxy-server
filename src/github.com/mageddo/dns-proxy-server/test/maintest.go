@@ -2,7 +2,7 @@ package main
 
 import "fmt"
 
-func main(){
+func main4(){
 
 	p:= Person{Age:14}
 
