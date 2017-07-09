@@ -93,7 +93,10 @@ You can also configure the options at the configuration file
 
 # Installing it as a service
 
-	$ docker run defreitas/dns-proxy-server -service=docker
+1. Download the [latest release](https://github.com/mageddo/dns-proxy-server/releases) zip and extract it
+2. Run the service installer
+
+		$ sudo ./dns-proxy-server -service=docker
 
 this way it will start with the **OS**
 
@@ -106,7 +109,12 @@ if you want to stop
 if you don't want this service anymore
 
 	$ sudo service dns-proxy-server uninstall
+	Are you really sure you want to uninstall this service? That cannot be undone. [yes|No] 
+	yes
 
+for more options of how service option take a look at the help section
+
+	$ ./dns-proxy-server -help
 
 # Testing the DNS server
 
