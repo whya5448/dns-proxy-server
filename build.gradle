@@ -1,0 +1,33 @@
+plugins {
+	id 'net.researchgate.release' version '2.4.0'
+}
+
+defaultTasks 'release'
+
+ext {
+	BOOKMARKS_TAG = project.version
+	CONTAINER_NAME = "bookmarks-node"
+	IMAGE_NAME = "reg.mageddo.com:5000/mageddo/${CONTAINER_NAME}:$BOOKMARKS_TAG"
+	BOOKMARKS_BASE = "/var/lib/mageddo/bookmarks-node"
+	BOOKMARKS_INTERNAL_BASE = "/opt/bookmarks"
+}
+def lastVersion = project.version
+beforeReleaseBuild << {
+	println "> upgrading docker-compose version from: ${lastVersion} to ${project.version}"
+	def f = files("${project.projectDir}/docker-compose.yml", "${project.projectDir}/Dockerfile")
+	if(!f.exists()){
+		println "docker-compose file not found"
+		System.exit(-1)
+	}
+	f.write(f.text.replaceAll("(image:.*:)(.*)", "\$1${project.version}"))
+}
+release {
+	project.ext.set("release.useAutomaticVersion", true)
+	failOnCommitNeeded = false
+	failOnPublishNeeded = false
+	failOnUnversionedFiles = false
+	buildTasks = []
+	git {
+		requireBranch = "v2-golang"
+	}
+}
