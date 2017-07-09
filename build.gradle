@@ -15,7 +15,7 @@ def lastVersion = project.version
 beforeReleaseBuild << {
 	println "> upgrading docker-compose version from: ${lastVersion} to ${project.version}"
 	files(
-		"${project.projectDir}/docker-compose.yml", "${project.projectDir}/Dockerfile"
+		"${project.projectDir}/docker-compose.yml", "${project.projectDir}/hub.Dockerfile"
 	).each{ f ->
 
 		println "> updating version in: ${f}"
