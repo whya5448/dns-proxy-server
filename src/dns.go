@@ -136,14 +136,17 @@ func main() {
 			exitcodes.Exit(exitcodes.FAIL_START_WEB_SERVER)
 		}else{
 			logger.Infof("status=web-server-started, port=%d", webPort)
-			controller.MapRequests()
-			if conf.SetupResolvConf() {
-				logger.Infof("status=setResolvconf")
-				err := conf.SetCurrentDNSServerToMachine()
-				if err != nil {
-					logger.Errorf("status=setResolvconf, err=%v", err)
-					exitcodes.Exit(exitcodes.FAIL_SET_DNS_AS_DEFAULT)
-				}
+		}
+	}()
+	go func() {
+		logger.Infof("status=setup-requests")
+		controller.MapRequests()
+		if conf.SetupResolvConf() {
+			logger.Infof("status=setResolvconf")
+			err := conf.SetCurrentDNSServerToMachine()
+			if err != nil {
+				logger.Errorf("status=setResolvconf, err=%v", err)
+				exitcodes.Exit(exitcodes.FAIL_SET_DNS_AS_DEFAULT)
 			}
 		}
 	}()
