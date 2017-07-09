@@ -42,32 +42,11 @@ This tool comes from from nodejs version(1.0), improving:
 
 	$ ./dns-proxy-server --help
 
-# Building from source
-
-	$ docker-compose up prod-build-dns-proxy-server
 
 # Testing
 
 	$ go test -cover=false ./src/github.com/mageddo/dns-proxy-server/.../
 
-# Building from source
-
-Requirements
-
-* Docker
-* Docker Compose
-* Git
-
-
-clone the repository
-
-	git submodule init && git submodule update
-
-compile the packages
-
-	$ docker rm -f docker-dns-server-compiler || true && \
-	docker-compose up prod-build-dns-proxy-server && \
-	docker-compose build prod-build-docker-dns-proy-server
 
 Installing
 

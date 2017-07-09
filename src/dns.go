@@ -136,21 +136,21 @@ func main() {
 			exitcodes.Exit(exitcodes.FAIL_START_WEB_SERVER)
 		}else{
 			logger.Infof("status=web-server-started, port=%d", webPort)
+			controller.MapRequests()
+			if conf.SetupResolvConf() {
+				logger.Infof("status=setResolvconf")
+				err := conf.SetCurrentDNSServerToMachine()
+				if err != nil {
+					logger.Errorf("status=setResolvconf, err=%v", err)
+					exitcodes.Exit(exitcodes.FAIL_SET_DNS_AS_DEFAULT)
+				}
+			}
 		}
 	}()
 
-	controller.MapRequests()
-	if conf.SetupResolvConf() {
-		logger.Infof("status=setResolvconf")
-		err := conf.SetCurrentDNSServerToMachine()
-		if err != nil {
-			logger.Errorf("status=setResolvconf, err=%v", err)
-			exitcodes.Exit(exitcodes.FAIL_SET_DNS_AS_DEFAULT)
-		}
-	}
-
-	logger.Infof("status=reading...")
+	logger.Infof("status=listing-signals")
 	s := <- utils.Sig
+	logger.Infof("status=exiting..., s=%s", s)
 	conf.RestoreResolvconfToDefault();
 	logger.Warningf("status=exiting, signal=%v", s)
 }

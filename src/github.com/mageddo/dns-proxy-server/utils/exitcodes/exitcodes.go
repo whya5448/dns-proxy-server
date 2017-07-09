@@ -18,6 +18,7 @@ func Exit(code int){
 	log.Logger.Errorf("m=Exit, status=exiting, code=%d", code)
 	if code != SUCCESS {
 		utils.Sig <- syscall.Signal(code)
+		log.Logger.Info("m=Exit, status=msg-posted")
 	} else {
 		os.Exit(code)
 	}
