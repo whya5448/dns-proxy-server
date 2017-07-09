@@ -15,11 +15,13 @@ def lastVersion = project.version
 beforeReleaseBuild << {
 	println "> upgrading docker-compose version from: ${lastVersion} to ${project.version}"
 	files("${project.projectDir}/docker-compose.yml", "${project.projectDir}/Dockerfile").each{ f ->
+
+		println "update version in: ${f}"
 		if(!f.exists()){
-			println "docker-compose file not found"
+			println "file ${f} not found"
 			System.exit(-1)
 		}
-		f.write(f.text.replaceAll("(image:.*:)(.*)", "\$1${project.version}"))
+		f.write(f.text.replaceAll("(\\d+\\.\\d\\.+\\d+)", "${project.version}"))
 
 	}
 }

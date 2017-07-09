@@ -2,7 +2,7 @@ version: '2'
 services:
 
   gocompiler-docker-dns-proxy: # base compiler
-    image: golang:2.0.2
+    image: golang:2.0.3
     container_name: gocompiler
     volumes:
       - $PWD:/app
@@ -16,7 +16,7 @@ services:
     network_mode: bridge
   prod-docker-dns-prod-server: # run from a  docker image
     container_name: dns-proxy-server
-    image: defreitas/dns-proxy-server:2.0.2
+    image: defreitas/dns-proxy-server:2.0.3
     hostname: dns.mageddo
     volumes:
       - /opt/dns-proxy-server/conf:/app/conf
@@ -30,7 +30,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: docker-dns-server-docker-compiler
-    image: defreitas/dns-proxy-server:2.0.2
+    image: defreitas/dns-proxy-server:2.0.3
   prod-build-dns-proxy-server: # build the binary
     extends: gocompiler-docker-dns-proxy
     container_name: docker-dns-server-compiler
