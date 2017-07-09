@@ -23,7 +23,7 @@ func TestSetMachineDNSServer_EmptyFileSuccess(t *testing.T) {
 
 	const TMP_RESOLV_FILE = "/tmp/test-resolv.conf"
 
-	os.OpenFile(TMP_RESOLV_FILE, os.O_TRUNC, 0666)
+	os.OpenFile(TMP_RESOLV_FILE, os.O_TRUNC | os.O_CREATE, 0666)
 	os.Setenv(env.MG_RESOLVCONF, TMP_RESOLV_FILE)
 	err := SetMachineDNSServer("9.9.9.9")
 	if err != nil {
