@@ -2,7 +2,7 @@
 /bin
 /build
 .idea/
-dns-proxy.iml
+*.iml
 
 .gradle/
 *.orig

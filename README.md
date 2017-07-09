@@ -42,6 +42,9 @@ This tool comes from from nodejs version(1.0), improving:
 
 	$ ./dns-proxy-server --help
 
+# Building from source
+
+	$ docker-compose up prod-build-dns-proxy-server
 
 # Testing
 
