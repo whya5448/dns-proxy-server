@@ -3,7 +3,6 @@ package utils
 import (
 	"testing"
 	"github.com/stretchr/testify/assert"
-	"bytes"
 )
 
 func TestExecSuccess(t *testing.T) {
@@ -20,7 +19,7 @@ func TestExecExitSuccess(t *testing.T) {
 
 	out, err, code := Exec("mkdir", "/")
 
-	assert.Equal(t, bytes.NewBufferString("mkdir: cannot create directory '/': File exists\n").Bytes(), out)
+	assert.Equal(t, []byte("mkdir: cannot create directory '/': File exists\n"), out)
 	assert.Equal(t, "exit status 1", err.Error())
 	assert.Equal(t, 1, code)
 
