@@ -28,13 +28,23 @@ This tool comes from from nodejs version(1.0), improving:
 * Code design quality
 * And more
 
-# Running it from docker
+# Running it
 
-Starting the server
+### From docker
 
-	$ sudo ./dns-proxy-server
+	$ docker run defreitas/dns-proxy-server
 
-If you need options 
+### Standalone run
+
+Download the package
+
+	https://github.com/dns-proxy-server-x.x.x.zip
+
+Extract it and run
+
+	$ sudo ./dns-proxy-server -service=normal
+
+# If you need options 
 
 	$ ./dns-proxy-server --help
 	-compress
@@ -80,6 +90,24 @@ You can also configure the options at the configuration file
   "dnsServerPort": 8980 // dns server port, when 0 the default value is used
 }
 ```
+
+# Installing it as a service
+
+	$ docker run defreitas/dns-proxy-server -service=docker
+
+this way it will start with the **OS**
+
+if you want to stop 
+
+	$ sudo service dns-proxy-server stop
+	Stopping service…
+	Service stopped
+
+if you don't want this service anymore
+
+	$ sudo service dns-proxy-server uninstall
+
+
 # Testing the DNS server
 
 Testing website
