@@ -14,7 +14,7 @@ services:
     working_dir: /app
     hostname: gocompiler.dev
     network_mode: bridge
-  prod-docker-dns-prod-server: # run from a docker image
+  prod-docker-dns-prod-server: # run from a  docker image
     container_name: dns-proxy-server
     image: defreitas/dns-proxy-server:2.0.2
     hostname: dns.mageddo

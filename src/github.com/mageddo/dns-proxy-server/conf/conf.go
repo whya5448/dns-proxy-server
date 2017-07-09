@@ -16,6 +16,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/mageddo/dns-proxy-server/utils"
+	"encoding/json"
 )
 
 type DnsEntry string
@@ -262,8 +263,12 @@ func ConfigSetupService(){
 		script = utils.GetPath("/dns-proxy-server")
 	} else if SetupDockerService() {
 		script = `'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin ; ` +
-		 `docker rm -f dns-proxy-server &> /dev/null ;` +
-		 `docker-compose -f /etc/init.d/dns-proxy-server.yml up prod-docker-dns-prod-server'`
+		`docker rm -f dns-proxy-server &> /dev/null ;` +
+		`docker run -p 5380:5380 --hostname dns.mageddo --name dns-proxy-server` +
+		` -v /opt/dns-proxy-server/conf:/app/conf ` +
+		` -v /var/run/docker.sock:/var/run/docker.sock ` +
+		` -v /etc/resolv.conf:/etc/resolv.conf ` +
+		fmt.Sprintf(` defreitas/dns-proxy-server:%s '`, GetVersion())
 	}
 	script = strings.Replace(script, "/", "\\/", -1)
 	script = strings.Replace(script, "&", "\\&", -1)
@@ -272,10 +277,6 @@ func ConfigSetupService(){
 	_, err, _ = utils.Exec("sed", "-i", fmt.Sprintf("s/%s/%s/g", "<SCRIPT>", script), servicePath)
 	if err != nil {
 		log.Logger.Fatalf("status=error-prepare-service, msg=%s", err.Error())
-	}
-	err = utils.Copy(utils.GetPath("docker-compose.yml"), "/etc/init.d/dns-proxy-server.yml")
-	if err != nil {
-		log.Logger.Fatalf("status=error-copy-yml, msg=%s", err.Error())
 	}
 
 	if utils.Exists("update-rc.d") {
@@ -324,4 +325,24 @@ func UninstallService(){
 		log.Logger.Fatalf("status=fatal-remove-service, msg=%s", err.Error())
 	}
 	log.Logger.Infof("m=UninstallService, status=success")
+}
+
+func getProps() *map[string] string {
+
+	props := make(map[string]string)
+	path := utils.GetPath("properties.json")
+	f, _:=os.Open(path)
+	json.NewDecoder(f).Decode(&props)
+	return &props
+
+}
+
+func GetVersion() string {
+	props := *getProps()
+	v := props["version"]
+	if (len(v) == 0){
+		return "latest"
+	}
+	return v
+
 }
