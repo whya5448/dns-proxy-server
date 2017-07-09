@@ -14,18 +14,8 @@ ext {
 def lastVersion = project.version
 beforeReleaseBuild << {
 	println "> upgrading docker-compose version from: ${lastVersion} to ${project.version}"
-	files(
-		"${project.projectDir}/docker-compose.yml", "${project.projectDir}/hub.Dockerfile"
-	).each{ f ->
-
-		println "> updating version in: ${f}"
-		if(!f.exists()){
-			println "file ${f} not found"
-			System.exit(-1)
-		}
-		f.write(f.text.replaceAll("(dns-proxy-server.*)(\\d+\\.\\d\\.+\\d+)", "\$1${project.version}"))
-
-	}
+	updateVersion("${project.projectDir}/docker-compose.yml", "(dns-proxy-server.*)(\\d+\\.\\d\\.+\\d+)", "\$1${project.version}")
+	updateVersion("${project.projectDir}/hub.Dockerfile", '(\\d+\\.\\d\\.+\\d+)', "${project.version}")
 }
 release {
 	project.ext.set("release.useAutomaticVersion", true)
@@ -34,6 +24,19 @@ release {
 	failOnUnversionedFiles = false
 	buildTasks = []
 	git {
-		requireBranch = "v2-golang"
+		requireBranch = 'master'
+		pushToRemote = ''
 	}
+}
+
+void updateVersion(f, pattern, replace){
+
+	f = file(f)
+	println "> updating version in: ${f}"
+	if(!f.exists()){
+		println "file ${f} not found"
+		System.exit(-1)
+	}
+	f.write(f.text.replaceAll(pattern, replace))
+
 }
