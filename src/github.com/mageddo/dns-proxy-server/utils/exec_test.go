@@ -22,7 +22,6 @@ func TestExecExitSuccess(t *testing.T) {
 
 	assert.Equal(t, bytes.NewBufferString("mkdir: cannot create directory '/': File exists\n").Bytes(), out)
 	assert.Equal(t, "exit status 1", err.Error())
-	//assert.Equal(t, "m=Exec, exitcode=1, err=exit status 1, out=mkdir: cannot create directory ‘/’: File exists\n", err.Error())
 	assert.Equal(t, 1, code)
 
 }
@@ -32,7 +31,6 @@ func TestExecCommandThatNotExistsSuccess(t *testing.T) {
 	out, err, code := Exec("notExists")
 
 	assert.Equal(t, "", string(out))
-	//assert.Equal(t, "m=Exec, exitcode=-255, err=exec: \"notExists\": executable file not found in $PATH, out=", err.Error())
 	assert.Equal(t, "exec: \"notExists\": executable file not found in $PATH", err.Error())
 	assert.Equal(t, -255, code)
 
