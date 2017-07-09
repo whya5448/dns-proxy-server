@@ -21,7 +21,7 @@ beforeReleaseBuild << {
 			println "file ${f} not found"
 			System.exit(-1)
 		}
-		f.write(f.text.replaceAll("(\\d+\\.\\d\\.+\\d+)", "${project.version}"))
+		f.write(f.text.replaceAll("(dns-proxy-server.*)(\\d+\\.\\d\\.+\\d+)", "\$1${project.version}"))
 
 	}
 }
