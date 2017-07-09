@@ -1,4 +1,4 @@
-**Obs**: The version 2 is in development(the main features are working but in beta) and this documentation is being built
+**Obs**: This is the version 2, for the old version 1 []see this link](https://github.com/mageddo/dns-proxy-server/tree/master/) 
 
 # Features
 dns-proxy-server is a end user(developers, Server Administrators) DNS server tool with some extra features like:
@@ -8,10 +8,6 @@ dns-proxy-server is a end user(developers, Server Administrators) DNS server too
 * Solve names from a list of configured DNS servers(as a proxy) if no answer of two above
 * [Graphic interface to manage it](http:/127.0.0.1:5380/static/)
 	* List and edit DNS local entries
-	* ~~List docker containers hostnames~~
-* ~~Cache for remote DNS increasing internet velocity, and options to enable/disable~~
-* ~~List docker containers using [http://dns.mageddo:5380/containers](http://dns.mageddo:5380/containers)~~
-* ~~List cached hosts using [http://127.0.0.1:5380/cache](http://127.0.0.1:5380/cache)(without docker) or [http://dns.mageddo:5380/cache](http://dns.mageddo:5380/cache) (with docker)~~
 
 # DNS resolution order
 The Dns Proxy Server basically follow the bellow order to solve the names:
@@ -32,17 +28,17 @@ This tool comes from from nodejs version(1.0), improving:
 
 ### From docker
 
-	$ docker run defreitas/dns-proxy-server
+	$ docker run --hostname dns.mageddo --name dns-proxy-server -p 5380:5380 \
+    -v /opt/dns-proxy-server/conf:/app/conf \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    -v /etc/resolv.conf:/etc/resolv.conf \
+    defreitas/dns-proxy-server
 
 ### Standalone run
 
-Download the package
+Download the [latest version](https://github.com/mageddo/dns-proxy-server/releases), extract and run
 
-	https://github.com/dns-proxy-server-x.x.x.zip
-
-Extract it and run
-
-	$ sudo ./dns-proxy-server -service=normal
+	$ sudo ./dns-proxy-server
 
 # If you need options 
 
@@ -93,7 +89,7 @@ You can also configure the options at the configuration file
 
 # Installing it as a service
 
-1. Download the [latest release](https://github.com/mageddo/dns-proxy-server/releases) zip and extract it
+1. Download the [latest release](https://github.com/mageddo/dns-proxy-server/releases) and extract it
 2. Run the service installer
 
 		$ sudo ./dns-proxy-server -service=docker
@@ -111,10 +107,6 @@ if you don't want this service anymore
 	$ sudo service dns-proxy-server uninstall
 	Are you really sure you want to uninstall this service? That cannot be undone. [yes|No] 
 	yes
-
-for more options of how service option take a look at the help section
-
-	$ ./dns-proxy-server -help
 
 # Testing the DNS server
 
