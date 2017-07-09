@@ -14,9 +14,11 @@ ext {
 def lastVersion = project.version
 beforeReleaseBuild << {
 	println "> upgrading docker-compose version from: ${lastVersion} to ${project.version}"
-	files("${project.projectDir}/docker-compose.yml", "${project.projectDir}/Dockerfile").each{ f ->
+	files(
+		"${project.projectDir}/docker-compose.yml", "${project.projectDir}/Dockerfile"
+	).each{ f ->
 
-		println "update version in: ${f}"
+		println "> updating version in: ${f}"
 		if(!f.exists()){
 			println "file ${f} not found"
 			System.exit(-1)
