@@ -1,4 +1,4 @@
-**Obs**: This is the version 2, for the old version 1 []see this link](https://github.com/mageddo/dns-proxy-server/tree/master/) 
+**Obs**: This is the version 2, for the old version 1 [see this link](https://github.com/mageddo/dns-proxy-server/tree/master/) 
 
 # Features
 dns-proxy-server is a end user(developers, Server Administrators) DNS server tool with some extra features like:
