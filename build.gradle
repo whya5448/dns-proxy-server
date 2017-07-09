@@ -25,7 +25,7 @@ release {
 	buildTasks = []
 	git {
 		requireBranch = 'master'
-		pushToRemote = ''
+		pushToRemote = 'origin'
 	}
 }
 
