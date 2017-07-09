@@ -17,7 +17,7 @@ The Dns Proxy Server basically follow the bellow order to solve the names:
 * then from 3rd configured remote DNS servers
 
 # Version 2 Improvements
-This tool comes from from nodejs version(1.0), improving:
+This tool comes from nodejs version(1.0), improving:
 * Performance - this version uses much less RAM and is much faster
 * Bug fixes
 * Binary distribution - now you can simply download a linux executable and use it, without need to install anything
@@ -66,11 +66,11 @@ You can also configure the options at the configuration file
 
 ```javascript
 {
-  "remoteDnsServers": [], // not used
-  "envs": [ // there areall possible environments 
+  "remoteDnsServers": [], // not used at the current version
+  "envs": [ // all existent environments 
     {
       "name": "", // empty string is the default
-      "hostnames": [ // there are all local hostnames entries
+      "hostnames": [ // all local hostnames entries
         {
           "id": 1,
           "hostname": "github.com",
@@ -80,9 +80,9 @@ You can also configure the options at the configuration file
       ]
     }
   ],
-  "activeEnv": "", // what is default env name 
-  "lastId": 1, // hostnames sequence
-  "webServerPort": 0, // web admin port, when 0 the default value is used
+  "activeEnv": "", // the default env keyname 
+  "lastId": 1, // hostnames sequence, don't touch here
+  "webServerPort": 0, // web admin port, when 0 the default value is used, see --help option
   "dnsServerPort": 8980 // dns server port, when 0 the default value is used
 }
 ```
