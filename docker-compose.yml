@@ -2,7 +2,7 @@ version: '2'
 services:
 
   gocompiler-docker-dns-proxy: # base compiler
-    image: golang:1.7.4
+    image: golang:2.0.2
     container_name: gocompiler
     volumes:
       - $PWD:/app
