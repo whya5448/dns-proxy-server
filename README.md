@@ -1,13 +1,15 @@
 **Obs**: This is the version 2, for the old version 1 [see this link](https://github.com/mageddo/dns-proxy-server/tree/v1-nodejs) 
 
 # Features
-dns-proxy-server is a end user(developers, Server Administrators) DNS server tool with some extra features like:
+Dns-proxy-server is a end user(developers, Server Administrators) DNS server tool to develop systems with docker solving docker containers hostnames:
 
 * Solve names from local configuration database
 * Solve names from docker containers using docker **hostname** option or **HOSTNAMES** env
 * Solve names from a list of configured DNS servers(as a proxy) if no answer of two above
 * [Graphic interface to manage it](http:/127.0.0.1:5380/static/)
 	* List and edit DNS local entries
+
+![](http://i.imgur.com/Bhe9P36.png)
 
 # DNS resolution order
 The Dns Proxy Server basically follow the bellow order to solve the names:
