@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"golang.org/x/net/context"
-	"github.com/mageddo/dns-proxy-server/conf"
 	"github.com/mageddo/dns-proxy-server/events/local"
 	"github.com/mageddo/log"
 )
@@ -27,19 +26,23 @@ func (RemoteDnsSolver) Solve(ctx context.Context, question dns.Question) (*dns.M
 	var err error
 	config := local.GetConfiguration(ctx)
 
-	for server := range config.GetRemoteServers(ctx) {
+	for _, server := range config.GetRemoteServers(ctx) {
 
-		if (len(server) != 4){
+		if len(server) != 4 {
 			logger.Warning("status=wrong-server, server=%+v", server)
 			continue
 		}
 
 		// server and port to ask
-		r, _, err := c.Exchange(m, net.JoinHostPort(fmt.Sprintf("%d.%d.%d.%d", server[0], server[1], server[2], server[3]), "53"))
+		formatServer := fmt.Sprintf("%d.%d.%d.%d", server[0], server[1], server[2], server[3])
+		logger.Debugf("status=format-server, server=%s", formatServer)
+
+		var r *dns.Msg
+		r, _, err = c.Exchange(m, net.JoinHostPort(formatServer, "53"))
 
 			// if the answer not be returned
 			if r == nil {
-				err = errors.New(fmt.Sprintf("status=answer-can-not-be-bull, err=%v", err))
+				err = errors.New(fmt.Sprintf("status=answer-can-not-be-null, err=%v", err))
 				logger.Infof("status=no-answer, err=%s", err)
 				continue
 			} else if r.Rcode != dns.RcodeSuccess { // what the code of the return message ?

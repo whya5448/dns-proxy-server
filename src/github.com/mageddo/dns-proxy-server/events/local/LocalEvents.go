@@ -352,9 +352,9 @@ func NewEmptyEnv() []EnvVo {
 	return []EnvVo{{Hostnames:[]HostnameVo{}, Name:""}}
 }
 
-func (lc *LocalConfiguration) GetRemoteServers(ctx context.Context) [][]byte {
+func (lc *LocalConfiguration) GetRemoteServers(ctx context.Context) [][4]byte {
 	if len(lc.RemoteDnsServers) == 0 {
-		lc.RemoteDnsServers = append([]byte{8, 8, 8, 8})
+		lc.RemoteDnsServers = append(lc.RemoteDnsServers, [4]byte{8, 8, 8, 8})
 		logger := log.GetLogger(ctx)
 		logger.Infof("status=put-default-server")
 	}
