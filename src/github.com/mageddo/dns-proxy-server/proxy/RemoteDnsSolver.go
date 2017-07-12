@@ -47,7 +47,7 @@ func (RemoteDnsSolver) Solve(ctx context.Context, question dns.Question) (*dns.M
 				continue
 			} else if r.Rcode != dns.RcodeSuccess { // what the code of the return message ?
 				err = errors.New(fmt.Sprintf("status=invalid-answer-name, name=%s, rcode=%d", question.Name, r.Rcode))
-				logger.Infof("status=bad-code, name=%d, rcode=%d, err=%s", question.Name, r.Rcode, err)
+				logger.Infof("status=bad-code, name=%s, rcode=%d, err=%s", question.Name, r.Rcode, err)
 				continue
 			}
 			return r, nil
