@@ -21,19 +21,22 @@ func HandleDockerEvents(){
 	logger := log.GetLogger(defaultLogger)
 
 	// adaptar a api do docker aqui
-	cli, err := client.NewClient("unix:///var/run/docker.sock", "v1.24", nil, nil)
-	//cli, err := client.NewEnvClient()
+	cli, err := client.NewClient("unix:///var/run/docker.sock", "v1.20", nil, nil)
 	if err != nil {
-		logger.Errorf("m=solve, status=error-to-connect-at-host, solver=docker, err=%v", err)
+		logger.Errorf("status=error-to-connect-at-host, solver=docker, err=%v", err)
 		return
 	}
 
 	// more about list containers https://docs.docker.com/engine/reference/commandline/ps/
 	options := types.ContainerListOptions{}
 	ctx := context.Background()
+
+	serverVersion, err := cli.ServerVersion(ctx)
+	logger.Infof("serverVersion=%+v, err=%s", serverVersion, err)
+
 	containers, err := cli.ContainerList(ctx, options)
 	if err != nil {
-		logger.Errorf("m=solve, status=error-to-list-container, solver=docker, err=%v", err)
+		logger.Errorf("status=error-to-list-container, solver=docker, err=%v", err)
 		return
 	}
 
@@ -59,7 +62,7 @@ func HandleDockerEvents(){
 
 	body, err := cli.Events(ctx, types.EventsOptions{ Filters: eventFilter })
 	if err != nil {
-		logger.Errorf("m=solve, status=error-to-attach-at-events-handler, solver=docker, err=%v", err)
+		logger.Errorf("status=error-to-attach-at-events-handler, solver=docker, err=%v", err)
 		return
 	}
 
@@ -80,9 +83,13 @@ func HandleDockerEvents(){
 			logger.Errorf("status=inspect-error, container=%s, err=%v", cInspection.Name, err)
 		}
 		hostnames := getHostnames(cInspection)
-		logger.Infof("status=resolved-hosts, action=%s, hostnames=%s", event.Action, hostnames)
+		action := event.Action
+		if len(action) == 0 {
+			action = event.Status
+		}
+		logger.Infof("status=resolved-hosts, action=%s, hostnames=%s", action, hostnames)
 
-		switch event.Action {
+		switch action {
 		case "start":
 			putHostnames(logCtx, hostnames, cInspection)
 			break
@@ -154,9 +161,12 @@ func putHostnames(ctx context.Context, hostnames []string, inspect types.Contain
 			ip = network.IPAddress
 		}
 		if len(ip) == 0 {
-			err := fmt.Sprintf("no network found to %s", inspect.Name)
-			logger.Error(err)
-			return errors.New(err)
+			ip = inspect.NetworkSettings.IPAddress;
+			if len(ip) == 0 {
+				err := fmt.Sprintf("no network found to %s", inspect.Name)
+				logger.Error(err)
+				return errors.New(err)
+			}
 		}
 		logger.Debugf("m=putHostnames, host=%s, ip=%s", host, ip)
 		cache[host] = ip
