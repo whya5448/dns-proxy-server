@@ -12,7 +12,7 @@ ext {
 	BOOKMARKS_INTERNAL_BASE = "/opt/bookmarks"
 }
 def lastVersion = project.version
-initScmAdapter << {
+updateVersion << {
 	println "> upgrading docker-compose version from: ${lastVersion} to ${project.version}"
 	updateVersion("${project.projectDir}/docker-compose.yml", "(dns-proxy-server.*)(\\d+\\.\\d\\.+\\d+)", "\$1${project.version}")
 	updateVersion("${project.projectDir}/hub.Dockerfile", '(\\d+\\.\\d\\.+\\d+)', "${project.version}")
