@@ -16,7 +16,7 @@ services:
     network_mode: bridge
   prod-docker-dns-prod-server: # run from a  docker image
     container_name: dns-proxy-server
-    image: defreitas/dns-proxy-server:2.0.9
+    image: defreitas/dns-proxy-server:2.0.10
     hostname: dns.mageddo
     volumes:
       - /opt/dns-proxy-server/conf:/app/conf
