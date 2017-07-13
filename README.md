@@ -15,7 +15,7 @@ Dns-proxy-server is a end user(developers, Server Administrators) DNS server too
 
 # Requirements
 * Linux
-* Docker 1.8.x
+* Docker 1.9.x
 * Docker Compose 1.6.0 (if you use as docker service)
 
 # DNS resolution order
