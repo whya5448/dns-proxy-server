@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 CUR_DIR=$PWD
 
 case $1 in
