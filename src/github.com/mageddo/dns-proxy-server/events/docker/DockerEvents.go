@@ -21,7 +21,7 @@ func HandleDockerEvents(){
 	logger := log.GetLogger(defaultLogger)
 
 	// adaptar a api do docker aqui
-	cli, err := client.NewClient("unix:///var/run/docker.sock", "v1.20", nil, nil)
+	cli, err := client.NewClient("unix:///var/run/docker.sock", "v1.21", nil, nil)
 	if err != nil {
 		logger.Errorf("status=error-to-connect-at-host, solver=docker, err=%v", err)
 		return
