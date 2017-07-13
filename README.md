@@ -73,7 +73,8 @@ You can also configure the options at the configuration file
 
 ```javascript
 {
-  "remoteDnsServers": [], // not used at the current version
+  "remoteDnsServers": [ [8,8,8,8], [4,4,4,4] ], // Remote DNS servers to be asked when can not solve from docker or local storage 
+                                                // If no one server was specified then the 8.8.8.8 will be used
   "envs": [ // all existent environments 
     {
       "name": "", // empty string is the default

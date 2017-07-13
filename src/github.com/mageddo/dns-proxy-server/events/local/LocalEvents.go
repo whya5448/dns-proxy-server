@@ -104,6 +104,11 @@ func GetConfiguration(ctx context.Context) *LocalConfiguration {
 
 
 type LocalConfiguration struct {
+	/**
+	 * The remote servers to ask when, DPS can not solve from docker or local file,
+	 * it will try one by one in order, if no one is specified then 8.8.8.8 is used by default
+	 * DO NOT call this variable directly, use GetRemoteDnsServers instead
+	 */
 	RemoteDnsServers [][4]byte `json:"remoteDnsServers"`
 	Envs []EnvVo `json:"envs"`
 	ActiveEnv string `json:"activeEnv"`
@@ -345,4 +350,13 @@ func (lc *LocalConfiguration) SetActiveEnv(ctx context.Context, env EnvVo) error
 
 func NewEmptyEnv() []EnvVo {
 	return []EnvVo{{Hostnames:[]HostnameVo{}, Name:""}}
+}
+
+func (lc *LocalConfiguration) GetRemoteServers(ctx context.Context) [][4]byte {
+	if len(lc.RemoteDnsServers) == 0 {
+		lc.RemoteDnsServers = append(lc.RemoteDnsServers, [4]byte{8, 8, 8, 8})
+		logger := log.GetLogger(ctx)
+		logger.Infof("status=put-default-server")
+	}
+	return lc.RemoteDnsServers
 }

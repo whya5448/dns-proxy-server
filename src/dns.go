@@ -43,7 +43,7 @@ func handleQuestion(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 		questionsQtd, firstQuestion.Name, utils.DnsQTypeCodeToName(firstQuestion.Qtype))
 
 	// loading the solvers and try to solve the hostname in that order
-	solvers := []proxy.DnsSolver{proxy.LocalDnsSolver{}, proxy.DockerDnsSolver{}, proxy.RemoteDnsSolver{}}
+	solvers := []proxy.DnsSolver{proxy.DockerDnsSolver{}, proxy.LocalDnsSolver{}, proxy.RemoteDnsSolver{}}
 	for _, solver := range solvers {
 
 		solverID := reflect.TypeOf(solver).Name()
