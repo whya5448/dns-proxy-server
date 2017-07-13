@@ -250,6 +250,7 @@ func getResolvConf() string {
 
 func ConfigSetupService(){
 
+	conf := local.GetConfigurationNoCtx()
 	log.Logger.Infof("m=ConfigSetupService, status=begin, setupService=%s", SetupServiceVal())
 	servicePath := "/etc/init.d/dns-proxy-server"
 	err := utils.Copy(utils.GetPath("/dns-proxy-service"), servicePath)
@@ -262,11 +263,16 @@ func ConfigSetupService(){
 		script = utils.GetPath("/dns-proxy-server")
 	} else if SetupDockerService() {
 		script = `'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin ; ` +
-		 `docker rm -f dns-proxy-server &> /dev/null ;` +
-		 `docker-compose -f /etc/init.d/dns-proxy-server.yml up prod-docker-dns-prod-server'`
+		`docker rm -f dns-proxy-server &> /dev/null ;` +
+		`docker run --hostname dns.mageddo --name dns-proxy-server -p %s:%s ` +
+		`-v /opt/dns-proxy-server/conf:/app/conf ` +
+		`-v /var/run/docker.sock:/var/run/docker.sock ` +
+		`-v /etc/resolv.conf:/etc/resolv.conf ` +
+		`defreitas/dns-proxy-server:%s`
 	}
 	script = strings.Replace(script, "/", "\\/", -1)
 	script = strings.Replace(script, "&", "\\&", -1)
+	script = fmt.Sprintf(script, conf.WebServerPort, conf.WebServerPort, flags.GetRawCurrentVersion())
 
 	log.Logger.Infof("m=ConfigSetupService, status=script, script=%s", script)
 	_, err, _ = utils.Exec("sed", "-i", fmt.Sprintf("s/%s/%s/g", "<SCRIPT>", script), servicePath)
