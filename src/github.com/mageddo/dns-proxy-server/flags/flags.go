@@ -7,6 +7,7 @@ import (
 )
 
 var (
+	version = "dev" // will be populated by the compiler when generate the release or by this program reading VERSION file
 	Cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
 	Compress = flag.Bool("compress", false, "compress replies")
 	Tsig = flag.String("tsig", "", "use MD5 hmac tsig: keyname:base64")
@@ -36,5 +37,13 @@ func init(){
 }
 
 func GetRawCurrentVersion() string {
-	return "2.0.19"
+
+	//if len(version) == 0 {
+		//b, err := ioutil.ReadFile(utils.GetPath("VERSION")) // just pass the file name
+		//if err == nil {
+		//	return string(b)
+		//}
+		//log.Logger.Warningf("status=could-not-recover-version, err=%v", err)
+	//}
+	return version
 }
