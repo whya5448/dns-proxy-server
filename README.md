@@ -9,7 +9,7 @@ Dns-proxy-server is a end user(developers, Server Administrators) DNS server too
 * [Graphic interface to manage it](http:/127.0.0.1:5380/static/)
 	* List and edit DNS local entries
 
-**For more details see** [Release Notes](https://github.com/mageddo/dns-proxy-server/wiki/Release-Notes)
+**For more details see** [Release Notes](RELEASE-NOTES.md)
 
 ![](http://i.imgur.com/Bhe9P36.png)
 
