@@ -3,6 +3,7 @@ package flags
 import (
 	"flag"
 	"os"
+	"fmt"
 )
 
 var (
@@ -17,6 +18,7 @@ var (
 		docker = start as docker service,
 		normal = start as normal service,
 		uninstall = uninstall the service from machine `)
+	Version = flag.Bool("version", false, "Current version")
 	Help = flag.Bool("help", false, "This message")
 )
 
@@ -25,7 +27,14 @@ func init(){
 	flag.Parse()
 	if *Help {
 		flag.PrintDefaults()
-		os.Exit(1)
+		os.Exit(0)
+	} else if *Version {
+		fmt.Println(GetRawCurrentVersion())
+		os.Exit(0)
 	}
 
+}
+
+func GetRawCurrentVersion() string {
+	return "2.0.19"
 }
