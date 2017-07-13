@@ -53,21 +53,27 @@ Download the [latest version](https://github.com/mageddo/dns-proxy-server/releas
 
 	$ ./dns-proxy-server --help
 	-compress
-		compress replies
+	compress replies
 	-conf-path string
-		The config file path  (default "conf/config.json")
+	The config file path  (default "conf/config.json")
 	-cpuprofile string
-		write cpu profile to file
+	write cpu profile to file
 	-default-dns
-		This DNS server will be the default server for this machine (default true)
+	This DNS server will be the default server for this machine (default true)
 	-help
-		This message
+	This message
 	-server-port int
-		The DNS server to start into (default 53)
+	The DNS server to start into (default 53)
+	-service string
+	Setup as service, starting with machine at boot
+		docker = start as docker service,
+		normal = start as normal service,
+		uninstall = uninstall the service from machine 
 	-tsig string
-		use MD5 hmac tsig: keyname:base64
+	use MD5 hmac tsig: keyname:base64
 	-web-server-port int
-		The web server port (default 5380)
+	The web server port (default 5380)
+
 
 You can also configure the options at the configuration file
 
