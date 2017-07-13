@@ -9,6 +9,8 @@ Dns-proxy-server is a end user(developers, Server Administrators) DNS server too
 * [Graphic interface to manage it](http:/127.0.0.1:5380/static/)
 	* List and edit DNS local entries
 
+**For more details see** [Release Notes](https://github.com/mageddo/dns-proxy-server/wiki/Release-Notes)
+
 ![](http://i.imgur.com/Bhe9P36.png)
 
 # Requirements
@@ -62,10 +64,16 @@ Download the [latest version](https://github.com/mageddo/dns-proxy-server/releas
 		This message
 	-server-port int
 		The DNS server to start into (default 53)
+	-service string
+		Setup as service, starting with machine at boot
+			docker = start as docker service,
+			normal = start as normal service,
+			uninstall = uninstall the service from machine 
 	-tsig string
 		use MD5 hmac tsig: keyname:base64
 	-web-server-port int
 		The web server port (default 5380)
+
 
 You can also configure the options at the configuration file
 
@@ -141,3 +149,6 @@ Testing container hostname
 Specifying a port
 
 	nslookup -port=8980 bookmarks-node.mageddo.in 127.0.0.1
+	
+# Developing 
+Take a look at the [wiki](https://github.com/mageddo/dns-proxy-server/wiki) for more details of how develop at this project
