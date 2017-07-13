@@ -143,3 +143,6 @@ Testing container hostname
 Specifying a port
 
 	nslookup -port=8980 bookmarks-node.mageddo.in 127.0.0.1
+	
+# Developing 
+Take a look at the [wiki](https://github.com/mageddo/dns-proxy-server/wiki) for more details of how develop at this project
