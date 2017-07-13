@@ -28,7 +28,7 @@ case $1 in
 		git submodule update && \
 		cd src && \
 		go test -cover=false ./github.com/mageddo/dns-proxy-server/.../ && \
-		go build -v -o -ldflags "-X github.com/mageddo/dns-proxy-server/flags.version=`cat VERSION`" ../build/dns-proxy-server && \
+		go build -v -ldflags "-X github.com/mageddo/dns-proxy-server/flags.version=`cat ../VERSION`" -o ../build/dns-proxy-server && \
 		cp -r ../static ../build/ && \
 		cp ../docker-compose.yml ../build/docker-compose.yml && \
 		cp ../dns-proxy-service ../build/dns-proxy-service && \
