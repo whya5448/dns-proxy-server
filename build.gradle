@@ -4,14 +4,6 @@ plugins {
 
 defaultTasks 'release'
 
-ext {
-	BOOKMARKS_TAG = project.version
-	CONTAINER_NAME = "bookmarks-node"
-	IMAGE_NAME = "reg.mageddo.com:5000/mageddo/${CONTAINER_NAME}:$BOOKMARKS_TAG"
-	BOOKMARKS_BASE = "/var/lib/mageddo/bookmarks-node"
-	BOOKMARKS_INTERNAL_BASE = "/opt/bookmarks"
-}
-
 checkCommitNeeded.doFirst {
 
 	println "> upgrading docker-compose version=${project.version}"
