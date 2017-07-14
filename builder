@@ -23,6 +23,7 @@ case $1 in
 	build )
 
 		echo "starting build"
+		VERSION=`cat VERSION`
 
 		rm -rf build/ && \
 		mkdir -p build/ && \
@@ -31,11 +32,11 @@ case $1 in
 		cd src && \
 		go test -cover=false ./github.com/mageddo/dns-proxy-server/.../ && \
 		go build -v -o ../build/dns-proxy-server \
-			-ldflags "-X github.com/mageddo/dns-proxy-server/flags.version=`cat ../VERSION`" && \
+			-ldflags "-X github.com/mageddo/dns-proxy-server/flags.version=$VERSION" && \
 		cp -r ../static ../build/ && \
 		cp ../dns-proxy-service ../build/dns-proxy-service && \
 		cd ../build/ && \
-		tar -cvf dns-proxy-server-2.0.19.tgz * && \
+		tar -cvf dns-proxy-server-$VERSION.tgz * && \
 		cd ../
 
 		echo "build success"
