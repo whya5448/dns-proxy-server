@@ -271,7 +271,7 @@ func ConfigSetupService(){
 	}
 	script = strings.Replace(script, "/", "\\/", -1)
 	script = strings.Replace(script, "&", "\\&", -1)
-	script = fmt.Sprintf(script, *flags.WebServerPort, *flags.WebServerPort, flags.GetRawCurrentVersion())
+	script = fmt.Sprintf(script, WebServerPort(), WebServerPort(), flags.GetRawCurrentVersion())
 
 	log.Logger.Infof("m=ConfigSetupService, status=script, script=%s", script)
 	_, err, _ = utils.Exec("sed", "-i", fmt.Sprintf("s/%s/%s/g", "<SCRIPT>", script), servicePath)
