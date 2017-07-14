@@ -11,6 +11,7 @@ services:
     environment:
       - TERM=xterm
       - GOPATH=/app
+      - MG_WORK_DIR=/app
     working_dir: /app
     hostname: gocompiler.dev
     network_mode: bridge
