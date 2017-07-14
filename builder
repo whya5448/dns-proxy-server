@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 CUR_DIR=$PWD
 
 case $1 in
@@ -16,6 +18,29 @@ case $1 in
 				cd $CUR_DIR
 
 		done;
+	;;
+
+	build )
+
+		echo "starting build"
+		VERSION=`cat VERSION`
+
+		rm -rf build/ && \
+		mkdir -p build/ && \
+		git submodule init && \
+		git submodule update && \
+		cd src && \
+		go test -cover=false ./github.com/mageddo/dns-proxy-server/.../ && \
+		go build -v -o ../build/dns-proxy-server \
+			-ldflags "-X github.com/mageddo/dns-proxy-server/flags.version=$VERSION" && \
+		cp -r ../static ../build/ && \
+		cp ../dns-proxy-service ../build/dns-proxy-service && \
+		cd ../build/ && \
+		tar -cvf dns-proxy-server-$VERSION.tgz * && \
+		cd ../
+
+		echo "build success"
+
 	;;
 
 esac

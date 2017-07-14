@@ -32,7 +32,7 @@ func HandleDockerEvents(){
 	ctx := context.Background()
 
 	serverVersion, err := cli.ServerVersion(ctx)
-	logger.Infof("serverVersion=%+v, err=%s", serverVersion, err)
+	logger.Infof("serverVersion=%+v, err=%v", serverVersion, err)
 
 	containers, err := cli.ContainerList(ctx, options)
 	if err != nil {

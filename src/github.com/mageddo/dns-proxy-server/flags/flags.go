@@ -3,9 +3,11 @@ package flags
 import (
 	"flag"
 	"os"
+	"fmt"
 )
 
 var (
+	version = "dev" // will be populated by the compiler when generate the release or by this program reading VERSION file
 	Cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
 	Compress = flag.Bool("compress", false, "compress replies")
 	Tsig = flag.String("tsig", "", "use MD5 hmac tsig: keyname:base64")
@@ -17,6 +19,7 @@ var (
 		docker = start as docker service,
 		normal = start as normal service,
 		uninstall = uninstall the service from machine `)
+	Version = flag.Bool("version", false, "Current version")
 	Help = flag.Bool("help", false, "This message")
 )
 
@@ -25,7 +28,22 @@ func init(){
 	flag.Parse()
 	if *Help {
 		flag.PrintDefaults()
-		os.Exit(1)
+		os.Exit(0)
+	} else if *Version {
+		fmt.Println(GetRawCurrentVersion())
+		os.Exit(0)
 	}
 
+}
+
+func GetRawCurrentVersion() string {
+
+	//if len(version) == 0 {
+		//b, err := ioutil.ReadFile(utils.GetPath("VERSION")) // just pass the file name
+		//if err == nil {
+		//	return string(b)
+		//}
+		//log.Logger.Warningf("status=could-not-recover-version, err=%v", err)
+	//}
+	return version
 }
