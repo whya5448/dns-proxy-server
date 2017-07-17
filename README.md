@@ -47,34 +47,39 @@ This tool comes from nodejs version(1.0), improving:
 Download the [latest version](https://github.com/mageddo/dns-proxy-server/releases), extract and run
 
 	$ sudo ./dns-proxy-server
+	
+Dns Proxy Server is now your current DNS server, to back everything to original state just press `CTRL + C`
+	
+### Testing the DNS server
 
-# If you need options 
+Starting some docker container and keeping it alive for DNS queries
 
-	$ ./dns-proxy-server --help
-	-compress
-		compress replies
-	-conf-path string
-		The config file path  (default "conf/config.json")
-	-cpuprofile string
-		write cpu profile to file
-	-default-dns
-		This DNS server will be the default server for this machine (default true)
-	-help
-		This message
-	-server-port int
-		The DNS server to start into (default 53)
-	-service string
-		Setup as service, starting with machine at boot
-			docker = start as docker service,
-			normal = start as normal service,
-			uninstall = uninstall the service from machine 
-	-tsig string
-		use MD5 hmac tsig: keyname:base64
-	-web-server-port int
-		The web server port (default 5380)
+	$ docker run -d --hostname debian.dev.intranet \
+		-e 'HOSTNAMES=debian2.dev.intranet,debian3.dev.intranet' \
+		debian sleep infinity
+	d96280ba54b44446f342ca78c0bc3b6b23efd78393d8e51e68757b5004314924
 
+Solving the docker container hostname from Dns Proxy Server
 
-You can also configure the options at the configuration file
+	$ nslookup debian.dev.intranet
+	Server:		172.22.0.6
+	Address:	172.22.0.6#53
+
+	Non-authoritative answer:
+	Name:	debian.dev.intranet
+	Address: 172.22.0.7
+
+Google keep working was well
+
+	$ nslookup google.com
+	Server:		172.22.0.6
+	Address:	172.22.0.6#53
+
+	Non-authoritative answer:
+	Name:	google.com
+	Address: 172.217.29.206
+
+# Configure your DNS
 
 ./conf/config.json
 
@@ -101,6 +106,32 @@ You can also configure the options at the configuration file
   "dnsServerPort": 8980 // dns server port, when 0 the default value is used
 }
 ```
+
+# If you need terminal options 
+
+	$ ./dns-proxy-server --help
+	-compress
+		compress replies
+	-conf-path string
+		The config file path  (default "conf/config.json")
+	-cpuprofile string
+		write cpu profile to file
+	-default-dns
+		This DNS server will be the default server for this machine (default true)
+	-help
+		This message
+	-server-port int
+		The DNS server to start into (default 53)
+	-service string
+		Setup as service, starting with machine at boot
+			docker = start as docker service,
+			normal = start as normal service,
+			uninstall = uninstall the service from machine 
+	-tsig string
+		use MD5 hmac tsig: keyname:base64
+	-web-server-port int
+		The web server port (default 5380)
+
 
 # Installing it as a service
 
