@@ -54,10 +54,12 @@ Dns Proxy Server is now your current DNS server, to back everything to original 
 
 Starting some docker container and keeping it alive for DNS queries
 
-	$ docker run -d --hostname debian.dev.intranet \
-		-e 'HOSTNAMES=debian2.dev.intranet,debian3.dev.intranet' \
-		debian sleep infinity
-	d96280ba54b44446f342ca78c0bc3b6b23efd78393d8e51e68757b5004314924
+```bash
+$ docker run -d --hostname debian.dev.intranet \
+  -e 'HOSTNAMES=debian2.dev.intranet,debian3.dev.intranet' \
+  debian sleep infinity
+d96280ba54b44446f342ca78c0bc3b6b23efd78393d8e51e68757b5004314924
+```
 
 Solving the docker container hostname from Dns Proxy Server
 
@@ -78,6 +80,10 @@ Google keep working was well
 	Non-authoritative answer:
 	Name:	google.com
 	Address: 172.217.29.206
+	
+Start the server at [custom port](#configure-your-dns) and solving from it
+
+	nslookup -port=8980 google.com 127.0.0.1
 
 # Configure your DNS
 
@@ -154,31 +160,6 @@ if you don't want this service anymore
 	Are you really sure you want to uninstall this service? That cannot be undone. [yes|No] 
 	yes
 
-# Testing the DNS server
-
-Testing website
-
-	$ nslookup google.com <dns-server-ip>
-	Server:   172.17.0.2
-	Address:  172.17.0.2#53
-
-	Non-authoritative answer:
-	Name: google.com
-	Address: 216.58.202.142
-
-Testing container hostname
-
-	$ nslookup dns.mageddo <dns-server-ip>
-	Server:   172.17.0.2
-	Address:  172.17.0.2#53
-	
-	Non-authoritative answer:
-	Name: dns.mageddo
-	Address: 172.17.0.2
-
-Specifying a port
-
-	nslookup -port=8980 bookmarks-node.mageddo.in 127.0.0.1
 	
 # Developing 
 Take a look at the [wiki](https://github.com/mageddo/dns-proxy-server/wiki) for more details of how develop at this project
