@@ -50,7 +50,7 @@ func (sc *Service) SetupFor(servicePath string, script *Script) error {
 	sc.logger.Debugf("status=begin, servicePath=%s", servicePath)
 
 	err := utils.CreateExecutableFile(SERVICE_TEMPLATE, servicePath)
-	_, err, _ = utils.Exec("sed", "-i", fmt.Sprintf("s/%s/%s/g", "<SCRIPT>", script), servicePath)
+	_, err, _ = utils.Exec("sed", "-i", fmt.Sprintf("s/%s/%s/g", "<SCRIPT>", script.Script), servicePath)
 	if err != nil {
 		return errors.New(fmt.Sprintf("status=error-prepare-service, msg=%v", err))
 	}
@@ -118,8 +118,7 @@ func (sc *Service) Uninstall() error {
 
 
 
-const SERVICE_TEMPLATE = `
-#!/bin/sh
+const SERVICE_TEMPLATE = `#!/bin/sh
 ### BEGIN INIT INFO
 # Provides:          dns-proxy-server
 # Required-Start:    $local_fs $network $named $time $syslog
