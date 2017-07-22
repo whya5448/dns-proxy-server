@@ -80,13 +80,13 @@ func (sc *Service) SetupFor(servicePath, serviceName string, script *Script) err
 	if err != nil {
 		sc.logger.Debugf("status=stop-service, msg=out=%s", string(out))
 	}
-	_, err, _ = utils.Exec("service", serviceName, "start")
+	out, err, code := utils.Exec("service", serviceName, "start")
 	if err != nil {
 		err := fmt.Sprintf("status=start-service, msg=%v", err)
 		sc.logger.Warning(err)
 		return errors.New(err)
 	}
-	sc.logger.Infof("status=success, servicePath=%s", servicePath)
+	sc.logger.Infof("status=success, servicePath=%s, out=%s, err=%v, code=%d", servicePath, string(out), err, code)
 	return nil
 
 }
@@ -129,7 +129,7 @@ const SERVICE_TEMPLATE = `#!/bin/sh
 # Description:       DNS PROXY SERVER
 ### END INIT INFO
 
-SCRIPT='%s'
+SCRIPT=%s
 RUNAS=root
 
 PIDFILE=/var/run/dns-proxy-server.pid
