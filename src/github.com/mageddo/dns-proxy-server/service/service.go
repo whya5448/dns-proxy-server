@@ -99,14 +99,14 @@ func (sc *Service) Uninstall() error {
 	sc.logger.Infof("status=begin")
 	var err error
 
-	if out, err, _ := utils.Exec("service", "dns-proxy-server", "stop"); err != nil {
+	if out, err, _ := utils.Exec("service", DNS_PROXY_SERVER_SERVICE, "stop"); err != nil {
 		sc.logger.Infof("status=stop-fail, msg=maibe-no-running, out=%s", string(out))
 	}
 
 	if utils.Exists("update-rc.d") {
-		_, err, _ = utils.Exec("update-rc.d", "-f", "dns-proxy-server", "remove")
+		_, err, _ = utils.Exec("update-rc.d", "-f", DNS_PROXY_SERVER_SERVICE, "remove")
 	} else if utils.Exists("chkconfig") {
-		_, err, _ = utils.Exec("chkconfig", "dns-proxy-server", "off")
+		_, err, _ = utils.Exec("chkconfig", DNS_PROXY_SERVER_SERVICE, "off")
 	} else {
 		sc.logger.Warningf("status=impossible to remove service")
 	}
