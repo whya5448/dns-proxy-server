@@ -47,3 +47,7 @@ func GetRawCurrentVersion() string {
 	//}
 	return version
 }
+
+func IsTestVersion() bool {
+	return GetRawCurrentVersion() == "test"
+}

@@ -16,7 +16,7 @@ import (
 	"github.com/mageddo/dns-proxy-server/controller"
 	"github.com/mageddo/dns-proxy-server/conf"
 	"github.com/mageddo/dns-proxy-server/utils/exitcodes"
-	"github.com/mageddo/dns-proxy-server/flags"
+	"github.com/mageddo/dns-proxy-server/service"
 )
 
 func handleQuestion(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
@@ -95,18 +95,10 @@ func serve(net, name, secret string, logger *log.IdLogger) {
 
 func main() {
 
-	context := log.GetContext()
-	logger := log.GetLogger(context)
+	ctx := log.GetContext()
+	logger := log.GetLogger(ctx)
 
-	logger.Infof("setupservice=%s, version=%s", conf.SetupServiceVal(), flags.GetRawCurrentVersion())
-	switch conf.SetupServiceVal() {
-	case "docker", "normal":
-		conf.ConfigSetupService("/etc/init.d/dns-proxy-server")
-		os.Exit(0)
-	case "uninstall":
-		conf.UninstallService()
-		os.Exit(0)
-	}
+	service.NewService(ctx).Install()
 
 	var name, secret string
 	if conf.Tsig() != "" {
@@ -124,7 +116,7 @@ func main() {
 
 	dns.HandleFunc(".", handleQuestion)
 
-	local.LoadConfiguration(context)
+	local.LoadConfiguration(ctx)
 
 	go docker.HandleDockerEvents()
 	go serve("tcp", name, secret, logger)

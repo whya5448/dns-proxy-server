@@ -10,6 +10,11 @@ import (
 	"errors"
 )
 
+const (
+	DNS_PROXY_SERVER_SERVICE = "dns-proxy-server"
+	DNS_PROXY_SERVER_PATH = "/etc/init.d/dns-proxy-server"
+)
+
 type Service struct {
 	ctx context.Context
 	logger *log.IdLogger
@@ -25,15 +30,15 @@ func NewService(ctx context.Context) *Service {
 
 func (sc *Service) Install() {
 
-	setupServiceFlag, servicePath := *flags.SetupService, "/etc/init.d/dns-proxy-server"
+	setupServiceFlag := *flags.SetupService
 
 	sc.logger.Infof("setupservice=%s, version=%s", setupServiceFlag, flags.GetRawCurrentVersion())
 	var err error
 	switch setupServiceFlag {
 	case "docker":
-		err = sc.SetupFor(servicePath, NewDockerScript())
+		err = sc.SetupFor(DNS_PROXY_SERVER_PATH, DNS_PROXY_SERVER_SERVICE, NewDockerScript())
 	case "normal":
-		err = sc.SetupFor(servicePath, NewNormalScript())
+		err = sc.SetupFor(DNS_PROXY_SERVER_PATH, DNS_PROXY_SERVER_SERVICE, NewNormalScript())
 	case "uninstall":
 		sc.Uninstall()
 	}
@@ -45,7 +50,7 @@ func (sc *Service) Install() {
 
 }
 
-func (sc *Service) SetupFor(servicePath string, script *Script) error {
+func (sc *Service) SetupFor(servicePath, serviceName string, script *Script) error {
 
 	sc.logger.Debugf("status=begin, servicePath=%s", servicePath)
 
@@ -58,12 +63,12 @@ func (sc *Service) SetupFor(servicePath string, script *Script) error {
 	}
 
 	if utils.Exists("update-rc.d") { // debian
-		_, err, _ = utils.Exec("update-rc.d", "dns-proxy-server", "defaults")
+		_, err, _ = utils.Exec("update-rc.d", serviceName, "defaults")
 		if err != nil {
 			sc.logger.Fatalf("status=fatal-install-service, service=update-rc.d, msg=%s", err.Error())
 		}
 	} else if utils.Exists("chkconfig") { // redhat
-		_, err, _ = utils.Exec("chkconfig", "dns-proxy-server", "on")
+		_, err, _ = utils.Exec("chkconfig", serviceName, "on")
 		if err != nil {
 			sc.logger.Fatalf("status=fatal-install-service, service=chkconfig, msg=%s", err.Error())
 		}
@@ -71,11 +76,11 @@ func (sc *Service) SetupFor(servicePath string, script *Script) error {
 		sc.logger.Warningf("m=ConfigSetupService, status=impossible to setup to start at boot")
 	}
 
-	out, err, _ := utils.Exec("service", "dns-proxy-server", "stop")
+	out, err, _ := utils.Exec("service", serviceName, "stop")
 	if err != nil {
 		sc.logger.Debugf("status=stop-service, msg=out=%s", string(out))
 	}
-	_, err, _ = utils.Exec("service", "dns-proxy-server", "start")
+	_, err, _ = utils.Exec("service", serviceName, "start")
 	if err != nil {
 		err := fmt.Sprintf("status=start-service, msg=%v", err)
 		sc.logger.Warning(err)
@@ -124,7 +129,7 @@ const SERVICE_TEMPLATE = `#!/bin/sh
 # Description:       DNS PROXY SERVER
 ### END INIT INFO
 
-SCRIPT=%s
+SCRIPT='%s'
 RUNAS=root
 
 PIDFILE=/var/run/dns-proxy-server.pid
