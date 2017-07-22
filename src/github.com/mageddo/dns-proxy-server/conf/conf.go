@@ -174,7 +174,7 @@ func SetCurrentDNSServerToMachineAndLockIt() error {
 func SetCurrentDNSServerToMachine() error {
 
 	ip, err := getCurrentIpAddress()
-	log.Logger.Infof("m=SetCurrentDNSServerToMachine, status=begin, ip=%s, err=%s", ip, err)
+	log.Logger.Infof("m=SetCurrentDNSServerToMachine, status=begin, ip=%s, err=%v", ip, err)
 	if err != nil {
 		return err
 	}

@@ -36,7 +36,6 @@ case $1 in
 		go build -v -o ../build/dns-proxy-server \
 			-ldflags "-X github.com/mageddo/dns-proxy-server/flags.version=$VERSION" && \
 		cp -r ../static ../build/ && \
-		cp ../dns-proxy-service ../build/dns-proxy-service && \
 		cd ../build/ && \
 		tar -cvf dns-proxy-server-$VERSION.tgz * && \
 		cd ../

@@ -23,9 +23,7 @@ func TestSetupFor_NormalModeInstallStartSuccess(t *testing.T) {
 	sc := NewService(ctx)
 	cmd := "'bash -c \"echo hi && sleep 20\"'"
 	err := sc.SetupFor(DNS_PROXY_SERVER_PATH, DNS_PROXY_SERVER_SERVICE, &Script{cmd})
-	if err != nil {
-		t.Error(err)
-	}
+	assert.Nil(t, err)
 
 	bytes, err := ioutil.ReadFile(DNS_PROXY_SERVER_PATH)
 	assert.Nil(t, err)

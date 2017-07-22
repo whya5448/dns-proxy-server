@@ -31,7 +31,9 @@ func NewService(ctx context.Context) *Service {
 func (sc *Service) Install() {
 
 	setupServiceFlag := *flags.SetupService
-
+	if len(setupServiceFlag) == 0 {
+		return
+	}
 	sc.logger.Infof("setupservice=%s, version=%s", setupServiceFlag, flags.GetRawCurrentVersion())
 	var err error
 	switch setupServiceFlag {
@@ -80,13 +82,13 @@ func (sc *Service) SetupFor(servicePath, serviceName string, script *Script) err
 	if err != nil {
 		sc.logger.Debugf("status=stop-service, msg=out=%s", string(out))
 	}
-	out, err, code := utils.Exec("service", serviceName, "start")
+	_, err, _ = utils.Exec("service", serviceName, "start")
 	if err != nil {
 		err := fmt.Sprintf("status=start-service, msg=%v", err)
 		sc.logger.Warning(err)
 		return errors.New(err)
 	}
-	sc.logger.Infof("status=success, servicePath=%s, out=%s, err=%v, code=%d", servicePath, string(out), err, code)
+	sc.logger.Infof("status=success, servicePath=%s", servicePath)
 	return nil
 
 }
