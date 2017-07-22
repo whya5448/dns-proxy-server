@@ -15,7 +15,6 @@ import (
 	"syscall"
 	"errors"
 	"fmt"
-	"github.com/mageddo/dns-proxy-server/utils"
 )
 
 type DnsEntry string
@@ -75,17 +74,6 @@ func ConfPath() string {
 	return *flags.ConfPath
 }
 
-func SetupService() bool {
-	return *flags.SetupService == "normal"
-}
-
-func SetupServiceVal() string {
-	return *flags.SetupService
-}
-
-func SetupDockerService() bool {
-	return *flags.SetupService == "docker"
-}
 
 func GetString(value, defaultValue string) string {
 
@@ -186,7 +174,7 @@ func SetCurrentDNSServerToMachineAndLockIt() error {
 func SetCurrentDNSServerToMachine() error {
 
 	ip, err := getCurrentIpAddress()
-	log.Logger.Infof("m=SetCurrentDNSServerToMachine, status=begin, ip=%s, err=%s", ip, err)
+	log.Logger.Infof("m=SetCurrentDNSServerToMachine, status=begin, ip=%s, err=%v", ip, err)
 	if err != nil {
 		return err
 	}
@@ -248,81 +236,3 @@ func getResolvConf() string {
 	return GetString(os.Getenv(env.MG_RESOLVCONF), "/etc/resolv.conf")
 }
 
-func ConfigSetupService(){
-
-	log.Logger.Infof("m=ConfigSetupService, status=begin, setupService=%s", SetupServiceVal())
-	servicePath := "/etc/init.d/dns-proxy-server"
-	err := utils.Copy(utils.GetPath("/dns-proxy-service"), servicePath)
-	if err != nil {
-		log.Logger.Fatalf("status=error-copy-service, msg=%s", err.Error())
-	}
-
-	var script string
-	if SetupService() {
-		script = utils.GetPath("/dns-proxy-server")
-	} else if SetupDockerService() {
-		script = `'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin ; ` +
-		`docker rm -f dns-proxy-server &> /dev/null ;` +
-		`docker run --hostname dns.mageddo --name dns-proxy-server -p %d:%d ` +
-		`-v /opt/dns-proxy-server/conf:/app/conf ` +
-		`-v /var/run/docker.sock:/var/run/docker.sock ` +
-		`-v /etc/resolv.conf:/etc/resolv.conf ` +
-		`defreitas/dns-proxy-server:%s'`
-	}
-	script = strings.Replace(script, "/", "\\/", -1)
-	script = strings.Replace(script, "&", "\\&", -1)
-	script = fmt.Sprintf(script, WebServerPort(), WebServerPort(), flags.GetRawCurrentVersion())
-
-	log.Logger.Infof("m=ConfigSetupService, status=script, script=%s", script)
-	_, err, _ = utils.Exec("sed", "-i", fmt.Sprintf("s/%s/%s/g", "<SCRIPT>", script), servicePath)
-	if err != nil {
-		log.Logger.Fatalf("status=error-prepare-service, msg=%s", err.Error())
-	}
-
-	if utils.Exists("update-rc.d") {
-		_, err, _ = utils.Exec("update-rc.d", "dns-proxy-server", "defaults")
-		if err != nil {
-			log.Logger.Fatalf("status=fatal-install-service, service=update-rc.d, msg=%s", err.Error())
-		}
-	} else if utils.Exists("chkconfig") {
-		_, err, _ = utils.Exec("chkconfig", "dns-proxy-server", "on")
-		if err != nil {
-			log.Logger.Fatalf("status=fatal-install-service, service=chkconfig, msg=%s", err.Error())
-		}
-	} else {
-		log.Logger.Warningf("m=ConfigSetupService, status=impossible to setup to start at boot")
-	}
-
-	out, err, _ := utils.Exec("service", "dns-proxy-server", "stop")
-	if err != nil {
-		log.Logger.Debugf("status=stop-service, msg=out=%s", string(out))
-	}
-	_, err, _ = utils.Exec("service", "dns-proxy-server", "start")
-	if err != nil {
-		log.Logger.Fatalf("status=start-service, msg=%s", err.Error())
-	}
-	log.Logger.Infof("m=ConfigSetupService, status=success")
-
-}
-
-func UninstallService(){
-
-	log.Logger.Infof("m=UninstallService, status=begin")
-	var err error
-
-	if out, err, _ := utils.Exec("service", "dns-proxy-server", "stop"); err != nil {
-		log.Logger.Infof("m=UninstallService, status=stop-fail, msg=maibe-no-running, out=%s", string(out))
-	}
-
-	if utils.Exists("update-rc.d") {
-		_, err, _ = utils.Exec("update-rc.d", "-f", "dns-proxy-server", "remove")
-	} else if utils.Exists("chkconfig") {
-		_, err, _ = utils.Exec("chkconfig", "dns-proxy-server", "off")
-	} else {
-		log.Logger.Warningf("m=ConfigSetupService, status=impossible to remove service")
-	}
-	if err != nil {
-		log.Logger.Fatalf("status=fatal-remove-service, msg=%s", err.Error())
-	}
-	log.Logger.Infof("m=UninstallService, status=success")
-}
