@@ -49,11 +49,7 @@ func (sc *Service) SetupFor(servicePath string, script *Script) error {
 
 	sc.logger.Debugf("status=begin, servicePath=%s", servicePath)
 
-	err := utils.CreateExecutableFile(SERVICE_TEMPLATE, servicePath)
-	_, err, _ = utils.Exec("sed", "-i", fmt.Sprintf("s/%s/%s/g", "<SCRIPT>", script.Script), servicePath)
-	if err != nil {
-		return errors.New(fmt.Sprintf("status=error-prepare-service, msg=%v", err))
-	}
+	err := utils.CreateExecutableFile(fmt.Sprintf(SERVICE_TEMPLATE, script.Script), servicePath)
 
 	if err != nil {
 		err := fmt.Sprintf("status=service-template, msg=%v", err)
@@ -128,7 +124,7 @@ const SERVICE_TEMPLATE = `#!/bin/sh
 # Description:       DNS PROXY SERVER
 ### END INIT INFO
 
-SCRIPT=<SCRIPT>
+SCRIPT=%s
 RUNAS=root
 
 PIDFILE=/var/run/dns-proxy-server.pid
