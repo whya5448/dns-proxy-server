@@ -11,6 +11,7 @@ import (
 	"strings"
 	"os/signal"
 	"syscall"
+	"bytes"
 )
 
 var QTypeCodes = map[uint16] string {
@@ -198,4 +199,15 @@ func Copy(src, dst string) error {
 	if err != nil { return err }
 	return cerr
 }
+
+func CreateExecutableFile(sourceData, dst string) error {
+	out, err := os.OpenFile(dst, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
+	if err != nil { return err }
+	defer out.Close()
+	_, err = io.Copy(out, bytes.NewReader([]byte(sourceData)))
+	cerr := out.Close()
+	if err != nil { return err }
+	return cerr
+}
+
 

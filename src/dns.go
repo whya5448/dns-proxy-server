@@ -101,7 +101,7 @@ func main() {
 	logger.Infof("setupservice=%s, version=%s", conf.SetupServiceVal(), flags.GetRawCurrentVersion())
 	switch conf.SetupServiceVal() {
 	case "docker", "normal":
-		conf.ConfigSetupService()
+		conf.ConfigSetupService("/etc/init.d/dns-proxy-server")
 		os.Exit(0)
 	case "uninstall":
 		conf.UninstallService()
