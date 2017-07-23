@@ -30,13 +30,13 @@ func NewService(ctx context.Context) *Service {
 
 func (sc *Service) Install() {
 
-	setupServiceFlag := *flags.SetupService
-	if len(setupServiceFlag) == 0 {
+	serviceMode := *flags.SetupService
+	if len(serviceMode) == 0 {
 		return
 	}
-	sc.logger.Infof("setupservice=%s, version=%s", setupServiceFlag, flags.GetRawCurrentVersion())
+	sc.logger.Infof("mode=%s, version=%s", serviceMode, flags.GetRawCurrentVersion())
 	var err error
-	switch setupServiceFlag {
+	switch serviceMode {
 	case "docker":
 		err = sc.SetupFor(DNS_PROXY_SERVER_PATH, DNS_PROXY_SERVER_SERVICE, NewDockerScript())
 	case "normal":

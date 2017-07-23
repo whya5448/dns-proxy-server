@@ -19,6 +19,7 @@ var (
 		docker = start as docker service,
 		normal = start as normal service,
 		uninstall = uninstall the service from machine `)
+	publishServicePort = flag.Bool("service-publish-web-port", true, "Publish web port when running as service in docker mode")
 	Version = flag.Bool("version", false, "Current version")
 	Help = flag.Bool("help", false, "This message")
 )
@@ -34,6 +35,10 @@ func init(){
 		os.Exit(0)
 	}
 
+}
+
+func PublishServicePort() bool {
+	return *publishServicePort
 }
 
 func GetRawCurrentVersion() string {
