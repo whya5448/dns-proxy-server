@@ -1,6 +1,6 @@
 **Obs**: This is the version 2, for the old version 1 [see this link](https://github.com/mageddo/dns-proxy-server/tree/v1-nodejs) 
 
-# Features
+### Features
 Dns-proxy-server is a end user(developers, Server Administrators) DNS server tool to develop systems with docker solving docker containers hostnames:
 
 * Solve names from local configuration database
@@ -13,18 +13,18 @@ Dns-proxy-server is a end user(developers, Server Administrators) DNS server too
 
 ![](http://i.imgur.com/Bhe9P36.png)
 
-# Requirements
+### Requirements
 * Linux
 * Docker 1.9.x
 
-# DNS resolution order
+### DNS resolution order
 The Dns Proxy Server basically follow the bellow order to solve the names:
 
 * DNS try to solve the hosts from **docker** containers
 * then from local database file
 * then from 3rd configured remote DNS servers
 
-# Version 2 Improvements
+### Version 2 Improvements
 This tool comes from nodejs version(1.0), improving:
 * Performance - this version uses much less RAM and is much faster
 * Bug fixes
@@ -32,9 +32,9 @@ This tool comes from nodejs version(1.0), improving:
 * Code design quality
 * And more
 
-# Running it
+### Running
 
-### From docker
+##### From docker
 
 	$ docker run --hostname dns.mageddo --name dns-proxy-server -p 5380:5380 \
     -v /opt/dns-proxy-server/conf:/app/conf \
@@ -42,7 +42,7 @@ This tool comes from nodejs version(1.0), improving:
     -v /etc/resolv.conf:/etc/resolv.conf \
     defreitas/dns-proxy-server
 
-### Standalone run
+##### Standalone run
 
 Download the [latest version](https://github.com/mageddo/dns-proxy-server/releases), extract and run
 
@@ -50,7 +50,7 @@ Download the [latest version](https://github.com/mageddo/dns-proxy-server/releas
 	
 Dns Proxy Server is now your current DNS server, to back everything to original state just press `CTRL + C`
 	
-### Testing the DNS server
+##### Testing the DNS server
 
 Starting some docker container and keeping it alive for DNS queries
 
@@ -85,7 +85,7 @@ Start the server at [custom port](#configure-your-dns) and solving from it
 
 	nslookup -port=8980 google.com 127.0.0.1
 
-# Configure your DNS
+### Configure your DNS
 
 ./conf/config.json
 
@@ -113,7 +113,7 @@ Start the server at [custom port](#configure-your-dns) and solving from it
 }
 ```
 
-# If you need terminal options 
+### If you need terminal options 
 
 	$ ./dns-proxy-server --help
 	-compress
@@ -139,7 +139,7 @@ Start the server at [custom port](#configure-your-dns) and solving from it
 		The web server port (default 5380)
 
 
-# Installing it as a service
+### Installing it as a service
 
 1. Download the [latest release](https://github.com/mageddo/dns-proxy-server/releases) and extract it
 2. Run the service installer
@@ -161,5 +161,5 @@ if you don't want this service anymore
 	yes
 
 	
-# Developing 
+### Developing 
 Take a look at the [wiki](https://github.com/mageddo/dns-proxy-server/wiki) for more details of how develop at this project
