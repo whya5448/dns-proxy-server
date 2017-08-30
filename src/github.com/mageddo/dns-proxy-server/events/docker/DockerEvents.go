@@ -94,8 +94,7 @@ func HandleDockerEvents(){
 			putHostnames(logCtx, hostnames, cInspection)
 			break
 
-		case "die":
-		case "stop":
+		case "stop", "die":
 			for _, host := range hostnames {
 				remove(host)
 			}
