@@ -37,7 +37,7 @@ case $1 in
 			-ldflags "-X github.com/mageddo/dns-proxy-server/flags.version=$VERSION" && \
 		cp -r ../static ../build/ && \
 		cd ../build/ && \
-		tar -cvf dns-proxy-server-$VERSION.tgz * && \
+		tar -czvf dns-proxy-server-$VERSION.tgz * && \
 		cd ../
 
 		echo "build success"
