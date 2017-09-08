@@ -5,7 +5,7 @@ services:
   - docker
 
 install:
-  - source ./builder setup-repository
+#  - source ./builder setup-repository
   - ./gradlew release -Prelease.releaseVersion=`cat VERSION` -Prelease.newVersion=`cat VERSION`
 
 script: docker-compose up prod-build-dns-proxy-server
@@ -27,4 +27,4 @@ deploy:
   on:
     repo: mageddo/dns-proxy-server
     branch: travis
-    tags: true
+    tags: false
