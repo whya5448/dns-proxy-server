@@ -18,20 +18,19 @@ case $1 in
 
 	upload-release )
 
-		SOURCE_FILE="build/dns-proxy-server-$APP_VERSION.tgz"
-		TARGET_FILE=dns-proxy-server-$APP_VERSION.tgz
-
-		echo "> Source file hash"
-		md5sum $SOURCE_FILE && ls -lha $SOURCE_FILE
-
 		git push origin "build_branch:${TRAVIS_BRANCH}"
 		git status
 		echo "> Branch pushed - Branch $TRAVIS_BRANCH"
 
-		TAG_ID=`CREATE_RELEASE`
+		CREATE_RELEASE
 		echo "> Release created with id $TAG_ID"
 
-		UPLOAD_FILE $SOURCE_FILE $TARGET_FILE
+		SOURCE_FILE="build/dns-proxy-server-$APP_VERSION.tgz"
+		TARGET_FILE=dns-proxy-server-$APP_VERSION.tgz
+		echo "> Source file hash"
+		md5sum $SOURCE_FILE && ls -lha $SOURCE_FILE
+
+		UPLOAD_FILE
 
 	;;
 
@@ -86,13 +85,9 @@ function CREATE_RELEASE () {
 		}' | sed -e "s/VERSION/$APP_VERSION/" | sed -e "s/TARGET/$TRAVIS_BRANCH/"` && \
 	TAG_ID=`curl -i -s -f -X POST "https://api.github.com/repos/$REPO_URL/releases?access_token=$REPO_TOKEN" \
 --data "$PAYLOAD" | grep -o -E 'id": [0-9]+'| awk '{print $2}' | head -n 1`
-
-	echo ${TAG_ID}
 }
 
 function UPLOAD_FILE(){
-	SOURCE_FILE=$1
-	TARGET_FILE=$2
 	curl --data-binary "@$SOURCE_FILE" -i -w '\n' -f -s -X POST -H 'Content-Type: application/octet-stream' \
 "https://uploads.github.com/repos/$REPO_URL/releases/$TAG_ID/assets?name=$TARGET_FILE&access_token=$REPO_TOKEN"
 }

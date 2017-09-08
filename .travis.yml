@@ -7,7 +7,6 @@ services:
 install:
   - source ./builder setup-repository
   - ./gradlew release -Prelease.releaseVersion=`cat VERSION` -Prelease.newVersion=`cat VERSION`
-  - git show-ref --tags && git status && git log -n5
 
 script: docker-compose up prod-build-dns-proxy-server
 
@@ -17,16 +16,3 @@ after_success:
 branches:
   only:
   - travis
-
-before_deploy: ls -lha build/*
-
-deploy:
-  provider: releases
-  api_key: $REPO_TOKEN
-  file:
-    - build/dns-proxy-server-*.tgz
-  file_glob: true
-  skip_cleanup: true
-  on:
-    branch: travis
-    tags: true
