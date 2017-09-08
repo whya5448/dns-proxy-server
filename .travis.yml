@@ -27,9 +27,9 @@ script: docker-compose up prod-build-dns-proxy-server
 
 after_success:
 
-  - source ./builder && upload-release
+  - source ./builder upload-release
 
 branches:
   only:
   - travis
-  - /\d+\.\d+.\d+/
+#  - /\d+\.\d+.\d+/
