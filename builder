@@ -10,7 +10,7 @@ create_release(){
 			"name": "VERSION",
 			"body": "",
 			"draft": false,
-			"prerelease": false
+			"prerelease": true
 		}' | sed -e "s/VERSION/$APP_VERSION/" | sed -e "s/TARGET/$TRAVIS_BRANCH/"` && \
 	TAG_ID=`curl -i -s -f -X POST "https://api.github.com/repos/$REPO_URL/releases?access_token=$REPO_TOKEN" \
 --data "$PAYLOAD" | grep -o -E 'id": [0-9]+'| awk '{print $2}' | head -n 1`
@@ -75,7 +75,7 @@ case $1 in
 		rm -rf build/ && \
 		mkdir -p build/ && \
 		git submodule init && \
-		git submodule update && \
+		git submodule update --init --recursive && \
 		cd src && \
 		go test -cover=false \
 			-ldflags "-X github.com/mageddo/dns-proxy-server/flags.version=test" \
