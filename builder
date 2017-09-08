@@ -25,7 +25,6 @@ case $1 in
 	curl -d "@build/dns-proxy-server-$APP_VERSION.tgz" -i -w '\n' -s -X POST -H 'Content-Type: application/octet-stream' \
 "https://uploads.github.com/repos/mageddo/dns-proxy-server/releases/$TAG_ID/assets?name=dns-proxy-server-$APP_VERSION.tgz&access_token=$REPO_TOKEN"
 
-		done;
 	;;
 
 case $1 in
