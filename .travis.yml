@@ -26,9 +26,10 @@ install:
 script: docker-compose up prod-build-dns-proxy-server
 
 after_success:
+  - git remote add origin https://${REPO_TOKEN}@github.com/mageddo/dns-proxy-server.git
   - git push origin `git rev-parse --abbrev-ref HEAD`
-  - git checkout `cat VERSION`
   - git push origin --tags
+  - git checkout `cat VERSION`
 
 deploy:
   provider: releases
