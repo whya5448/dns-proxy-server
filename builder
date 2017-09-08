@@ -2,6 +2,26 @@
 
 set -e
 
+create_release(){
+
+	PAYLOAD=`echo '{
+			"tag_name": "VERSION",
+			"target_commitish": "TARGET",
+			"name": "VERSION",
+			"body": "",
+			"draft": false,
+			"prerelease": false
+		}' | sed -e "s/VERSION/$APP_VERSION/" | sed -e "s/TARGET/$TRAVIS_BRANCH/"` && \
+	TAG_ID=`curl -i -s -f -X POST "https://api.github.com/repos/$REPO_URL/releases?access_token=$REPO_TOKEN" \
+--data "$PAYLOAD" | grep -o -E 'id": [0-9]+'| awk '{print $2}' | head -n 1`
+}
+
+upload_file(){
+	curl --data-binary "@$SOURCE_FILE" -i -w '\n' -f -s -X POST -H 'Content-Type: application/octet-stream' \
+"https://uploads.github.com/repos/$REPO_URL/releases/$TAG_ID/assets?name=$TARGET_FILE&access_token=$REPO_TOKEN"
+}
+
+
 CUR_DIR=$PWD
 APP_VERSION=$(cat VERSION)
 REPO_URL=mageddo/dns-proxy-server
@@ -22,7 +42,7 @@ case $1 in
 		git status
 		echo "> Branch pushed - Branch $TRAVIS_BRANCH"
 
-		CREATE_RELEASE
+		create_release
 		echo "> Release created with id $TAG_ID"
 
 		SOURCE_FILE="build/dns-proxy-server-$APP_VERSION.tgz"
@@ -30,7 +50,7 @@ case $1 in
 		echo "> Source file hash"
 		md5sum $SOURCE_FILE && ls -lha $SOURCE_FILE
 
-		UPLOAD_FILE
+		upload_file
 
 	;;
 
@@ -72,22 +92,3 @@ case $1 in
 	;;
 
 esac
-
-function CREATE_RELEASE () {
-
-	PAYLOAD=`echo '{
-			"tag_name": "VERSION",
-			"target_commitish": "TARGET",
-			"name": "VERSION",
-			"body": "",
-			"draft": false,
-			"prerelease": false
-		}' | sed -e "s/VERSION/$APP_VERSION/" | sed -e "s/TARGET/$TRAVIS_BRANCH/"` && \
-	TAG_ID=`curl -i -s -f -X POST "https://api.github.com/repos/$REPO_URL/releases?access_token=$REPO_TOKEN" \
---data "$PAYLOAD" | grep -o -E 'id": [0-9]+'| awk '{print $2}' | head -n 1`
-}
-
-function UPLOAD_FILE(){
-	curl --data-binary "@$SOURCE_FILE" -i -w '\n' -f -s -X POST -H 'Content-Type: application/octet-stream' \
-"https://uploads.github.com/repos/$REPO_URL/releases/$TAG_ID/assets?name=$TARGET_FILE&access_token=$REPO_TOKEN"
-}
