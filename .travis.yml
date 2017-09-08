@@ -21,11 +21,12 @@ services:
   - docker
 
 install:
-
   - ./gradlew release -Prelease.releaseVersion=2.1.2 -Prelease.newVersion=2.1.3
-  - ls
 
 script: docker-compose up prod-build-dns-proxy-server
+
+#after_success:
+#  - git push origin --tags
 
 deploy:
   provider: releases
@@ -35,7 +36,7 @@ deploy:
   on:
     tags: true
 
-# safelist
 branches:
   only:
   - travis
+  - /\d+\.\d+.\d+/
