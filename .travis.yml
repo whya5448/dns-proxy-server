@@ -29,17 +29,6 @@ after_success:
 
   - source ./builder && upload-release
 
-#  - git push origin --tags
-#  - git checkout `cat VERSION`
-
-deploy:
-  provider: releases
-  api_key: $REPO_TOKEN
-  file: build/dns-proxy-server-*.tgz
-  skip_cleanup: true
-  on:
-    tags: true
-
 branches:
   only:
   - travis
