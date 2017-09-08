@@ -7,7 +7,7 @@ services:
 install:
 #  - source ./builder setup-repository
   - ./gradlew release -Prelease.releaseVersion=`cat VERSION` -Prelease.newVersion=`cat VERSION`
-  - git show-ref --tags
+  - git show-ref --tags && git status && git log -n5
 
 script: docker-compose up prod-build-dns-proxy-server
 
@@ -30,4 +30,4 @@ deploy:
   skip_cleanup: true
   on:
     branch: travis
-    tags: false
+    tags: true
