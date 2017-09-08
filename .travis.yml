@@ -18,11 +18,14 @@ branches:
   only:
   - travis
 
+before_deploy: ls -lha build/*
+
 deploy:
   provider: releases
   api_key: $REPO_TOKEN
   file:
     - build/dns-proxy-server-*.tgz
+  file_glob: true
   skip_cleanup: true
   on:
     repo: mageddo/dns-proxy-server
