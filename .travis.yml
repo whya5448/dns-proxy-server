@@ -5,6 +5,7 @@ services:
   - docker
 
 install:
+  - source ./builder setup-repository
   - ./gradlew release -Prelease.releaseVersion=`cat VERSION` -Prelease.newVersion=`cat VERSION`
 
 script: docker-compose up prod-build-dns-proxy-server
