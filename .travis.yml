@@ -28,6 +28,6 @@ deploy:
     - build/dns-proxy-server-*.tgz
   file_glob: true
   skip_cleanup: true
-#  on:
-#    branch: travis
-#    tags: false
+  on:
+    branch: travis
+    tags: false
