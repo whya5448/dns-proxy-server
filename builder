@@ -10,7 +10,6 @@ case $1 in
 
 
 	setup-repository )
-
 		git remote remove origin  && git remote add origin https://${REPO_TOKEN}@github.com/$REPO_URL.git
 		git checkout -b build_branch ${TRAVIS_BRANCH}
 		echo "> Repository added, travisBranch=${TRAVIS_BRANCH}"
@@ -29,20 +28,10 @@ case $1 in
 		git status
 		echo "> Branch pushed - Branch $TRAVIS_BRANCH"
 
-		PAYLOAD=`echo '{
-				"tag_name": "VERSION",
-				"target_commitish": "TARGET",
-				"name": "VERSION",
-				"body": "",
-				"draft": false,
-				"prerelease": false
-			}' | sed -e "s/VERSION/$APP_VERSION/" | sed -e "s/TARGET/$TRAVIS_BRANCH/"` && \
-		TAG_ID=`curl -i -s -f -X POST "https://api.github.com/repos/$REPO_URL/releases?access_token=$REPO_TOKEN" \
-	--data "$PAYLOAD" | grep -o -E 'id": [0-9]+'| awk '{print $2}' | head -n 1`
+		TAG_ID=`CREATE_RELEASE`
 		echo "> Release created with id $TAG_ID"
 
-		curl --data-binary "@$SOURCE_FILE" -i -w '\n' -f -s -X POST -H 'Content-Type: application/octet-stream' \
-	"https://uploads.github.com/repos/$REPO_URL/releases/$TAG_ID/assets?name=$TARGET_FILE&access_token=$REPO_TOKEN"
+		UPLOAD_FILE $SOURCE_FILE $TARGET_FILE
 
 	;;
 
@@ -84,3 +73,26 @@ case $1 in
 	;;
 
 esac
+
+function CREATE_RELEASE () {
+
+	PAYLOAD=`echo '{
+			"tag_name": "VERSION",
+			"target_commitish": "TARGET",
+			"name": "VERSION",
+			"body": "",
+			"draft": false,
+			"prerelease": false
+		}' | sed -e "s/VERSION/$APP_VERSION/" | sed -e "s/TARGET/$TRAVIS_BRANCH/"` && \
+	TAG_ID=`curl -i -s -f -X POST "https://api.github.com/repos/$REPO_URL/releases?access_token=$REPO_TOKEN" \
+--data "$PAYLOAD" | grep -o -E 'id": [0-9]+'| awk '{print $2}' | head -n 1`
+
+	echo ${TAG_ID}
+}
+
+function UPLOAD_FILE(){
+	SOURCE_FILE=$1
+	TARGET_FILE=$2
+	curl --data-binary "@$SOURCE_FILE" -i -w '\n' -f -s -X POST -H 'Content-Type: application/octet-stream' \
+"https://uploads.github.com/repos/$REPO_URL/releases/$TAG_ID/assets?name=$TARGET_FILE&access_token=$REPO_TOKEN"
+}

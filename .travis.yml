@@ -5,15 +5,14 @@ services:
   - docker
 
 install:
-#  - source ./builder setup-repository
+  - source ./builder setup-repository
   - ./gradlew release -Prelease.releaseVersion=`cat VERSION` -Prelease.newVersion=`cat VERSION`
   - git show-ref --tags && git status && git log -n5
 
 script: docker-compose up prod-build-dns-proxy-server
 
-#after_success:
-#
-#  - source ./builder upload-release
+after_success:
+  - source ./builder upload-release
 
 branches:
   only:
