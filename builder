@@ -25,7 +25,7 @@ case $1 in
 		echo "> Source file hash"
 		md5sum $SOURCE_FILE && ls -lha $SOURCE_FILE
 
-		git push origin ${TRAVIS_BRANCH}
+		git push origin "build_branch:${TRAVIS_BRANCH}"
 		git status
 		echo "> Branch pushed - Branch $TRAVIS_BRANCH"
 
