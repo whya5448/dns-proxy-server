@@ -21,15 +21,16 @@ services:
   - docker
 
 install:
-  - ./gradlew release -Prelease.releaseVersion=2.1.2 -Prelease.newVersion=2.1.3
+  - ./gradlew release -Prelease.releaseVersion=`cat VERSION` -Prelease.newVersion=`cat VERSION`
 
 script: docker-compose up prod-build-dns-proxy-server
 
 after_success:
-  - git remote remove origin  && git remote add origin https://${REPO_TOKEN}@github.com/mageddo/dns-proxy-server.git
-  - git push origin `git rev-parse --abbrev-ref HEAD`
-  - git push origin --tags
-  - git checkout `cat VERSION`
+
+  - source ./builder && upload-release
+
+#  - git push origin --tags
+#  - git checkout `cat VERSION`
 
 deploy:
   provider: releases
