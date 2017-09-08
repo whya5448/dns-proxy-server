@@ -12,7 +12,8 @@ case $1 in
 	setup-repository )
 
 		git remote remove origin  && git remote add origin https://${REPO_TOKEN}@github.com/$REPO_URL.git
-		echo "> Repository added"
+		git checkout -b build_branch ${TRAVIS_BRANCH}
+		echo "> Repository added, travisBranch=${TRAVIS_BRANCH}"
 
 	;;
 
@@ -24,9 +25,9 @@ case $1 in
 		echo "> Source file hash"
 		md5sum $SOURCE_FILE && ls -lha $SOURCE_FILE
 
-		git push origin $TRAVIS_BRANCH
+		git push origin ${TRAVIS_BRANCH}
 		git status
-		echo "> Branch pushed"
+		echo "> Branch pushed - Branch $TRAVIS_BRANCH"
 
 		PAYLOAD=`echo '{
 				"tag_name": "VERSION",
