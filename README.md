@@ -1,4 +1,9 @@
-**Obs**: This is the version 2, for the old version 1 [see this link](https://github.com/mageddo/dns-proxy-server/tree/v1-nodejs) 
+<p>
+	<a href="https://travis-ci.org/mageddo/dns-proxy-server"><img src="https://travis-ci.org/mageddo/dns-proxy-server.svg?branch=travis" alt="Build Status"></img></a>
+</p>
+
+
+**Obs**: This is the version 2, for the old version 1 [see this link](https://github.com/mageddo/dns-proxy-server/tree/v1-nodejs)
 
 ### Features
 Dns-proxy-server is a end user(developers, Server Administrators) DNS server tool to develop systems with docker solving docker containers hostnames:

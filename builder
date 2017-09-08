@@ -2,9 +2,57 @@
 
 set -e
 
+create_release(){
+
+	PAYLOAD=`echo '{
+			"tag_name": "VERSION",
+			"target_commitish": "TARGET",
+			"name": "VERSION",
+			"body": "",
+			"draft": false,
+			"prerelease": true
+		}' | sed -e "s/VERSION/$APP_VERSION/" | sed -e "s/TARGET/$TRAVIS_BRANCH/"` && \
+	TAG_ID=`curl -i -s -f -X POST "https://api.github.com/repos/$REPO_URL/releases?access_token=$REPO_TOKEN" \
+--data "$PAYLOAD" | grep -o -E 'id": [0-9]+'| awk '{print $2}' | head -n 1`
+}
+
+upload_file(){
+	curl --data-binary "@$SOURCE_FILE" -i -w '\n' -f -s -X POST -H 'Content-Type: application/octet-stream' \
+"https://uploads.github.com/repos/$REPO_URL/releases/$TAG_ID/assets?name=$TARGET_FILE&access_token=$REPO_TOKEN"
+}
+
+
 CUR_DIR=$PWD
+APP_VERSION=$(cat VERSION)
+REPO_URL=mageddo/dns-proxy-server
 
 case $1 in
+
+
+	setup-repository )
+		git remote remove origin  && git remote add origin https://${REPO_TOKEN}@github.com/$REPO_URL.git
+		git checkout -b build_branch ${TRAVIS_BRANCH}
+		echo "> Repository added, travisBranch=${TRAVIS_BRANCH}"
+
+	;;
+
+	upload-release )
+
+		git push origin "build_branch:${TRAVIS_BRANCH}"
+		git status
+		echo "> Branch pushed - Branch $TRAVIS_BRANCH"
+
+		create_release
+		echo "> Release created with id $TAG_ID"
+
+		SOURCE_FILE="build/dns-proxy-server-$APP_VERSION.tgz"
+		TARGET_FILE=dns-proxy-server-$APP_VERSION.tgz
+		echo "> Source file hash"
+		md5sum $SOURCE_FILE && ls -lha $SOURCE_FILE
+
+		upload_file
+
+	;;
 
 	pull-all )
 		git pull
@@ -22,25 +70,24 @@ case $1 in
 
 	build )
 
-		echo "starting build"
-		VERSION=`cat VERSION`
+		echo "> Starting build"
 
 		rm -rf build/ && \
 		mkdir -p build/ && \
 		git submodule init && \
-		git submodule update && \
+		git submodule update --init --recursive && \
 		cd src && \
 		go test -cover=false \
 			-ldflags "-X github.com/mageddo/dns-proxy-server/flags.version=test" \
 			./github.com/mageddo/dns-proxy-server/.../ && \
 		go build -v -o ../build/dns-proxy-server \
-			-ldflags "-X github.com/mageddo/dns-proxy-server/flags.version=$VERSION" && \
+			-ldflags "-X github.com/mageddo/dns-proxy-server/flags.version=$APP_VERSION" && \
 		cp -r ../static ../build/ && \
 		cd ../build/ && \
-		tar -czvf dns-proxy-server-$VERSION.tgz * && \
+		tar -czvf dns-proxy-server-$APP_VERSION.tgz * && \
 		cd ../
 
-		echo "build success"
+		echo "> Build success"
 
 	;;
 

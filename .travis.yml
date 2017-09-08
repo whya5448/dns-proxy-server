@@ -1,0 +1,19 @@
+sudo: required
+language: go
+
+services:
+  - docker
+
+install:
+  - source ./builder setup-repository
+  - ./gradlew release -Prelease.releaseVersion=`cat VERSION` -Prelease.newVersion=`cat VERSION`
+
+script: docker-compose up --abort-on-container-exit prod-build-dns-proxy-server
+
+after_success:
+  - source ./builder upload-release
+
+branches:
+  only:
+  - travis
+  - master
