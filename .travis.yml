@@ -22,9 +22,10 @@ services:
 
 install:
 
-  - gradle release -Prelease.releaseVersion=2.1.2 -Prelease.newVersion=2.1.3
+  - ./gradlew release -Prelease.releaseVersion=2.1.2 -Prelease.newVersion=2.1.3
+  - ls
 
-script: docker-compose build prod-build-docker-dns-proy-server
+script: docker-compose build prod-build-dns-proxy-server
 
 deploy:
   provider: releases
