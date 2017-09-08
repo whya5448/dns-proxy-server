@@ -25,8 +25,10 @@ install:
 
 script: docker-compose up prod-build-dns-proxy-server
 
-#after_success:
-#  - git push origin --tags
+after_success:
+  - git push origin `git rev-parse --abbrev-ref HEAD`
+  - git checkout `cat VERSION`
+  - git push origin --tags
 
 deploy:
   provider: releases
