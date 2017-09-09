@@ -1,0 +1,1 @@
+Take a look at right panel for Wiki pages
