@@ -2,6 +2,10 @@
 
 set -e
 
+CUR_DIR=`pwd`
+APP_VERSION=$(cat VERSION)
+REPO_URL=mageddo/dns-proxy-server
+
 create_release(){
 
 	PAYLOAD=`echo '{
@@ -21,13 +25,7 @@ upload_file(){
 "https://uploads.github.com/repos/$REPO_URL/releases/$TAG_ID/assets?name=$TARGET_FILE&access_token=$REPO_TOKEN"
 }
 
-
-CUR_DIR=$PWD
-APP_VERSION=$(cat VERSION)
-REPO_URL=mageddo/dns-proxy-server
-
 case $1 in
-
 
 	setup-repository )
 		git remote remove origin  && git remote add origin https://${REPO_TOKEN}@github.com/$REPO_URL.git
@@ -36,16 +34,10 @@ case $1 in
 
 	;;
 
-	dockerhub-build )
-
-		PAYLOAD=`echo '{"source_type": "Tag", "source_name": "VERSION"}' | sed -e "s/VERSION/${APP_VERSION}/"`
-		curl -f -s -i -H 'Content-Type: application/json' --data "$PAYLOAD" -X POST \
-https://registry.hub.docker.com/u/defreitas/bookmark-notes/trigger/$DOCKER_TOKEN/
-
-	;;
-
 	upload-release )
 
+		git commit -am "Releasing ${APP_VERSION}"
+		git tag ${APP_VERSION}
 		git push origin "build_branch:${TRAVIS_BRANCH}"
 		git status
 		echo "> Branch pushed - Branch $TRAVIS_BRANCH"
@@ -62,21 +54,12 @@ https://registry.hub.docker.com/u/defreitas/bookmark-notes/trigger/$DOCKER_TOKEN
 
 	;;
 
-	pull-all )
-		git pull
-		for i in `git submodule | awk '{print $2}'`; do
-			MATCH=`echo $i | grep -o "mageddo"`
-			MATCH2=`echo $i | grep -o "ElvisDeFreitas"`
-
-				echo "pulling $i"
-				cd $i
-				git pull
-				cd $CUR_DIR
-
-		done;
-	;;
-
 	build )
+
+
+		# updating files version
+		sed -i -E "s/(dns-proxy-server.*)[0-9]+\.[0-9]+\.[0-9]+/\1$APP_VERSION/" docker-compose.yml
+		sed -i -E "s/[0-9]+\.[0-9]+\.[0-9]+/$APP_VERSION/g" Dockerfile.hub
 
 		echo "> Starting build"
 
