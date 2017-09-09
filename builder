@@ -36,6 +36,14 @@ case $1 in
 
 	;;
 
+	dockerhub-build )
+
+		PAYLOAD=`echo '{"source_type": "Tag", "source_name": "VERSION"}' | sed -e "s/VERSION/${APP_VERSION}/"`
+		curl -f -s -i -H 'Content-Type: application/json' --data "$PAYLOAD" -X POST \
+https://registry.hub.docker.com/u/defreitas/bookmark-notes/trigger/$DOCKER_TOKEN/
+
+	;;
+
 	upload-release )
 
 		git push origin "build_branch:${TRAVIS_BRANCH}"
