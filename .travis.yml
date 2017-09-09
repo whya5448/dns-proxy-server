@@ -12,6 +12,7 @@ script: docker-compose up --abort-on-container-exit prod-build-dns-proxy-server
 
 after_success:
   - source ./builder upload-release
+  - source ./builder dockerhub-build
 
 branches:
   only:
