@@ -1,3 +1,2 @@
-* Make your changes
-* Generate the binary to upload to github releases
-* Run `gradle release`
+Just change the version in `VERSION` file and compile the project
+[with this instructions](Compiling-the-project-from-source.md)
