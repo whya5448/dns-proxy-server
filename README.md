@@ -167,4 +167,4 @@ if you don't want this service anymore
 
 	
 ### Developing 
-Take a look at the [wiki](https://github.com/mageddo/dns-proxy-server/wiki) for more details of how develop at this project
+Take a look at the [wiki](docs) for more details of how develop at this project
