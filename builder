@@ -2,6 +2,10 @@
 
 set -e
 
+CUR_DIR=`pwd`
+APP_VERSION=$(cat VERSION)
+REPO_URL=mageddo/dns-proxy-server
+
 create_release(){
 
 	PAYLOAD=`echo '{
@@ -21,11 +25,6 @@ upload_file(){
 "https://uploads.github.com/repos/$REPO_URL/releases/$TAG_ID/assets?name=$TARGET_FILE&access_token=$REPO_TOKEN"
 }
 
-
-CUR_DIR=$PWD
-APP_VERSION=$(cat VERSION)
-REPO_URL=mageddo/dns-proxy-server
-
 case $1 in
 
 	setup-repository )
@@ -37,6 +36,8 @@ case $1 in
 
 	upload-release )
 
+		git commit -am "Releasing ${APP_VERSION}"
+		git tag ${APP_VERSION}
 		git push origin "build_branch:${TRAVIS_BRANCH}"
 		git status
 		echo "> Branch pushed - Branch $TRAVIS_BRANCH"
@@ -54,6 +55,11 @@ case $1 in
 	;;
 
 	build )
+
+
+		# updating files version
+		sed -i -E "s/(dns-proxy-server.*)[0-9]+\.[0-9]+\.[0-9]+/\1$APP_VERSION/" docker-compose.yml
+		sed -i -E "s/[0-9]+\.[0-9]+\.[0-9]+/$APP_VERSION/g" Dockerfile.hub
 
 		echo "> Starting build"
 
