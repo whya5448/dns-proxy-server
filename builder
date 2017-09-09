@@ -28,19 +28,10 @@ REPO_URL=mageddo/dns-proxy-server
 
 case $1 in
 
-
 	setup-repository )
 		git remote remove origin  && git remote add origin https://${REPO_TOKEN}@github.com/$REPO_URL.git
 		git checkout -b build_branch ${TRAVIS_BRANCH}
 		echo "> Repository added, travisBranch=${TRAVIS_BRANCH}"
-
-	;;
-
-	dockerhub-build )
-
-		PAYLOAD=`echo '{"source_type": "Tag", "source_name": "VERSION"}' | sed -e "s/VERSION/${APP_VERSION}/"`
-		curl -f -s -i -H 'Content-Type: application/json' --data "$PAYLOAD" -X POST \
-https://registry.hub.docker.com/u/defreitas/bookmark-notes/trigger/$DOCKER_TOKEN/
 
 	;;
 
@@ -60,20 +51,6 @@ https://registry.hub.docker.com/u/defreitas/bookmark-notes/trigger/$DOCKER_TOKEN
 
 		upload_file
 
-	;;
-
-	pull-all )
-		git pull
-		for i in `git submodule | awk '{print $2}'`; do
-			MATCH=`echo $i | grep -o "mageddo"`
-			MATCH2=`echo $i | grep -o "ElvisDeFreitas"`
-
-				echo "pulling $i"
-				cd $i
-				git pull
-				cd $CUR_DIR
-
-		done;
 	;;
 
 	build )

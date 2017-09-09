@@ -6,13 +6,12 @@ services:
 
 install:
   - source ./builder setup-repository
-  - ./gradlew release -Prelease.releaseVersion=`cat VERSION` -Prelease.newVersion=`cat VERSION`
+  - ./gradlew release -Prelease.newVersion=`cat VERSION`
 
 script: docker-compose up --abort-on-container-exit prod-build-dns-proxy-server
 
 after_success:
   - source ./builder upload-release
-  - source ./builder dockerhub-build
 
 branches:
   only:
