@@ -3,14 +3,7 @@ sudo: required
 services:
   - docker
 
-install:
-
-  - source ./builder setup-repository
-
-script: docker-compose up --abort-on-container-exit prod-build-dns-proxy-server
-
-after_success:
-  - source ./builder upload-release
+script: docker-compose up --abort-on-container-exit prod-ci-deploy
 
 branches:
   only:
