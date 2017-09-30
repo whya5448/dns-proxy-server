@@ -1,0 +1,39 @@
+[submodule "vendor/github.com/miekg/dns"]
+	path = vendor/github.com/miekg/dns
+	url  = https://github.com/miekg/dns.git
+		
+[submodule "vendor/github.com/miekg/exdns"]
+	path = vendor/github.com/miekg/exdns
+	url  = https://github.com/miekg/exdns.git
+		
+[submodule "vendor/github.com/mageddo/gologging"]
+	path = vendor/github.com/mageddo/gologging
+	url  = https://github.com/mageddo/gologging.git
+		
+[submodule "vendor/golang.org/x/net"]
+	path = vendor/golang.org/x/net
+	url  = https://go.googlesource.com/net
+		
+[submodule "vendor/github.com/Sirupsen/logrus"]
+	path = vendor/github.com/Sirupsen/logrus
+	url  = https://github.com/Sirupsen/logrus
+		
+[submodule "vendor/github.com/docker/distribution"]
+	path = vendor/github.com/docker/distribution
+	url  = https://github.com/docker/distribution
+		
+[submodule "vendor/github.com/docker/engineapi"]
+	path = vendor/github.com/docker/engineapi
+	url  = https://github.com/docker/engineapi
+		
+[submodule "vendor/github.com/docker/goconnections"]
+	path = vendor/github.com/docker/goconnections
+	url  = https://github.com/docker/goconnections
+		
+[submodule "vendor/github.com/docker/gounits"]
+	path = vendor/github.com/docker/gounits
+	url  = https://github.com/docker/gounits
+		
+[submodule "vendor/github.com/stretchr/testify"]
+	path = vendor/github.com/stretchr/testify
+	url  = https://github.com/stretchr/testify.git
