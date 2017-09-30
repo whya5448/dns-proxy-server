@@ -62,7 +62,7 @@ case $1 in
 		sed -i -E "s/[0-9]+\.[0-9]+\.[0-9]+/$APP_VERSION/g" Dockerfile.hub
 
 		echo "> Starting build"
-		go get -u . && \
+		git submodule update --init --recursive && \
 		rm -rf build/ && \
 		mkdir -p build/ && \
 		go test -cover=false \

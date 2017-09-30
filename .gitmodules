@@ -6,9 +6,9 @@
 	path = vendor/github.com/miekg/exdns
 	url  = https://github.com/miekg/exdns.git
 		
-[submodule "vendor/github.com/mageddo/gologging"]
-	path = vendor/github.com/mageddo/gologging
-	url  = https://github.com/mageddo/gologging.git
+[submodule "vendor/github.com/mageddo/go-logging"]
+	path = vendor/github.com/mageddo/go-logging
+	url  = https://github.com/mageddo/go-logging.git
 		
 [submodule "vendor/golang.org/x/net"]
 	path = vendor/golang.org/x/net
@@ -23,17 +23,21 @@
 	url  = https://github.com/docker/distribution
 		
 [submodule "vendor/github.com/docker/engineapi"]
-	path = vendor/github.com/docker/engineapi
-	url  = https://github.com/docker/engineapi
+	path = vendor/github.com/docker/engine-api
+	url  = https://github.com/docker/engine-api
 		
-[submodule "vendor/github.com/docker/goconnections"]
-	path = vendor/github.com/docker/goconnections
-	url  = https://github.com/docker/goconnections
+[submodule "vendor/github.com/docker/go-connections"]
+	path = vendor/github.com/docker/go-connections
+	url  = https://github.com/docker/go-connections
 		
-[submodule "vendor/github.com/docker/gounits"]
-	path = vendor/github.com/docker/gounits
-	url  = https://github.com/docker/gounits
+[submodule "vendor/github.com/docker/go-units"]
+	path = vendor/github.com/docker/go-units
+	url  = https://github.com/docker/go-units
 		
 [submodule "vendor/github.com/stretchr/testify"]
 	path = vendor/github.com/stretchr/testify
 	url  = https://github.com/stretchr/testify.git
+
+[submodule "vendor/github.com/pkg/errors"]
+	path = vendor/github.com/pkg/errors
+	url  = https://github.com/pkg/errors.git
