@@ -1,3 +1,9 @@
+### 2.2.0
+* Refactor project structure to save dependencies in vendor folder
+
+### 2.1.5
+* Automating build with Travis
+
 ### 2.1.1
 * Fix - `Error response from daemon: No such container...` message. see #29  
 * Fix - hostname don't get removed when the container has killed. see #26  
