@@ -9,3 +9,5 @@
 *.tmp
 /conf/
 old/
+vendor
+*.lock
