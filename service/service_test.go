@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"github.com/mageddo/dns-proxy-server/flags"
 	"github.com/mageddo/dns-proxy-server/utils"
-	"strings"
 )
 
 func TestSetupFor_NormalModeInstallStartSuccess(t *testing.T) {
@@ -22,7 +21,7 @@ func TestSetupFor_NormalModeInstallStartSuccess(t *testing.T) {
 	ctx := log.NewContext()
 
 	sc := NewService(ctx)
-	cmd := "'bash -c \"echo hi && sleep 20\"'"
+	cmd := "'sh -c \"echo hi && sleep 20 && echo bye\"'"
 	err := sc.SetupFor(DNS_PROXY_SERVER_PATH, DNS_PROXY_SERVER_SERVICE, &Script{cmd})
 	assert.Nil(t, err)
 
@@ -30,11 +29,13 @@ func TestSetupFor_NormalModeInstallStartSuccess(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, fmt.Sprintf(SERVICE_TEMPLATE, cmd), string(bytes))
 
-	out, err, code := utils.Exec("bash", "-c", "ps aux | grep \"echo hi\" && exit ")
+	out, err := ioutil.ReadFile("/var/log/dns-proxy-server.log")
+	assert.Nil(t, err)
+	assert.Contains(t, string(out), "hi")
+
+	out, err, code := utils.Exec("sh", "-c", "ps aux | grep \"echo hi\"")
 	assert.Equal(t, 0, code)
 	assert.Nil(t, err)
-
-	str := string(out)
-	assert.NotEqual(t, -1 , strings.Index(str, "echo hi && sleep 20"))
+	assert.Contains(t, string(out), "echo hi && sleep 20")
 
 }
