@@ -15,7 +15,7 @@ services:
       - TERM=xterm
       - GOPATH=/app
       - MG_WORK_DIR=/app/src/github.com/mageddo/dns-proxy-server
-    hostname: gocompiler.dev
+    hostname: dns-proxy-server.dev
     network_mode: bridge
 
 

@@ -15,10 +15,10 @@ const (
 )
 
 func Exit(code int){
-	LOGGER.Errorf("m=Exit, status=exiting, code=%d", code)
+	LOGGER.Errorf("status=exiting, code=%d", code)
 	if code != SUCCESS {
 		utils.Sig <- syscall.Signal(code)
-		LOGGER.Info("m=Exit, status=msg-posted")
+		LOGGER.Info("status=msg-posted")
 	} else {
 		os.Exit(code)
 	}

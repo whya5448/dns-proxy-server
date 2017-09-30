@@ -53,6 +53,6 @@ func (p *Person) addChild(name string) {
 func (p *Person) addChildByPointer(name string) {
 	childs := p.getChilds()
 	newChilds := append(*childs, name)
-	fmt.Printf("m=addChildByPointer, childs=%p, newChilds=%p\n", childs, &newChilds)
+	fmt.Printf("childs=%p, newChilds=%p\n", childs, &newChilds)
 	childs = &newChilds
 }

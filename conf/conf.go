@@ -84,10 +84,10 @@ func GetString(value, defaultValue string) string {
 }
 
 func RestoreResolvconfToDefault() error {
-	LOGGER.Infof("m=RestoreResolvconfToDefault, status=begin")
+	LOGGER.Infof("status=begin")
 	hd := newDNSServerCleanerHandler()
 	err := ProcessResolvconf(hd)
-	LOGGER.Infof("m=RestoreResolvconfToDefault, status=success, err=%v", err)
+	LOGGER.Infof("status=success, err=%v", err)
 	return err
 }
 
@@ -99,7 +99,7 @@ func SetMachineDNSServer(serverIP string) error {
 func ProcessResolvconf( handler DnsHandler ) error {
 
 	var newResolvConfBuff bytes.Buffer
-	LOGGER.Infof("m=ProcessResolvconf, status=begin")
+	LOGGER.Infof("status=begin")
 
 	resolvconf := getResolvConf()
 	fileRead, err := os.Open(resolvconf)
@@ -112,7 +112,7 @@ func ProcessResolvconf( handler DnsHandler ) error {
 		hasContent = false
 		foundDnsProxyEntry = false
 	)
-	LOGGER.Infof("m=ProcessResolvconf, status=open-conf-file, file=%s", fileRead.Name())
+	LOGGER.Infof("status=open-conf-file, file=%s", fileRead.Name())
 	scanner := bufio.NewScanner(fileRead)
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -121,7 +121,7 @@ func ProcessResolvconf( handler DnsHandler ) error {
 		if entryType == PROXY {
 			foundDnsProxyEntry = true
 		}
-		LOGGER.Debugf("m=ProcessResolvconf, status=readline, line=%s, type=%s", line,  entryType)
+		LOGGER.Debugf("status=readline, line=%s, type=%s", line,  entryType)
 		if r := handler.process(line, entryType); r != nil {
 			newResolvConfBuff.WriteString(*r)
 			newResolvConfBuff.WriteByte('\n')
@@ -138,7 +138,7 @@ func ProcessResolvconf( handler DnsHandler ) error {
 	if err != nil {
 		return err
 	}
-	LOGGER.Infof("m=ProcessResolvconf, status=success, buffLength=%d", length)
+	LOGGER.Infof("status=success, buffLength=%d", length)
 	return nil
 }
 
@@ -174,7 +174,7 @@ func SetCurrentDNSServerToMachineAndLockIt() error {
 func SetCurrentDNSServerToMachine() error {
 
 	ip, err := getCurrentIpAddress()
-	LOGGER.Infof("m=SetCurrentDNSServerToMachine, status=begin, ip=%s, err=%v", ip, err)
+	LOGGER.Infof("status=begin, ip=%s, err=%v", ip, err)
 	if err != nil {
 		return err
 	}
@@ -191,7 +191,7 @@ func UnlockResolvConf() error {
 
 func LockFile(lock bool, file string) error {
 
-	LOGGER.Infof("m=Lockfile, status=begin, lock=%t, file=%s", lock, file)
+	LOGGER.Infof("status=begin, lock=%t, file=%s", lock, file)
 	flag := "-i"
 	if lock {
 		flag = "+i"
@@ -199,17 +199,17 @@ func LockFile(lock bool, file string) error {
 	cmd := exec.Command("chattr", flag, file)
 	err := cmd.Run()
 	if err != nil {
-		LOGGER.Warningf("m=Lockfile, status=error-at-execute, lock=%t, file=%s, err=%v", lock, file, err)
+		LOGGER.Warningf("status=error-at-execute, lock=%t, file=%s, err=%v", lock, file, err)
 		return err
 	}
 	//bytes, err := cmd.CombinedOutput()
 
 	status := cmd.ProcessState.Sys().(syscall.WaitStatus)
 	if status.ExitStatus() != 0 {
-		LOGGER.Warningf("m=Lockfile, status=bad-exit-code, lock=%t, file=%s", lock, file)
+		LOGGER.Warningf("status=bad-exit-code, lock=%t, file=%s", lock, file)
 		return errors.New(fmt.Sprintf("Failed to lock file %d", status.ExitStatus()))
 	}
-	LOGGER.Infof("m=Lockfile, status=success, lock=%t, file=%s", lock, file)
+	LOGGER.Infof("status=success, lock=%t, file=%s", lock, file)
 	return nil
 
 }
