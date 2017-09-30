@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/mageddo/dns-proxy-server/flags"
 	"github.com/mageddo/dns-proxy-server/utils"
+	"time"
 )
 
 func TestSetupFor_NormalModeInstallStartSuccess(t *testing.T) {
@@ -28,6 +29,8 @@ func TestSetupFor_NormalModeInstallStartSuccess(t *testing.T) {
 	bytes, err := ioutil.ReadFile(DNS_PROXY_SERVER_PATH)
 	assert.Nil(t, err)
 	assert.Equal(t, fmt.Sprintf(SERVICE_TEMPLATE, cmd), string(bytes))
+
+	time.Sleep(time.Second)
 
 	out, err := ioutil.ReadFile("/var/log/dns-proxy-server.log")
 	assert.Nil(t, err)
