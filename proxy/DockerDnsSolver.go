@@ -3,7 +3,7 @@ package proxy
 import (
 	"github.com/miekg/dns"
 	"github.com/mageddo/dns-proxy-server/events/docker"
-	"github.com/mageddo/log"
+	log "github.com/mageddo/go-logging"
 	"net"
 	"strings"
 	"strconv"
@@ -17,7 +17,7 @@ type DockerDnsSolver struct {
 
 func (DockerDnsSolver) Solve(ctx context.Context, question dns.Question) (*dns.Msg, error) {
 
-	logger := log.GetLogger(ctx)
+	logger := log.NewLog(ctx)
 	key := question.Name[:len(question.Name)-1]
 	logger.Debugf("m=solve, status=solved-key, solver=docker, hostname=%s, ip=%s", key, docker.Get(key))
 	if docker.ContainsKey(key) {

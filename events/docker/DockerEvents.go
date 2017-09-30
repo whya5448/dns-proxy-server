@@ -8,7 +8,7 @@ import (
 	"io"
 	"github.com/docker/engine-api/client"
 	"golang.org/x/net/context"
-	"github.com/mageddo/log"
+	log "github.com/mageddo/go-logging"
 	"github.com/docker/engine-api/types"
 	"strings"
 	"errors"
@@ -17,8 +17,8 @@ import (
 var cache = make(map[string]string)
 
 func HandleDockerEvents(){
-	defaultLogger := log.GetContext()
-	logger := log.GetLogger(defaultLogger)
+	defaultLogger := log.NewContext()
+	logger := log.NewLog(defaultLogger)
 
 	// adaptar a api do docker aqui
 	cli, err := client.NewClient("unix:///var/run/docker.sock", "v1.21", nil, nil)
@@ -69,8 +69,8 @@ func HandleDockerEvents(){
 	dec := json.NewDecoder(body)
 	for {
 
-		logCtx := log.GetContext()
-		logger = log.GetLogger(logCtx)
+		logCtx := log.NewContext()
+		logger = log.NewLog(logCtx)
 
 		var event events.Message
 		err := dec.Decode(&event)
@@ -152,7 +152,7 @@ func getHostnames(inspect types.ContainerJSON) []string {
 }
 
 func putHostnames(ctx context.Context, hostnames []string, inspect types.ContainerJSON) error {
-	logger := log.GetLogger(ctx)
+	logger := log.NewLog(ctx)
 	for _, host := range hostnames {
 
 		var ip string = ""

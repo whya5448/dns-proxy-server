@@ -1,9 +1,10 @@
 package controller
 
 import (
+	. "github.com/mageddo/dns-proxy-server/log"
 	"net/http"
 	"golang.org/x/net/context"
-	"github.com/mageddo/log"
+	log "github.com/mageddo/go-logging"
 	"encoding/json"
 )
 
@@ -68,8 +69,8 @@ func MapReq(method Method, path string, fn func(context.Context, http.ResponseWr
 		http.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
 			urlPath := r.URL.Path
 			_, matched := maps[urlPath][r.Method]
-			ctx := log.GetContext()
-			logger := log.GetLogger(ctx)
+			ctx := log.NewContext()
+			logger := log.NewLog(ctx)
 
 			logger.Debugf("m=MapReq, status=begin, matched=%t, url=%s, method=%s", matched, urlPath,  r.Method)
 			if matched {
@@ -83,7 +84,7 @@ func MapReq(method Method, path string, fn func(context.Context, http.ResponseWr
 
 		})
 	}
-	log.Logger.Debugf("m=MapReq, status=mapping, url=%s %s", method, path)
+	LOGGER.Debugf("m=MapReq, status=mapping, url=%s %s", method, path)
 	maps[path][string(method)] = fn
 
 }

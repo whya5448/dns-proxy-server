@@ -3,13 +3,13 @@ package controller
 import (
 	"net/http"
 	"github.com/mageddo/dns-proxy-server/utils"
-	"github.com/mageddo/log"
+	log "github.com/mageddo/go-logging"
 )
 
 func init(){
 
 	http.HandleFunc("/static/", func(res http.ResponseWriter, req *http.Request){
-		logger := log.GetLogger(log.GetContext())
+		logger := log.NewLog(log.NewContext())
 
 		staticPath := utils.GetPath("/")
 		logger.Infof("urlPath=%s", req.URL.Path)

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/mageddo/dns-proxy-server/flags"
 	"github.com/mageddo/dns-proxy-server/utils"
-	"github.com/mageddo/log"
+	log "github.com/mageddo/go-logging"
 	"os"
 	"golang.org/x/net/context"
 	"errors"
@@ -17,7 +17,7 @@ const (
 
 type Service struct {
 	ctx context.Context
-	logger *log.IdLogger
+	logger log.Log
 }
 
 type Script struct {
@@ -25,7 +25,7 @@ type Script struct {
 }
 
 func NewService(ctx context.Context) *Service {
-	return &Service{ctx, log.GetLogger(ctx)}
+	return &Service{ctx, log.NewLog(ctx)}
 }
 
 func (sc *Service) Install() {

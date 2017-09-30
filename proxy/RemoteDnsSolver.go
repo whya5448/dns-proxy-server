@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"golang.org/x/net/context"
 	"github.com/mageddo/dns-proxy-server/events/local"
-	"github.com/mageddo/log"
+	log "github.com/mageddo/go-logging"
 )
 
 type RemoteDnsSolver struct {
@@ -17,7 +17,7 @@ type RemoteDnsSolver struct {
 // reference https://miek.nl/2014/August/16/go-dns-package/
 func (RemoteDnsSolver) Solve(ctx context.Context, question dns.Question) (*dns.Msg, error) {
 
-	logger := log.GetLogger(ctx)
+	logger := log.NewLog(ctx)
 	c := new(dns.Client)
 	m := new(dns.Msg)
 	m.SetQuestion(dns.Fqdn(question.Name), question.Qtype) // CAN BE A, AAA, MX, etc.

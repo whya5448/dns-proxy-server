@@ -1,13 +1,13 @@
 package utils
 
 import (
+	. "github.com/mageddo/dns-proxy-server/log"
 	"path/filepath"
 	"os"
 	"encoding/json"
 	"io"
 	"time"
 	"github.com/mageddo/dns-proxy-server/utils/env"
-	"github.com/mageddo/log"
 	"strings"
 	"os/signal"
 	"syscall"
@@ -161,7 +161,7 @@ func GetCurrentPath() string {
 		return currDIr
 	}
 	currentPath, _ := filepath.Abs(filepath.Dir(os.Args[0]))
-	log.Logger.Infof("m=GetCurrentPath, currentPath=%s", currentPath)
+	LOGGER.Infof("m=GetCurrentPath, currentPath=%s", currentPath)
 	return currentPath
 
 }

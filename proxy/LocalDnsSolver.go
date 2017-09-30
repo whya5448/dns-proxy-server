@@ -1,11 +1,11 @@
 package proxy
 
 import (
+	. "github.com/mageddo/dns-proxy-server/log"
 	"errors"
 	"github.com/miekg/dns"
 	"net"
 	"github.com/mageddo/dns-proxy-server/events/local"
-	"github.com/mageddo/log"
 	"golang.org/x/net/context"
 )
 
@@ -32,7 +32,7 @@ func (LocalDnsSolver) Solve(ctx context.Context, question dns.Question) (*dns.Ms
 
 		m := new(dns.Msg)
 		m.Answer = append(m.Answer, rr)
-		log.Logger.Infof("m=solve, status=success, solver=local")
+		LOGGER.Infof("m=solve, status=success, solver=local")
 		return m, nil
 	}
 	return nil, errors.New("hostname not found")

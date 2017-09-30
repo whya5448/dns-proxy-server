@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"github.com/mageddo/dns-proxy-server/events/local"
 	"golang.org/x/net/context"
-	"github.com/mageddo/log"
+	log "github.com/mageddo/go-logging"
 	"fmt"
 )
 
@@ -36,7 +36,7 @@ func init(){
 	})
 
 	Post("/hostname/", func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
-		logger := log.GetLogger(ctx)
+		logger := log.NewLog(ctx)
 		res.Header().Add("Content-Type", "application/json")
 		logger.Infof("m=/hostname/, status=begin, action=create-hostname")
 		var hostname local.HostnameVo
@@ -52,7 +52,7 @@ func init(){
 	})
 
 	Put("/hostname/", func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
-		logger := log.GetLogger(ctx)
+		logger := log.NewLog(ctx)
 		res.Header().Add("Content-Type", "application/json")
 		logger.Infof("m=/hostname/, status=begin, action=update-hostname")
 		var hostname local.HostnameVo
@@ -68,7 +68,7 @@ func init(){
 	})
 
 	Delete("/hostname/", func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
-		logger := log.GetLogger(ctx)
+		logger := log.NewLog(ctx)
 		res.Header().Add("Content-Type", "application/json")
 		logger.Infof("m=/hostname/, status=begin, action=delete-hostname")
 		var hostname local.HostnameVo

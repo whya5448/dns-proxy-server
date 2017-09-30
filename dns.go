@@ -1,12 +1,12 @@
 package main
 
 import (
+	_ "github.com/mageddo/dns-proxy-server/log"
 	"fmt"
 	"os"
 	"runtime/pprof"
 	"strings"
 	"github.com/miekg/dns"
-	"github.com/mageddo/log"
 	"github.com/mageddo/dns-proxy-server/proxy"
 	"reflect"
 	"github.com/mageddo/dns-proxy-server/utils"
@@ -17,12 +17,13 @@ import (
 	"github.com/mageddo/dns-proxy-server/conf"
 	"github.com/mageddo/dns-proxy-server/utils/exitcodes"
 	"github.com/mageddo/dns-proxy-server/service"
+	log "github.com/mageddo/go-logging"
 )
 
 func handleQuestion(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 
-	ctx := log.GetContext()
-	logger := log.GetLogger(ctx)
+	ctx := log.NewContext()
+	logger := log.NewLog(ctx)
 
 	defer func() {
 		err := recover()
@@ -74,7 +75,7 @@ func handleQuestion(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 
 }
 
-func serve(net, name, secret string, logger *log.IdLogger) {
+func serve(net, name, secret string, logger log.Log) {
 	port := fmt.Sprintf(":%d", conf.DnsServerPort())
 	logger.Infof("status=begin, port=%d", conf.DnsServerPort())
 	switch name {
@@ -95,8 +96,8 @@ func serve(net, name, secret string, logger *log.IdLogger) {
 
 func main() {
 
-	ctx := log.GetContext()
-	logger := log.GetLogger(ctx)
+	ctx := log.NewContext()
+	logger := log.NewLog(ctx)
 
 	service.NewService(ctx).Install()
 
