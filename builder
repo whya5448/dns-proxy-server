@@ -75,15 +75,4 @@ case $1 in
 
 	;;
 
-	install ) # install necessary dependencies to vendor folder
-
-		rm -vrf vendor/*
-		for  i in `go get -t -u -v ./... 2>&1 | tail -n +2 | grep -o -P "(.*)(?= \(download\))"` ; do
-			echo $i;
-			mkdir -p vendor/$i;
-			cp -r $GOPATH/src/$i `dirname vendor/$i`;
-		done
-	;;
-
-
 esac
