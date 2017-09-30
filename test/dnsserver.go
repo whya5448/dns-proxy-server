@@ -32,6 +32,7 @@
 package main
 
 import (
+	. "github.com/mageddo/dns-proxy-server/log"
 	"flag"
 	"fmt"
 	"os"
@@ -40,7 +41,6 @@ import (
 	"strings"
 	"syscall"
 	"github.com/miekg/dns"
-	"github.com/mageddo/log"
 	"net"
 	"errors"
 )
@@ -56,7 +56,7 @@ func handleReflect(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 	defer func() {
 		err := recover()
 		if err != nil {
-			log.Logger.Errorf("M=handleReflect, status=error, error=%v", err)
+			LOGGER.Errorf("M=handleReflect, status=error, error=%v", err)
 		}
 	}()
 
@@ -67,7 +67,7 @@ func handleReflect(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 		questionName = "null"
 	}
 
-	log.Logger.Infof("m=handleReflect, questions=%d, 1stQuestion=%s", len(reqMsg.Question), questionName)
+	LOGGER.Infof("m=handleReflect, questions=%d, 1stQuestion=%s", len(reqMsg.Question), questionName)
 
 	resp := SolveName(questionName)
 	resp.SetReply(reqMsg)
@@ -79,7 +79,7 @@ func handleReflect(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 		firstAnswer = resp.Answer[0]
 	}
 
-	log.Logger.Infof("m=handleReflect, resp=%v", firstAnswer)
+	LOGGER.Infof("m=handleReflect, resp=%v", firstAnswer)
 	respWriter.WriteMsg(resp)
 
 }
@@ -112,7 +112,7 @@ func main2() {
 	if *cpuprofile != "" {
 		f, err := os.Create(*cpuprofile)
 		if err != nil {
-			log.Logger.Fatal(err)
+			LOGGER.Fatal(err)
 		}
 		pprof.StartCPUProfile(f)
 		defer pprof.StopCPUProfile()
