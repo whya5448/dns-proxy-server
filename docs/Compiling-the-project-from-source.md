@@ -25,4 +25,4 @@ Create the docker image
 * Docker
 * Docker Compose
 * Git
-* Golang 1.8
+* Golang 1.9
