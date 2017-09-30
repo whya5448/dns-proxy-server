@@ -62,21 +62,17 @@ case $1 in
 		sed -i -E "s/[0-9]+\.[0-9]+\.[0-9]+/$APP_VERSION/g" Dockerfile.hub
 
 		echo "> Starting build"
-
+		go get -u . && \
 		rm -rf build/ && \
 		mkdir -p build/ && \
-		git submodule init && \
-		git submodule update --init --recursive && \
-		cd src && \
 		go test -cover=false \
 			-ldflags "-X github.com/mageddo/dns-proxy-server/flags.version=test" \
-			./github.com/mageddo/dns-proxy-server/.../ && \
-		go build -v -o ../build/dns-proxy-server \
+			./.../ && \
+		go build -v -o build/dns-proxy-server \
 			-ldflags "-X github.com/mageddo/dns-proxy-server/flags.version=$APP_VERSION" && \
-		cp -r ../static ../build/ && \
-		cd ../build/ && \
-		tar -czvf dns-proxy-server-$APP_VERSION.tgz * && \
-		cd ../
+		cp -r static build/ && \
+		cd build/ && \
+		tar -czvf dns-proxy-server-$APP_VERSION.tgz *
 
 		echo "> Build success"
 
