@@ -32,7 +32,7 @@ func (LocalDnsSolver) Solve(ctx context.Context, question dns.Question) (*dns.Ms
 
 		m := new(dns.Msg)
 		m.Answer = append(m.Answer, rr)
-		LOGGER.Infof("m=solve, status=success, solver=local")
+		LOGGER.Infof("status=success, solver=local")
 		return m, nil
 	}
 	return nil, errors.New("hostname not found")

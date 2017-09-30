@@ -9,14 +9,14 @@ import (
 
 func Exec(cmd string, args ...string) ( out []byte, err error, exitCode int ){
 
-	LOGGER.Infof("m=Exec, cmd=%s, args=%v", cmd, args)
+	LOGGER.Infof("cmd=%s, args=%v", cmd, args)
 
 	execution := exec.Command(cmd, args...)
 	// ja chama o run dentro dele
 	out, err = execution.CombinedOutput()
 
 	if err != nil {
-		LOGGER.Infof("m=Exec, status=error, type=%v, err=%v", reflect.TypeOf(err), err)
+		LOGGER.Infof("status=error, type=%v, err=%v", reflect.TypeOf(err), err)
 		if exitError, ok := err.(*exec.ExitError); ok {
 			exitCode = exitError.Sys().(syscall.WaitStatus).ExitStatus()
 			return
@@ -29,10 +29,10 @@ func Exec(cmd string, args ...string) ( out []byte, err error, exitCode int ){
 	}
 
 	if exitCode != 0 {
-		LOGGER.Warningf("m=Exec, status=bad-exit-code, status=%d", exitCode)
+		LOGGER.Warningf("status=bad-exit-code, status=%d", exitCode)
 		return
 	}
-	LOGGER.Infof("m=Exec, status=success, cmd=%s", cmd)
+	LOGGER.Infof("status=success, cmd=%s", cmd)
 	return
 }
 

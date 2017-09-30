@@ -56,7 +56,7 @@ func handleReflect(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 	defer func() {
 		err := recover()
 		if err != nil {
-			LOGGER.Errorf("M=handleReflect, status=error, error=%v", err)
+			LOGGER.Errorf("status=error, error=%v", err)
 		}
 	}()
 
@@ -67,7 +67,7 @@ func handleReflect(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 		questionName = "null"
 	}
 
-	LOGGER.Infof("m=handleReflect, questions=%d, 1stQuestion=%s", len(reqMsg.Question), questionName)
+	LOGGER.Infof("questions=%d, 1stQuestion=%s", len(reqMsg.Question), questionName)
 
 	resp := SolveName(questionName)
 	resp.SetReply(reqMsg)
@@ -79,7 +79,7 @@ func handleReflect(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 		firstAnswer = resp.Answer[0]
 	}
 
-	LOGGER.Infof("m=handleReflect, resp=%v", firstAnswer)
+	LOGGER.Infof("resp=%v", firstAnswer)
 	respWriter.WriteMsg(resp)
 
 }

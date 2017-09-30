@@ -75,7 +75,7 @@ func (sc *Service) SetupFor(servicePath, serviceName string, script *Script) err
 			sc.logger.Fatalf("status=fatal-install-service, service=chkconfig, msg=%s", err.Error())
 		}
 	} else { // not known
-		sc.logger.Warningf("m=ConfigSetupService, status=impossible to setup to start at boot")
+		sc.logger.Warningf("status=impossible to setup to start at boot")
 	}
 
 	out, err, _ := utils.Exec("service", serviceName, "stop")

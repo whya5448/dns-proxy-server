@@ -72,19 +72,19 @@ func MapReq(method Method, path string, fn func(context.Context, http.ResponseWr
 			ctx := log.NewContext()
 			logger := log.NewLog(ctx)
 
-			logger.Debugf("m=MapReq, status=begin, matched=%t, url=%s, method=%s", matched, urlPath,  r.Method)
+			logger.Debugf("status=begin, matched=%t, url=%s, method=%s", matched, urlPath,  r.Method)
 			if matched {
 				function := maps[urlPath][r.Method]
 				function(ctx, w, r, urlPath)
-				logger.Debugf("m=MapReq, status=success, url=%s %s", r.Method, urlPath)
+				logger.Debugf("status=success, url=%s %s", r.Method, urlPath)
 			}else{
-				logger.Debugf("m=MapReq, status=not-found, url=%s %s", r.Method, urlPath)
+				logger.Debugf("status=not-found, url=%s %s", r.Method, urlPath)
 				http.NotFound(w, r)
 			}
 
 		})
 	}
-	LOGGER.Debugf("m=MapReq, status=mapping, url=%s %s", method, path)
+	LOGGER.Debugf("status=mapping, url=%s %s", method, path)
 	maps[path][string(method)] = fn
 
 }

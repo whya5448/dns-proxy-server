@@ -19,7 +19,7 @@ func (DockerDnsSolver) Solve(ctx context.Context, question dns.Question) (*dns.M
 
 	logger := log.NewLog(ctx)
 	key := question.Name[:len(question.Name)-1]
-	logger.Debugf("m=solve, status=solved-key, solver=docker, hostname=%s, ip=%s", key, docker.Get(key))
+	logger.Debugf("status=solved-key, solver=docker, hostname=%s, ip=%s", key, docker.Get(key))
 	if docker.ContainsKey(key) {
 
 		ip := docker.Get(key)
