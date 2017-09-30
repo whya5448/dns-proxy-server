@@ -7,5 +7,4 @@
 .gradle/
 *.orig
 *.tmp
-
-
+conf/config.json
