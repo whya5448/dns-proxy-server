@@ -36,11 +36,27 @@ case $1 in
 
 	upload-release )
 
-		git commit -am "Releasing ${APP_VERSION}"
+		if [ "$REPO_TOKEN" = "" ] ; then echo "REPO_TOKEN cannot be empty"; exit 1; fi
+
+		if [ "`git config user.email || echo ''`" = "" ]; then
+			echo '> custom config'
+			git config user.name `git config user.name || echo 'CI BOT'`
+			git config user.email `git config user.email || echo 'ci-bot@mageddo.com'`
+		fi
+		echo '> config'
+		git config -l
+		echo ''
+
+		REMOTE="https://${REPO_TOKEN}@github.com/${REPO_URL}.git"
+
+		git checkout -b build_branch ${CURRENT_BRANCH}
+		echo "> Repository added, currentBranch=${CURRENT_BRANCH}"
+
+		git commit -am "Releasing ${APP_VERSION}" # if there is nothing to commit the program will exits
 		git tag ${APP_VERSION}
-		git push origin "build_branch:${TRAVIS_BRANCH}"
+		git push "$REMOTE" "build_branch:${CURRENT_BRANCH}"
 		git status
-		echo "> Branch pushed - Branch $TRAVIS_BRANCH"
+		echo "> Branch pushed - Branch $CURRENT_BRANCH"
 
 		create_release
 		echo "> Release created with id $TAG_ID"
@@ -54,12 +70,15 @@ case $1 in
 
 	;;
 
-	build )
-
+	apply-version )
 
 		# updating files version
 		sed -i -E "s/(dns-proxy-server.*)[0-9]+\.[0-9]+\.[0-9]+/\1$APP_VERSION/" docker-compose.yml
 		sed -i -E "s/[0-9]+\.[0-9]+\.[0-9]+/$APP_VERSION/g" Dockerfile.hub
+
+	;;
+
+	build )
 
 		echo "> Starting build"
 

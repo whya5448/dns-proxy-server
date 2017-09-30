@@ -1,3 +1,6 @@
+### 2.1.7
+* All build and release process is made inside docker (no travis dependency)
+
 ### 2.1.6
 * Refactor project structure to save dependencies in vendor folder
 
