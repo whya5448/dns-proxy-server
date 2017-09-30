@@ -22,7 +22,7 @@ services:
   # Run from docker image
   prod-docker-dns-prod-server:
     container_name: dns-proxy-server
-    image: defreitas/dns-proxy-server:2.1.7
+    image: defreitas/dns-proxy-server:2.1.6
     hostname: dns.mageddo
     volumes:
       - /opt/dns-proxy-server/conf:/app/conf
@@ -38,7 +38,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: docker-dns-server-docker-compiler
-    image: defreitas/dns-proxy-server:2.1.7
+    image: defreitas/dns-proxy-server:2.1.6
 
   # Build the project and generate binary at build folder
   prod-build-dns-proxy-server:
