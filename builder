@@ -75,4 +75,14 @@ case $1 in
 
 	;;
 
+
+	validate-release )
+
+		if git rev-parse "$APP_VERSION^{}" >/dev/null 2>&1; then
+			echo "> Version already exists $APP_VERSION"
+			exit 3
+		fi
+
+	;;
+
 esac

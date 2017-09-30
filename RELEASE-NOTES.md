@@ -1,4 +1,4 @@
-### 2.2.0
+### 2.1.6
 * Refactor project structure to save dependencies in vendor folder
 
 ### 2.1.5
