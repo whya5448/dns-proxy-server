@@ -12,6 +12,7 @@ import (
 	"os/signal"
 	"syscall"
 	"bytes"
+	"math"
 )
 
 var QTypeCodes = map[uint16] string {
@@ -211,3 +212,11 @@ func CreateExecutableFile(sourceData, dst string) error {
 }
 
 
+// Difference between b and a in milliseconds
+//
+// b must be greater than a
+//
+func DiffMillis(a, b time.Time) int64 {
+	na, nb := a.Nanosecond(), b.Nanosecond()
+	return nb - na / int64(time.Nanosecond * time.Millisecond)
+}

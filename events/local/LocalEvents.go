@@ -27,12 +27,11 @@ func LoadConfiguration(ctx context.Context){
 	logger.Infof("status=begin, confPath=%s", confPath)
 
 	if _, err := os.Stat(confPath); err == nil {
+
 		logger.Info("status=openingFile")
 		f, _ := os.Open(confPath)
 
-		defer func(){
-			f.Close()
-		}()
+		defer f.Close()
 
 		dec := json.NewDecoder(f)
 		dec.Decode(&configuration)
@@ -47,8 +46,6 @@ func LoadConfiguration(ctx context.Context){
 				}
 			}
 		}
-
-		SaveConfiguration(ctx, &configuration)
 		logger.Info("status=success")
 	}else{
 		logger.Info("status=create-new-conf")
@@ -63,34 +60,30 @@ func LoadConfiguration(ctx context.Context){
 
 }
 func SaveConfiguration(ctx context.Context, c *LocalConfiguration) {
-	logger := log.NewLog(ctx)
 
-	logger.Infof("status=begin, time=%s", time.Now())
+	t := time.Now()
+	logger := log.NewLog(ctx)
+	logger.Debugf("status=begin")
 	if len(c.Envs) == 0 {
 		c.Envs = NewEmptyEnv()
 	}
 
-	logger.Infof("status=save")
+	logger.Debugf("status=save")
 	f, err := os.OpenFile(confPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0777)
-	defer func(){
-		f.Close()
-	}()
 	if err != nil {
 		logger.Errorf("status=error-to-create-conf-file, err=%v", err)
 		return
 	}
+	defer f.Close()
 	wr := bufio.NewWriter(f)
-	defer func(){
-		wr.Flush()
-	}()
+	defer wr.Flush()
 	enc := json.NewEncoder(wr)
 	enc.SetIndent("", "\t")
 	err = enc.Encode(c)
 	if err != nil {
 		logger.Errorf("status=error-to-encode, error=%v", err)
 	}
-
-	logger.Infof("status=success")
+	logger.Infof("status=success, time=%d", utils.DiffMillis(t, time.Now()))
 
 }
 
