@@ -19,6 +19,11 @@ func (c *LRUCache) GetName() string {
 }
 
 func (c *LRUCache) Get(key interface{}) interface{} {
+	for e := c.keyset.Front(); e != nil; e = e.Next() {
+		if e.Value == key {
+			c.keyset.MoveToFront(e)
+		}
+	}
 	return c.cache[key]
 }
 
