@@ -3,13 +3,14 @@ package controller
 import (
 	log "github.com/mageddo/go-logging"
 	"net/http"
-	"encoding/json"
 	"github.com/mageddo/dns-proxy-server/events/local"
-	"golang.org/x/net/context"
+	"encoding/json"
+	"context"
 	"github.com/mageddo/dns-proxy-server/utils"
 )
 
 const (
+	ENV = "/env/"
 	// reference to the active environment
 	ENV_ACTIVE = "/env/active"
 )
@@ -49,7 +50,7 @@ func init(){
 
 	})
 
-	Get("/env/", func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
+	Get(ENV, func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
 		res.Header().Add("Content-Type", "application/json")
 		if conf, _ := local.LoadConfiguration(ctx); conf != nil {
 			utils.GetJsonEncoder(res).Encode(conf.Envs)
@@ -58,7 +59,7 @@ func init(){
 		confLoadError(res)
 	})
 
-	Post("/env/", func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
+	Post(ENV, func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
 		logger := log.NewLog(ctx)
 		res.Header().Add("Content-Type", "application/json")
 		logger.Infof("m=/env/, status=begin, action=create-env")
@@ -77,7 +78,7 @@ func init(){
 		confLoadError(res)
 	})
 
-	Delete("/env/", func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
+	Delete(ENV, func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
 		logger := log.NewLog(ctx)
 		res.Header().Add("Content-Type", "application/json")
 		logger.Infof("m=/env/, status=begin, action=delete-env")

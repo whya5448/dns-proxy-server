@@ -4,7 +4,10 @@ import (
 	"flag"
 	"os"
 	"fmt"
+	"github.com/mageddo/dns-proxy-server/cache/store"
 )
+
+const TEST_MODE = "TEST_MODE"
 
 var (
 	version = "dev" // will be populated by the compiler when generate the release or by this program reading VERSION file
@@ -54,5 +57,9 @@ func GetRawCurrentVersion() string {
 }
 
 func IsTestVersion() bool {
-	return GetRawCurrentVersion() == "test"
+	cache := store.GetInstance()
+	if !cache.ContainsKey(TEST_MODE){
+		cache.PutIfAbsent(TEST_MODE, flag.Lookup("test.v") != nil)
+	}
+	return cache.Get(TEST_MODE).(bool)
 }

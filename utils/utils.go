@@ -12,6 +12,7 @@ import (
 	"os/signal"
 	"syscall"
 	"bytes"
+	"github.com/mageddo/dns-proxy-server/flags"
 )
 
 var QTypeCodes = map[uint16] string {
@@ -179,7 +180,9 @@ func GetPath(path string) string {
 
 func GetJsonEncoder(w io.Writer) *json.Encoder {
 	decoder := json.NewEncoder(w)
-	decoder.SetIndent("", "\t")
+	if !flags.IsTestVersion() {
+		decoder.SetIndent("", "\t")
+	}
 	return decoder
 }
 
