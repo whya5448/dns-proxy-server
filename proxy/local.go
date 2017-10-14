@@ -23,10 +23,10 @@ func (LocalDnsSolver) Solve(ctx context.Context, question dns.Question) (*dns.Ms
 	key := question.Name[:len(question.Name)-1]
 	var hostname *local.HostnameVo
 	if cache.ContainsKey(key) {
-		hostname = cache.Get(key).(*local.HostnameVo)
 		LOGGER.Debugf("status=from-cache, key=%s, value=%v", key, hostname.Hostname)
+		hostname = cache.Get(key).(*local.HostnameVo)
 	} else {
-		LOGGER.Debugf("status=hot-load, key=%s, value=%v", key, hostname.Hostname)
+		LOGGER.Debugf("status=hot-load, key=%s", key)
 		conf, err := local.LoadConfiguration(ctx)
 		if err != nil {
 			LOGGER.Errorf("status=could-not-load-conf, err=%v", err)

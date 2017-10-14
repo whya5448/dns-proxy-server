@@ -19,9 +19,8 @@ func (DockerDnsSolver) Solve(ctx context.Context, question dns.Question) (*dns.M
 
 	logger := log.NewLog(ctx)
 	key := question.Name[:len(question.Name)-1]
-	logger.Debugf("status=solved-key, solver=docker, hostname=%s, ip=%s", key, docker.Get(key))
 	if docker.ContainsKey(key) {
-
+		logger.Debugf("status=solved-key, solver=docker, hostname=%s, ip=%s", key, docker.Get(key))
 		ip := docker.Get(key)
 		ipArr := strings.Split(ip, ".")
 		i1, _ := strconv.Atoi(ipArr[0])
@@ -38,5 +37,5 @@ func (DockerDnsSolver) Solve(ctx context.Context, question dns.Question) (*dns.M
 		m.Answer = append(m.Answer, rr)
 		return m, nil
 	}
-	return nil, errors.New("hostname not found")
+	return nil, errors.New("hostname not found " + key)
 }

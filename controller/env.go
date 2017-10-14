@@ -66,6 +66,7 @@ func init(){
 				return
 			}
 			logger.Infof("m=/env/, status=success, action=create-env")
+			return
 		}
 		confLoadError(res)
 	})
@@ -84,6 +85,7 @@ func init(){
 				return
 			}
 			logger.Infof("m=/env/, status=success, action=delete-env")
+			return
 		}
 		confLoadError(res)
 	})

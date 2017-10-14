@@ -18,6 +18,7 @@ import (
 	"github.com/mageddo/dns-proxy-server/utils/exitcodes"
 	"github.com/mageddo/dns-proxy-server/service"
 	log "github.com/mageddo/go-logging"
+	"runtime/debug"
 )
 
 func handleQuestion(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
@@ -28,7 +29,7 @@ func handleQuestion(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 	defer func() {
 		err := recover()
 		if err != nil {
-			logger.Errorf("status=error, error=%v", err)
+			logger.Errorf("status=error, error=%v, stack=%s", err, string(debug.Stack()))
 		}
 	}()
 
@@ -41,15 +42,15 @@ func handleQuestion(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 		return
 	}
 
-	logger.Infof("status=begin, reqId=%d, questions=%d, question=%s, type=%s", reqMsg.Id,
-		questionsQtd, firstQuestion.Name, utils.DnsQTypeCodeToName(firstQuestion.Qtype))
+	logger.Debugf("status=begin, reqId=%d, questions=%d, question=%s, type=%s", reqMsg.Id,
+	questionsQtd, firstQuestion.Name, utils.DnsQTypeCodeToName(firstQuestion.Qtype))
 
 	// loading the solvers and try to solve the hostname in that order
 	solvers := []proxy.DnsSolver{proxy.DockerDnsSolver{}, proxy.LocalDnsSolver{}, proxy.RemoteDnsSolver{}}
 	for _, solver := range solvers {
 
 		solverID := reflect.TypeOf(solver).Name()
-		logger.Infof("status=begin, solver=%s", solverID)
+		logger.Debugf("status=begin, solver=%s", solverID)
 		// loop through questions
 		resp, err := solver.Solve(ctx, firstQuestion)
 		if err == nil {
@@ -57,11 +58,11 @@ func handleQuestion(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 			var firstAnswer dns.RR
 			answerLenth := len(resp.Answer)
 
-			logger.Infof("status=answer-found, solver=%s, length=%d", solverID, answerLenth)
+			logger.Debug("status=answer-found, solver=%s, length=%d", solverID, answerLenth)
 			if answerLenth != 0 {
 				firstAnswer = resp.Answer[0]
 			}
-			logger.Infof("status=resolved, solver=%s, alength=%d, answer=%v", solverID, answerLenth, firstAnswer)
+			logger.Debugf("status=resolved, solver=%s, alength=%d, answer=%v", solverID, answerLenth, firstAnswer)
 
 			resp.SetReply(reqMsg)
 			resp.Compress = conf.Compress()
@@ -69,7 +70,7 @@ func handleQuestion(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 			break
 		}
 
-		logger.Warningf("status=not-resolved, solver=%s, err=%v", solverID, err)
+		logger.Debugf("status=not-resolved, solver=%s, err=%v", solverID, err)
 
 	}
 
@@ -77,7 +78,7 @@ func handleQuestion(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 
 func serve(net, name, secret string, logger log.Log) {
 	port := fmt.Sprintf(":%d", conf.DnsServerPort())
-	logger.Infof("status=begin, port=%d", conf.DnsServerPort())
+	logger.Debugf("status=begin, port=%d", conf.DnsServerPort())
 	switch name {
 	case "":
 		server := &dns.Server{Addr: port, Net: net, TsigSecret: nil}
