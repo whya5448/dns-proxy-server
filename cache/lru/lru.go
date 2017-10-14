@@ -7,15 +7,15 @@ import (
 )
 
 type LRUCache struct {
-	cache *lru.Cache
+	Cache *lru.Cache
 }
 
 func (c *LRUCache) ContainsKey(key interface{}) bool {
-	return c.cache.Contains(key)
+	return c.Cache.Contains(key)
 }
 
 func (c *LRUCache) Get(key interface{}) interface{} {
-	v, _ := c.cache.Get(key)
+	v, _ := c.Cache.Get(key)
 	return v
 }
 
@@ -23,7 +23,7 @@ func (c *LRUCache) Get(key interface{}) interface{} {
 // Put value in cache, it doesn't have guarantee of concurrency treat
 //
 func (c *LRUCache) Put(key, value interface{}) {
-	c.cache.Add(key, value)
+	c.Cache.Add(key, value)
 }
 
 //
@@ -31,7 +31,7 @@ func (c *LRUCache) Put(key, value interface{}) {
 // This method must be thread safe (atomic)
 //
 func (c *LRUCache) PutIfAbsent(key, value interface{}) interface{} {
-	if ok, _ := c.cache.ContainsOrAdd(key, value); ok {
+	if ok, _ := c.Cache.ContainsOrAdd(key, value); ok {
 		return c.Get(key)
 	}
 	return nil;
