@@ -9,8 +9,14 @@ import (
 	"fmt"
 )
 
+const (
+	HOSTNAME = "/hostname/"
+	HOSTNAME_FIND = "/hostname/find/"
+)
+
 func init(){
-	Get("/hostname/", func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
+
+	Get(HOSTNAME, func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
 		res.Header().Add("Content-Type", "application/json")
 		if conf, _ := local.LoadConfiguration(ctx); conf != nil {
 			envName := req.URL.Query().Get("env")
@@ -24,7 +30,7 @@ func init(){
 		confLoadError(res)
 	})
 
-	Get("/hostname/find/", func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
+	Get(HOSTNAME_FIND, func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
 		res.Header().Add("Content-Type", "application/json")
 		if conf, _ := local.LoadConfiguration(ctx); conf != nil {
 			env := req.URL.Query().Get("env")
@@ -41,7 +47,7 @@ func init(){
 		confLoadError(res)
 	})
 
-	Post("/hostname/", func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
+	Post(HOSTNAME, func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
 		logger := log.NewLog(ctx)
 		res.Header().Add("Content-Type", "application/json")
 		logger.Infof("m=/hostname/, status=begin, action=create-hostname")
@@ -60,7 +66,7 @@ func init(){
 		confLoadError(res)
 	})
 
-	Put("/hostname/", func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
+	Put(HOSTNAME, func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
 		logger := log.NewLog(ctx)
 		res.Header().Add("Content-Type", "application/json")
 		logger.Infof("m=/hostname/, status=begin, action=update-hostname")
@@ -79,7 +85,7 @@ func init(){
 		confLoadError(res)
 	})
 
-	Delete("/hostname/", func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
+	Delete(HOSTNAME, func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
 		logger := log.NewLog(ctx)
 		res.Header().Add("Content-Type", "application/json")
 		logger.Infof("m=/hostname/, status=begin, action=delete-hostname")
