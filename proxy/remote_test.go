@@ -12,7 +12,7 @@ import (
 
 type MockedRemoteDnsSolver struct {
 	mock.Mock
-	RemoteDnsSolver
+	remoteDnsSolver
 }
 
 func (m MockedRemoteDnsSolver) loadConfiguration(ctx context.Context) (*local.LocalConfiguration, error) {

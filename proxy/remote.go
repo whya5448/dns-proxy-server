@@ -14,12 +14,12 @@ import (
 
 const SERVERS = "SERVERS"
 
-type RemoteDnsSolver struct {
+type remoteDnsSolver struct {
 	confloader func(ctx context.Context) (*local.LocalConfiguration, error)
 }
 
 // reference https://miek.nl/2014/August/16/go-dns-package/
-func (r RemoteDnsSolver) Solve(ctx context.Context, question dns.Question) (*dns.Msg, error) {
+func (r remoteDnsSolver) Solve(ctx context.Context, question dns.Question) (*dns.Msg, error) {
 	c := store.GetInstance()
 	logger := log.NewLog(ctx)
 	client := new(dns.Client)
@@ -70,8 +70,8 @@ func (r RemoteDnsSolver) Solve(ctx context.Context, question dns.Question) (*dns
 	return nil, err
 }
 
-func NewRemoteDnsSolver() *RemoteDnsSolver {
-	return &RemoteDnsSolver{
+func NewRemoteDnsSolver() *remoteDnsSolver {
+	return &remoteDnsSolver{
 		confloader: func(ctx context.Context) (*local.LocalConfiguration, error) {
 		return local.LoadConfiguration(ctx)
 	}}
