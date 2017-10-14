@@ -52,7 +52,10 @@ func init(){
 		res.Header().Add("Content-Type", "application/json")
 		logger.Infof("m=/hostname/, status=begin, action=create-hostname")
 		var hostname local.HostnameVo
-		json.NewDecoder(req.Body).Decode(&hostname)
+		if err := json.NewDecoder(req.Body).Decode(&hostname); err != nil {
+			BadRequest(res, "Invalid JSON")
+			return
+		}
 		logger.Infof("m=/hostname/, status=parsed-host, host=%+v", hostname)
 		if conf, _ := local.LoadConfiguration(ctx); conf != nil {
 			if err := conf.AddHostname(ctx, hostname.Env, hostname); err != nil {
@@ -71,7 +74,10 @@ func init(){
 		res.Header().Add("Content-Type", "application/json")
 		logger.Infof("m=/hostname/, status=begin, action=update-hostname")
 		var hostname local.HostnameVo
-		json.NewDecoder(req.Body).Decode(&hostname)
+		if err := json.NewDecoder(req.Body).Decode(&hostname); err != nil {
+			BadRequest(res, "Invalid JSON")
+			return
+		}
 		logger.Infof("m=/hostname/, status=parsed-host, host=%+v", hostname)
 		if conf, _ := local.LoadConfiguration(ctx); conf != nil {
 			if err := conf.UpdateHostname(ctx, hostname.Env, hostname);  err != nil {

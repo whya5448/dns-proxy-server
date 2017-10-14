@@ -29,6 +29,7 @@ type Message struct {
 }
 
 func BadRequest(w http.ResponseWriter, msg string){
+	LOGGER.Errorf("json=invalid, msg=%s", msg)
 	RespMessage(w, 400, msg)
 }
 
