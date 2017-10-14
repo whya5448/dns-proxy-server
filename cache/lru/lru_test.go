@@ -7,7 +7,7 @@ import (
 
 func TestPutAndGetSuccess(t *testing.T){
 
-	cache := NewLRUCache("test1", -1, -1);
+	cache := New(10);
 	cache.Put("key1", "value1");
 
 	assert.Equal(t, "value1", cache.Get("key1").(string))
@@ -16,7 +16,7 @@ func TestPutAndGetSuccess(t *testing.T){
 
 func TestPutAndGetSuccessSizeLimited(t *testing.T){
 
-	cache := NewLRUCache("test1", 2, -1);
+	cache := New(2);
 	cache.Put("key1", "value1");
 	cache.Put("key2", "value2");
 	cache.Put("key3", "value3");
@@ -29,7 +29,7 @@ func TestPutAndGetSuccessSizeLimited(t *testing.T){
 
 func TestPutAndGeRemovingLeastUsed(t *testing.T){
 
-	cache := NewLRUCache("test1", 3, -1);
+	cache := New(3);
 
 	cache.Put("key1", "value1");
 	cache.Put("key2", "value2");
@@ -40,7 +40,6 @@ func TestPutAndGeRemovingLeastUsed(t *testing.T){
 	cache.Get("key1")
 
 	cache.Put("key4", "value4");
-	
 
 
 	assert.Equal(t, "value1", cache.Get("key1"))

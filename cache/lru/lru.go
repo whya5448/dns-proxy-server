@@ -1,51 +1,35 @@
 package lru
 
 import (
-	. "github.com/mageddo/dns-proxy-server/log"
 	"github.com/mageddo/dns-proxy-server/cache"
-	"container/list"
+	"github.com/hashicorp/golang-lru"
+	"github.com/mageddo/dns-proxy-server/log"
 )
 
 type LRUCache struct {
-	name string
-	size int
-	timeout int64
-	cache map[interface{}]interface{}
-	keyset *list.List
-}
-
-func (c *LRUCache) GetName() string {
-	return c.name
+	cache *lru.Cache
 }
 
 func (c *LRUCache) Get(key interface{}) interface{} {
-	for e := c.keyset.Front(); e != nil; e = e.Next() {
-		if e.Value == key {
-			c.keyset.MoveToFront(e)
-		}
-	}
-	return c.cache[key]
+	v, _ := c.cache.Get(key)
+	return v
 }
 
 func (c *LRUCache) Put(key, value interface{}) {
-	if c.size > 0 {
-		if c.keyset.Len() == c.size {
-			lastKey := c.keyset.Back()
-			LOGGER.Debugf("status=size-limit-reached, size=%d, key=%v, keyToRemove=%v", c.size, key, lastKey.Value)
-			c.keyset.Remove(lastKey)
-			delete(c.cache, lastKey.Value)
-		}
-		c.keyset.PushFront(key)
-	}
-	c.cache[key] = value
+	c.cache.Add(key, value)
 }
 
 //
 // Creates a LRU cache
 // size is the maximum size of the cache, -1 if it is unlimited
-// time time in millis before cache expires, -1 if it is unlimited
 //
-func NewLRUCache(name string, size int, timeout int64) cache.Cache {
-	return &LRUCache{name, size, timeout, make(map[interface{}]interface{}), list.New()}
+func New(size int) cache.Cache {
+	c, err := lru.New(size)
+	if err != nil {
+		log.LOGGER.Errorf("status=cannot-create-cache, msg=%v", err)
+		return nil;
+	}
+	return &LRUCache{c}
 }
+
 
