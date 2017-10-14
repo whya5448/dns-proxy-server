@@ -86,6 +86,7 @@ func SaveConfiguration(ctx context.Context, c *LocalConfiguration) {
 	if err != nil {
 		logger.Errorf("status=error-to-encode, error=%v", err)
 	}
+	store.GetInstance().Clear()
 	logger.Infof("status=success, time=%d", utils.DiffMillis(t, time.Now()))
 
 }
