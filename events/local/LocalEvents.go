@@ -16,12 +16,13 @@ import (
 )
 
 var confPath string = utils.GetPath(*flags.ConfPath)
-var configuration = LocalConfiguration{
-	Envs: make([]EnvVo, 0),
-	RemoteDnsServers: make([][4]byte, 0),
-}
 
-func LoadConfiguration(ctx context.Context){
+func LoadConfiguration(ctx context.Context) (*LocalConfiguration, error){
+
+	configuration := LocalConfiguration {
+		Envs: make([]EnvVo, 0),
+		RemoteDnsServers: make([][4]byte, 0),
+	}
 
 	logger := log.NewLog(ctx)
 	logger.Infof("status=begin, confPath=%s", confPath)
@@ -52,13 +53,14 @@ func LoadConfiguration(ctx context.Context){
 		err := os.MkdirAll(confPath[:strings.LastIndex(confPath, "/")], 0755)
 		if err != nil {
 			logger.Errorf("status=error-to-create-conf-folder, err=%v", err)
-			return
+			return nil, err
 		}
 		SaveConfiguration(ctx, &configuration)
 		logger.Info("status=success")
 	}
-
+	return &configuration, nil
 }
+
 func SaveConfiguration(ctx context.Context, c *LocalConfiguration) {
 
 	t := time.Now()
@@ -86,15 +88,6 @@ func SaveConfiguration(ctx context.Context, c *LocalConfiguration) {
 	logger.Infof("status=success, time=%d", utils.DiffMillis(t, time.Now()))
 
 }
-
-func GetConfigurationNoCtx() *LocalConfiguration {
-	return GetConfiguration(log.NewContext())
-}
-func GetConfiguration(ctx context.Context) *LocalConfiguration {
-	LoadConfiguration(ctx)
-	return &configuration
-}
-
 
 type LocalConfiguration struct {
 	/**
