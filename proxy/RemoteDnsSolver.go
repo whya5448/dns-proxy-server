@@ -8,27 +8,36 @@ import (
 	"golang.org/x/net/context"
 	"github.com/mageddo/dns-proxy-server/events/local"
 	log "github.com/mageddo/go-logging"
+
+	"github.com/mageddo/dns-proxy-server/cache/store"
 )
 
-type RemoteDnsSolver struct {
+const SERVERS = "SERVERS"
 
-}
+type RemoteDnsSolver struct {}
 
 // reference https://miek.nl/2014/August/16/go-dns-package/
 func (RemoteDnsSolver) Solve(ctx context.Context, question dns.Question) (*dns.Msg, error) {
-
+	c := store.GetInstance()
 	logger := log.NewLog(ctx)
-	c := new(dns.Client)
+	client := new(dns.Client)
 	m := new(dns.Msg)
 	m.SetQuestion(dns.Fqdn(question.Name), question.Qtype) // CAN BE A, AAA, MX, etc.
 	m.RecursionDesired = true
 
 	var config *local.LocalConfiguration
 	var err error
-	if config, err = local.LoadConfiguration(ctx); err != nil {
-		logger.Errorf("error=%v",err)
-		return nil, err
+	if !c.ContainsKey(SERVERS) {
+		logger.Debugf("status=hot-load")
+		if config, err = local.LoadConfiguration(ctx); err != nil {
+			logger.Errorf("error=%v",err)
+			return nil, err
+		}
+		c.PutIfAbsent(SERVERS, config)
+	} else {
+		logger.Debugf("status=from-cache")
 	}
+	config = c.Get(SERVERS).(*local.LocalConfiguration)
 
 	for _, server := range config.GetRemoteServers(ctx) {
 
@@ -42,7 +51,7 @@ func (RemoteDnsSolver) Solve(ctx context.Context, question dns.Question) (*dns.M
 		logger.Debugf("status=format-server, server=%s", formatServer)
 
 		var r *dns.Msg
-		r, _, err = c.Exchange(m, net.JoinHostPort(formatServer, "53"))
+		r, _, err = client.Exchange(m, net.JoinHostPort(formatServer, "53"))
 
 			// if the answer not be returned
 			if r == nil {

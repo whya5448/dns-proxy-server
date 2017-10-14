@@ -7,24 +7,22 @@ import (
 	"net"
 	"github.com/mageddo/dns-proxy-server/events/local"
 	"golang.org/x/net/context"
-	"github.com/mageddo/dns-proxy-server/cache/lru"
-	c "github.com/mageddo/dns-proxy-server/cache"
+	"github.com/mageddo/dns-proxy-server/cache/store"
 )
 
 type LocalDnsSolver struct {}
 
-var cache c.Cache;
-func init(){
-	cache = lru.New(256);
-}
+
 
 func (LocalDnsSolver) Solve(ctx context.Context, question dns.Question) (*dns.Msg, error) {
-
+	c := store.GetInstance()
 	key := question.Name[:len(question.Name)-1]
 	var hostname *local.HostnameVo
-	if cache.ContainsKey(key) {
-		LOGGER.Debugf("status=from-cache, key=%s, value=%v", key, hostname.Hostname)
-		hostname = cache.Get(key).(*local.HostnameVo)
+	if c.ContainsKey(key) {
+		LOGGER.Debugf("status=from-cache, key=%s, value=%v", key, c.Get(key))
+		if c.Get(key) != nil {
+			hostname = c.Get(key).(*local.HostnameVo)
+		}
 	} else {
 		LOGGER.Debugf("status=hot-load, key=%s", key)
 		conf, err := local.LoadConfiguration(ctx)
@@ -37,7 +35,7 @@ func (LocalDnsSolver) Solve(ctx context.Context, question dns.Question) (*dns.Ms
 			return nil, errors.New("original env")
 		}
 		hostname,_ = activeEnv.GetHostname(key)
-		val := cache.PutIfAbsent(key, hostname);
+		val := c.PutIfAbsent(key, hostname);
 		LOGGER.Debugf("status=put, key=%s, value=%v", key, val)
 	}
 
@@ -52,5 +50,5 @@ func (LocalDnsSolver) Solve(ctx context.Context, question dns.Question) (*dns.Ms
 		LOGGER.Debugf("status=success, solver=local")
 		return m, nil
 	}
-	return nil, errors.New("hostname not found")
+	return nil, errors.New("hostname not found " + key)
 }

@@ -58,7 +58,7 @@ func handleQuestion(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 			var firstAnswer dns.RR
 			answerLenth := len(resp.Answer)
 
-			logger.Debug("status=answer-found, solver=%s, length=%d", solverID, answerLenth)
+			logger.Debugf("status=answer-found, solver=%s, length=%d", solverID, answerLenth)
 			if answerLenth != 0 {
 				firstAnswer = resp.Answer[0]
 			}
