@@ -8,6 +8,8 @@ import (
 	"github.com/mageddo/dns-proxy-server/events/local"
 	"golang.org/x/net/context"
 	"github.com/mageddo/dns-proxy-server/cache"
+	"time"
+	"github.com/mageddo/dns-proxy-server/cache/timed"
 )
 
 type localDnsSolver struct {
@@ -18,10 +20,10 @@ func (s localDnsSolver) Solve(ctx context.Context, question dns.Question) (*dns.
 
 	key := question.Name[:len(question.Name)-1]
 	var hostname *local.HostnameVo
-	if s.Cache.ContainsKey(key) {
-		LOGGER.Debugf("status=from-cache, key=%s, value=%v", key, s.Cache.Get(key))
-		if s.Cache.Get(key) != nil {
-			hostname = s.Cache.Get(key).(*local.HostnameVo)
+	if value, found := s.ContainsKey(key); found {
+		LOGGER.Debugf("status=from-cache, key=%s, value=%v", key, value)
+		if value != nil {
+			hostname = value.(*local.HostnameVo)
 		}
 	} else {
 		LOGGER.Debugf("status=hot-load, key=%s", key)
@@ -35,7 +37,7 @@ func (s localDnsSolver) Solve(ctx context.Context, question dns.Question) (*dns.
 			return nil, errors.New("original env")
 		}
 		hostname,_ = activeEnv.GetHostname(key)
-		val := s.Cache.PutIfAbsent(key, hostname);
+		val := s.Cache.PutIfAbsent(key, timed.NewTimedValue(hostname, time.Now(), time.Duration(int64(hostname.Ttl)) * time.Second));
 		LOGGER.Debugf("status=put, key=%s, value=%v", key, val)
 	}
 
@@ -56,3 +58,14 @@ func (s localDnsSolver) Solve(ctx context.Context, question dns.Question) (*dns.
 func NewLocalDNSSolver(c cache.Cache) *localDnsSolver {
 	return &localDnsSolver{c}
 }
+
+func (s localDnsSolver) ContainsKey(key interface{}) (interface{}, bool) {
+	if !s.Cache.ContainsKey(key) {
+		return nil, false
+	}
+	if v := s.Cache.Get(key).(timed.TimedValue); v.IsValid(time.Now()) {
+		return v.Value(), true
+	}
+	return nil, false;
+}
+

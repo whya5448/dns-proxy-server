@@ -5,9 +5,15 @@ import (
 	"github.com/mageddo/go-logging"
 	"github.com/stretchr/testify/assert"
 	"github.com/mageddo/dns-proxy-server/cache/store"
+	"os"
+	"github.com/mageddo/dns-proxy-server/flags"
+	"github.com/mageddo/dns-proxy-server/utils"
 )
 
 func TestSaveConfiguration_ClearCacheAfterChangeConfiguration(t *testing.T) {
+
+	os.Remove(utils.GetPath(*flags.ConfPath))
+	defer os.Remove(utils.GetPath(*flags.ConfPath))
 
 	expectedHostname := "github.io"
 
@@ -19,6 +25,7 @@ func TestSaveConfiguration_ClearCacheAfterChangeConfiguration(t *testing.T) {
 
 	env, _ := conf.GetActiveEnv()
 	foundHostname, _ := env.GetHostname(expectedHostname)
+	assert.Nil(t, foundHostname)
 
 	// setting the host
 	cache.Put(expectedHostname, foundHostname)
@@ -33,4 +40,5 @@ func TestSaveConfiguration_ClearCacheAfterChangeConfiguration(t *testing.T) {
 	assert.False(t, cache.ContainsKey(expectedHostname))
 	foundHostname, _ = env.GetHostname(expectedHostname)
 	assert.Equal(t, [4]byte{192,168,0,2}, foundHostname.Ip)
+
 }
