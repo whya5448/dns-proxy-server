@@ -141,3 +141,37 @@ func TestPutHostname(t *testing.T) {
 	assert.Equal(t, `[{"id":999,"hostname":"github.io","ip":[4,3,2,1],"ttl":65}]`, r.String())
 
 }
+
+
+func TestDeleteHostname(t *testing.T) {
+
+	defer local.ResetConf()
+
+	ctx := logging.NewContext()
+	local.LoadConfiguration(ctx)
+
+	err := utils.WriteToFile(`{ "remoteDnsServers": [], "envs": [
+		{ "name": "MyEnv", "hostnames": [{"hostname": "github.io", "ip": [1,2,3,4], "ttl": 55}] }
+	]}`, utils.GetPath(*flags.ConfPath))
+
+	s := httptest.NewServer(nil)
+	defer s.Close()
+
+	r, err := resty.R().
+		SetBody(`{"hostname": "github.io", "env": "MyEnv"}`).
+		Delete(s.URL + HOSTNAME)
+
+	assert.Nil(t, err)
+	assert.Equal(t, http.StatusOK, r.StatusCode())
+	assert.Empty(t, r.String())
+
+	r, err = resty.R().
+		SetQueryParam("env", "MyEnv").
+		SetQueryParam("hostname", "github.io").
+		Get(s.URL + HOSTNAME_FIND)
+
+	assert.Nil(t, err)
+	assert.Equal(t, http.StatusOK, r.StatusCode())
+	assert.Equal(t, `[]`, r.String())
+
+}
