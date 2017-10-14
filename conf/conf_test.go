@@ -7,6 +7,11 @@ import (
 	"github.com/mageddo/dns-proxy-server/utils/env"
 	"io/ioutil"
 	"github.com/stretchr/testify/assert"
+	"github.com/mageddo/dns-proxy-server/flags"
+	"github.com/mageddo/dns-proxy-server/events/local"
+	"github.com/mageddo/go-logging"
+	"github.com/mageddo/dns-proxy-server/utils"
+	"flag"
 )
 
 func TestGetCurrentIpAddress(t *testing.T){
@@ -138,4 +143,33 @@ func TestRestoreResolvconfToDefault_ConfFileAlreadyOk(t *testing.T) {
 	fmt.Println(string(bytes))
 
 	assert.Equal(t, originalFileContent, string(bytes))
+}
+
+
+func TestDefaultFlagValues(t *testing.T) {
+	assert.Equal(t, *flags.WebServerPort, WebServerPort())
+	assert.Equal(t, *flags.DnsServerPort, DnsServerPort())
+	assert.Equal(t, *flags.SetupResolvconf, SetupResolvConf())
+}
+
+func TestFlagValuesFromArgs(t *testing.T) {
+	os.Args = []string{"cmd", "-web-server-port=8282", "--server-port=61", "-default-dns=false"}
+	flag.Parse()
+	assert.Equal(t, 8282, WebServerPort())
+	assert.Equal(t, 61, DnsServerPort())
+	assert.Equal(t, false, SetupResolvConf())
+}
+
+func TestFlagValuesFromConf(t *testing.T) {
+
+	defer local.ResetConf()
+	ctx := logging.NewContext()
+	local.LoadConfiguration(ctx)
+
+	err := utils.WriteToFile(`{ "webServerPort": 8080, "dnsServerPort": 62, "defaultDns": false }`, utils.GetPath(*flags.ConfPath))
+	assert.Nil(t, err)
+
+	assert.Equal(t, 8080, WebServerPort())
+	assert.Equal(t, 62, DnsServerPort())
+	assert.Equal(t, false, SetupResolvConf())
 }

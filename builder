@@ -84,7 +84,7 @@ case $1 in
 
 		rm -rf build/
 		mkdir -p build/
-		go test -cover=false -ldflags "-X github.com/mageddo/dns-proxy-server/flags.version=test" ./.../
+		go test -race -cover -ldflags "-X github.com/mageddo/dns-proxy-server/flags.version=test" ./.../
 		go build -v -o build/dns-proxy-server -ldflags "-X github.com/mageddo/dns-proxy-server/flags.version=$APP_VERSION"
 		cp -r static build/
 		cd build/

@@ -12,6 +12,7 @@ import (
 	"os/signal"
 	"syscall"
 	"bytes"
+	"github.com/mageddo/dns-proxy-server/flags"
 )
 
 var QTypeCodes = map[uint16] string {
@@ -179,7 +180,9 @@ func GetPath(path string) string {
 
 func GetJsonEncoder(w io.Writer) *json.Encoder {
 	decoder := json.NewEncoder(w)
-	decoder.SetIndent("", "\t")
+	if !flags.IsTestVersion() {
+		decoder.SetIndent("", "\t")
+	}
 	return decoder
 }
 
@@ -210,4 +213,22 @@ func CreateExecutableFile(sourceData, dst string) error {
 	return cerr
 }
 
+func WriteToFile(sourceData, dst string) error {
+	out, err := os.OpenFile(dst, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0766)
+	if err != nil { return err }
+	defer out.Close()
+	_, err = io.Copy(out, bytes.NewReader([]byte(sourceData)))
+	cerr := out.Close()
+	if err != nil { return err }
+	return cerr
+}
 
+
+// Difference between b and a in milliseconds
+//
+// b must be greater than a
+//
+func DiffMillis(a, b time.Time) int64 {
+	na, nb := a.UnixNano(), b.UnixNano()
+	return (nb - na) / int64(time.Nanosecond * time.Millisecond)
+}

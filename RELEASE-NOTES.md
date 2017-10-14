@@ -1,3 +1,8 @@
+### 2.2.0
+* Increased code coverage
+* Implementing cache at local hostnames and remote server resolution
+* Considering TTL to invalidate hostname cache for local resolution
+
 ### 2.1.7
 * All build and release process is made inside docker (no travis dependency)
 
