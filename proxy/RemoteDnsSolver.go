@@ -23,8 +23,12 @@ func (RemoteDnsSolver) Solve(ctx context.Context, question dns.Question) (*dns.M
 	m.SetQuestion(dns.Fqdn(question.Name), question.Qtype) // CAN BE A, AAA, MX, etc.
 	m.RecursionDesired = true
 
+	var config *local.LocalConfiguration
 	var err error
-	config := local.GetConfiguration(ctx)
+	if config, err = local.LoadConfiguration(ctx); err != nil {
+		logger.Errorf("error=%v",err)
+		return nil, err
+	}
 
 	for _, server := range config.GetRemoteServers(ctx) {
 

@@ -13,7 +13,11 @@ func init(){
 
 	Get("/env/active", func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
 		res.Header().Add("Content-Type", "application/json")
-		utils.GetJsonEncoder(res).Encode(local.EnvVo{Name: local.GetConfiguration(ctx).ActiveEnv})
+		if conf, _ := local.LoadConfiguration(ctx); conf != nil {
+			utils.GetJsonEncoder(res).Encode(local.EnvVo{Name: conf.ActiveEnv})
+			return
+		}
+		confLoadError(res)
 	})
 
 	Put("/env/active", func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
@@ -25,19 +29,27 @@ func init(){
 		var envVo local.EnvVo
 		json.NewDecoder(req.Body).Decode(&envVo)
 		logger.Infof("m=/env/active/, status=parsed-host, env=%+v", envVo)
-		err := local.GetConfiguration(ctx).SetActiveEnv(ctx, envVo)
-		if err != nil {
-			logger.Infof("m=/env/, status=error, action=create-env, err=%+v", err)
-			BadRequest(res, err.Error())
+
+		if conf, _ := local.LoadConfiguration(ctx); conf != nil {
+			if err := conf.SetActiveEnv(ctx, envVo); err != nil {
+				logger.Infof("m=/env/, status=error, action=create-env, err=%+v", err)
+				BadRequest(res, err.Error())
+				return
+			}
+			logger.Infof("m=/env/active/, status=success, action=active-env")
 			return
 		}
-		logger.Infof("m=/env/active/, status=success, action=active-env")
+		confLoadError(res)
 
 	})
 
 	Get("/env/", func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
 		res.Header().Add("Content-Type", "application/json")
-		utils.GetJsonEncoder(res).Encode(local.GetConfiguration(ctx).Envs)
+		if conf, _ := local.LoadConfiguration(ctx); conf != nil {
+			utils.GetJsonEncoder(res).Encode(conf.Envs)
+			return
+		}
+		confLoadError(res)
 	})
 
 	Post("/env/", func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
@@ -47,13 +59,15 @@ func init(){
 		var envVo local.EnvVo
 		json.NewDecoder(req.Body).Decode(&envVo)
 		logger.Infof("m=/env/, status=parsed-host, env=%+v", envVo)
-		err := local.GetConfiguration(ctx).AddEnv(ctx, envVo)
-		if err != nil {
-			logger.Infof("m=/env/, status=error, action=create-env, err=%+v", err)
-			BadRequest(res, err.Error())
-			return
+		if conf, _ := local.LoadConfiguration(ctx); conf != nil {
+			if err := conf.AddEnv(ctx, envVo);  err != nil {
+				logger.Infof("m=/env/, status=error, action=create-env, err=%+v", err)
+				BadRequest(res, err.Error())
+				return
+			}
+			logger.Infof("m=/env/, status=success, action=create-env")
 		}
-		logger.Infof("m=/env/, status=success, action=create-env")
+		confLoadError(res)
 	})
 
 	Delete("/env/", func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
@@ -63,12 +77,18 @@ func init(){
 		var env local.EnvVo
 		json.NewDecoder(req.Body).Decode(&env)
 		logger.Infof("m=/env/, status=parsed-host, action=delete-env, env=%+v", env)
-		err := local.GetConfiguration(ctx).RemoveEnvByName(ctx, env.Name)
-		if err != nil {
-			logger.Infof("m=/env/, status=error, action=delete-env, err=%+v", err)
-			BadRequest(res, err.Error())
-			return
+		if conf, _ := local.LoadConfiguration(ctx); conf != nil {
+			if err := conf.RemoveEnvByName(ctx, env.Name);  err != nil {
+				logger.Infof("m=/env/, status=error, action=delete-env, err=%+v", err)
+				BadRequest(res, err.Error())
+				return
+			}
+			logger.Infof("m=/env/, status=success, action=delete-env")
 		}
-		logger.Infof("m=/env/, status=success, action=delete-env")
+		confLoadError(res)
 	})
+}
+
+func confLoadError(res http.ResponseWriter){
+	BadRequest(res, "Could not load conf")
 }

@@ -12,27 +12,33 @@ import (
 func init(){
 	Get("/hostname/", func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
 		res.Header().Add("Content-Type", "application/json")
-		c := local.GetConfiguration(ctx)
-		envName := req.URL.Query().Get("env")
-		env, _ := c.GetEnv(envName)
-		if env == nil {
+		if conf, _ := local.LoadConfiguration(ctx); conf != nil {
+			envName := req.URL.Query().Get("env")
+			if env, _ := conf.GetEnv(envName);  env != nil {
+				json.NewEncoder(res).Encode(env)
+				return
+			}
 			BadRequest(res, fmt.Sprintf("Env %s not found", envName))
 			return
 		}
-		json.NewEncoder(res).Encode(env)
+		confLoadError(res)
 	})
 
 	Get("/hostname/find/", func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
 		res.Header().Add("Content-Type", "application/json")
-		c := local.GetConfiguration(ctx)
-		env := req.URL.Query().Get("env")
-		hostname := req.URL.Query().Get("hostname")
-		hostnames, err := c.FindHostnameByNameAndEnv(ctx, env, hostname)
-		if err != nil {
+		if conf, _ := local.LoadConfiguration(ctx); conf != nil {
+			env := req.URL.Query().Get("env")
+			hostname := req.URL.Query().Get("hostname")
+			var err error
+			var hostnames *[]local.HostnameVo
+			if hostnames, err = conf.FindHostnameByNameAndEnv(ctx, env, hostname);  err == nil {
+				json.NewEncoder(res).Encode(hostnames)
+				return
+			}
 			BadRequest(res, fmt.Sprintf(err.Error()))
 			return
 		}
-		json.NewEncoder(res).Encode(hostnames)
+		confLoadError(res)
 	})
 
 	Post("/hostname/", func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
@@ -42,13 +48,16 @@ func init(){
 		var hostname local.HostnameVo
 		json.NewDecoder(req.Body).Decode(&hostname)
 		logger.Infof("m=/hostname/, status=parsed-host, host=%+v", hostname)
-		err := local.GetConfiguration(ctx).AddHostname(ctx, hostname.Env, hostname)
-		if err != nil {
-			logger.Infof("m=/hostname/, status=error, action=create-hostname, err=%+v", err)
-			BadRequest(res, err.Error())
+		if conf, _ := local.LoadConfiguration(ctx); conf != nil {
+			if err := conf.AddHostname(ctx, hostname.Env, hostname); err != nil {
+				logger.Infof("m=/hostname/, status=error, action=create-hostname, err=%+v", err)
+				BadRequest(res, err.Error())
+				return
+			}
+			logger.Infof("m=/hostname/, status=success, action=create-hostname")
 			return
 		}
-		logger.Infof("m=/hostname/, status=success, action=create-hostname")
+		confLoadError(res)
 	})
 
 	Put("/hostname/", func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
@@ -58,13 +67,16 @@ func init(){
 		var hostname local.HostnameVo
 		json.NewDecoder(req.Body).Decode(&hostname)
 		logger.Infof("m=/hostname/, status=parsed-host, host=%+v", hostname)
-		err := local.GetConfiguration(ctx).UpdateHostname(ctx, hostname.Env, hostname)
-		if err != nil {
-			logger.Infof("m=/hostname/, status=error, action=update-hostname, err=%+v", err)
-			BadRequest(res, err.Error())
+		if conf, _ := local.LoadConfiguration(ctx); conf != nil {
+			if err := conf.UpdateHostname(ctx, hostname.Env, hostname);  err != nil {
+				logger.Infof("m=/hostname/, status=error, action=update-hostname, err=%+v", err)
+				BadRequest(res, err.Error())
+				return
+			}
+			logger.Infof("m=/hostname/, status=success, action=update-hostname")
 			return
 		}
-		logger.Infof("m=/hostname/, status=success, action=update-hostname")
+		confLoadError(res)
 	})
 
 	Delete("/hostname/", func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
@@ -74,12 +86,15 @@ func init(){
 		var hostname local.HostnameVo
 		json.NewDecoder(req.Body).Decode(&hostname)
 		logger.Infof("m=/hostname/, status=parsed-host, action=delete-hostname, host=%+v", hostname)
-		err := local.GetConfiguration(ctx).RemoveHostnameByEnvAndHostname(ctx, hostname.Env, hostname.Hostname)
-		if err != nil {
-			logger.Infof("m=/hostname/, status=error, action=delete-hostname, err=%+v", err)
-			BadRequest(res, err.Error())
+		if conf, _ := local.LoadConfiguration(ctx); conf != nil {
+			if err := conf.RemoveHostnameByEnvAndHostname(ctx, hostname.Env, hostname.Hostname);  err != nil {
+				logger.Infof("m=/hostname/, status=error, action=delete-hostname, err=%+v", err)
+				BadRequest(res, err.Error())
+				return
+			}
+			logger.Infof("m=/hostname/, status=success, action=delete-hostname")
 			return
 		}
-		logger.Infof("m=/hostname/, status=success, action=delete-hostname")
+		confLoadError(res)
 	})
 }

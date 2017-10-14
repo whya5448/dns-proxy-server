@@ -15,6 +15,7 @@ import (
 	"syscall"
 	"errors"
 	"fmt"
+	"github.com/mageddo/go-logging"
 )
 
 type DnsEntry string
@@ -45,38 +46,26 @@ return *flags.Tsig
 }
 
 func WebServerPort() int {
-	port := local.GetConfigurationNoCtx().WebServerPort
-	if port <= 0 {
-		return *flags.WebServerPort
+	if conf, _ := getConf(); conf != nil && conf.WebServerPort > 0 {
+		return conf.WebServerPort;
 	}
-	return port
+	return *flags.WebServerPort
 }
 
 func DnsServerPort() int {
-	port := local.GetConfigurationNoCtx().DnsServerPort
-	if port <= 0 {
-	return *flags.DnsServerPort
+	if conf, _ := getConf(); conf != nil && conf.DnsServerPort > 0 {
+		return conf.DnsServerPort
 	}
-	return port
+	return *flags.DnsServerPort
 }
 
 func SetupResolvConf() bool {
-
-	defaultDns := local.GetConfigurationNoCtx().DefaultDns
-	if defaultDns == nil {
-		return *flags.SetupResolvconf
+	if conf, _ := getConf(); conf != nil && conf.DefaultDns != nil {
+		return *conf.DefaultDns
 	}
-	return *defaultDns
-
+	return *flags.SetupResolvconf
 }
-
-func ConfPath() string {
-	return *flags.ConfPath
-}
-
-
 func GetString(value, defaultValue string) string {
-
 	if len(value) == 0 {
 		return defaultValue
 	}
@@ -236,3 +225,6 @@ func getResolvConf() string {
 	return GetString(os.Getenv(env.MG_RESOLVCONF), "/etc/resolv.conf")
 }
 
+func getConf() (*local.LocalConfiguration, error) {
+	return local.LoadConfiguration(logging.NewContext())
+}
