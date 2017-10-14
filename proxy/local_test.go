@@ -146,7 +146,7 @@ func TestLocalDnsSolver_Solve_CacheExpiration(t *testing.T) {
 	solver := NewLocalDNSSolver(mockCache)
 
 	// we ask for the same host 5 times but it must load from file just once
-	for i:=3; i > 0; i-- {
+	for i:=4; i > 0; i-- {
 
 		time.Sleep(time.Duration(int64(1100)) * time.Millisecond)
 

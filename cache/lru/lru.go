@@ -41,6 +41,10 @@ func (c *LRUCache) Clear() {
 	c.Cache.Purge()
 }
 
+func (c *LRUCache) Remove(key interface{}) {
+	c.Cache.Remove(key)
+}
+
 //
 // Creates a LRU cache
 // size is the maximum size of the cache, -1 if it is unlimited

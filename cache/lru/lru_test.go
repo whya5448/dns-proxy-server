@@ -66,3 +66,20 @@ func TestPurge(t *testing.T){
 	assert.False(t, cache.ContainsKey("key2"))
 
 }
+
+func TestRemove(t *testing.T){
+
+	cache := New(3);
+
+	cache.Put("key1", "value1");
+	cache.Put("key2", "value2");
+
+	assert.Equal(t, "value1", cache.Get("key1"))
+	assert.Equal(t, "value2", cache.Get("key2"))
+
+	cache.Remove("key2")
+
+	assert.True(t, cache.ContainsKey("key1"))
+	assert.False(t, cache.ContainsKey("key2"))
+
+}

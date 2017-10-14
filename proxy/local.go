@@ -40,7 +40,7 @@ func (s localDnsSolver) Solve(ctx context.Context, question dns.Question) (*dns.
 		hostname,_ = activeEnv.GetHostname(key)
 		if hostname != nil { ttl = int64(hostname.Ttl) }
 		val := s.Cache.PutIfAbsent(key, timed.NewTimedValue(hostname, time.Now(), time.Duration(ttl) * time.Second));
-		LOGGER.Debugf("status=put, key=%s, value=%v", key, val)
+		LOGGER.Debugf("status=put, key=%s, value=%v, ttl=%d", key, val, ttl)
 	}
 
 	if hostname != nil {
@@ -63,11 +63,15 @@ func NewLocalDNSSolver(c cache.Cache) *localDnsSolver {
 
 func (s localDnsSolver) ContainsKey(key interface{}) (interface{}, bool) {
 	if !s.Cache.ContainsKey(key) {
+		LOGGER.Debugf("status=notfound, key=%v", key)
 		return nil, false
 	}
 	if v := s.Cache.Get(key).(timed.TimedValue); v.IsValid(time.Now()) {
+		LOGGER.Debugf("status=fromcache, key=%v", key)
 		return v.Value(), true
 	}
+	LOGGER.Debugf("status=expired, key=%v", key)
+	s.Cache.Remove(key)
 	return nil, false;
 }
 
