@@ -19,6 +19,7 @@ import (
 	"github.com/mageddo/dns-proxy-server/service"
 	log "github.com/mageddo/go-logging"
 	"runtime/debug"
+	"github.com/mageddo/dns-proxy-server/cache/store"
 )
 
 func handleQuestion(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
@@ -46,7 +47,7 @@ func handleQuestion(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 	questionsQtd, firstQuestion.Name, utils.DnsQTypeCodeToName(firstQuestion.Qtype))
 
 	// loading the solvers and try to solve the hostname in that order
-	solvers := []proxy.DnsSolver{proxy.DockerDnsSolver{}, proxy.LocalDnsSolver{}, proxy.RemoteDnsSolver{}}
+	solvers := []proxy.DnsSolver{proxy.DockerDnsSolver{}, proxy.NewLocalDNSSolver(store.GetInstance()), proxy.RemoteDnsSolver{}}
 	for _, solver := range solvers {
 
 		solverID := reflect.TypeOf(solver).Name()

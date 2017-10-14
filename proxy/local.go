@@ -10,11 +10,11 @@ import (
 	"github.com/mageddo/dns-proxy-server/cache"
 )
 
-type LocalDnsSolver struct {
+type localDnsSolver struct {
 	Cache cache.Cache
 }
 
-func (s LocalDnsSolver) Solve(ctx context.Context, question dns.Question) (*dns.Msg, error) {
+func (s localDnsSolver) Solve(ctx context.Context, question dns.Question) (*dns.Msg, error) {
 
 	key := question.Name[:len(question.Name)-1]
 	var hostname *local.HostnameVo
@@ -53,6 +53,6 @@ func (s LocalDnsSolver) Solve(ctx context.Context, question dns.Question) (*dns.
 	return nil, errors.New("hostname not found " + key)
 }
 
-func NewLocalDNSSolver(c cache.Cache) *LocalDnsSolver {
-	return &LocalDnsSolver{c}
+func NewLocalDNSSolver(c cache.Cache) *localDnsSolver {
+	return &localDnsSolver{c}
 }
