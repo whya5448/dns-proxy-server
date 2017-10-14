@@ -5,15 +5,12 @@ import (
 	"github.com/mageddo/go-logging"
 	"github.com/stretchr/testify/assert"
 	"github.com/mageddo/dns-proxy-server/cache/store"
-	"os"
-	"github.com/mageddo/dns-proxy-server/flags"
-	"github.com/mageddo/dns-proxy-server/utils"
 )
 
 func TestSaveConfiguration_ClearCacheAfterChangeConfiguration(t *testing.T) {
 
-	os.Remove(utils.GetPath(*flags.ConfPath))
-	defer os.Remove(utils.GetPath(*flags.ConfPath))
+	ResetConf()
+	defer ResetConf()
 
 	expectedHostname := "github.io"
 

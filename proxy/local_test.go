@@ -11,9 +11,12 @@ import (
 	hashlru "github.com/hashicorp/golang-lru"
 	"fmt"
 	"github.com/mageddo/dns-proxy-server/cache/store"
+	"time"
 )
 
 func TestLocalDnsSolver_Solve(t *testing.T) {
+
+	defer local.ResetConf()
 
 	ctx := logging.NewContext()
 	conf, err := local.LoadConfiguration(ctx)
@@ -59,6 +62,8 @@ func (m *MockCache) PutIfAbsent(key, value interface{}) interface{} {
 //
 func TestLocalDnsSolver_SolveValidatingCache(t *testing.T) {
 
+	defer local.ResetConf()
+
 	ctx := logging.NewContext()
 	conf, err := local.LoadConfiguration(ctx)
 	assert.Nil(t, err, "failed to load configuration")
@@ -82,6 +87,51 @@ func TestLocalDnsSolver_SolveValidatingCache(t *testing.T) {
 
 	// we ask for the same host 5 times but it must load from file just once
 	for i:=5; i > 0; i-- {
+
+		// act
+		res, err := solver.Solve(ctx, *question)
+		assert.Nil(t, err, "Fail to solve")
+
+		// assert
+		assert.Equal(t, 1, len(res.Answer))
+		assert.Equal(t, "github.com.	0	IN	A	192.168.0.1", res.Answer[0].String())
+
+	}
+
+	mockCache.AssertExpectations(t)
+
+}
+
+
+func TestLocalDnsSolver_Solve_CacheExpiration(t *testing.T) {
+
+	defer local.ResetConf()
+
+	ctx := logging.NewContext()
+	conf, err := local.LoadConfiguration(ctx)
+	assert.Nil(t, err, "failed to load configuration")
+
+	// configuring a new host at local configuration
+	expectedHostname := "github.com"
+	host := local.HostnameVo{Hostname: expectedHostname, Env:"", Ttl:2, Ip:[4]byte{192,168,0,1}}
+	conf.AddHostname(ctx, "", host)
+
+	// creating a request for the created host
+	question := new(dns.Question)
+	question.Name = expectedHostname + "."
+
+	// stubbing cache to verify the calls
+	mockCache := &MockCache{}
+	mockCache.Cache, err = hashlru.New(1)
+	assert.Nil(t, err, "Failed to create cache")
+	mockCache.On("PutIfAbsent", expectedHostname, mock.Anything).Twice()
+
+	solver := NewLocalDNSSolver(mockCache)
+
+	// we ask for the same host 5 times but it must load from file just once
+	for i:=3; i > 0; i-- {
+
+		time.Sleep(time.Duration(int64(1100)) * time.Millisecond)
 
 		// act
 		res, err := solver.Solve(ctx, *question)

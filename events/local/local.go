@@ -348,3 +348,8 @@ func (lc *LocalConfiguration) GetRemoteServers(ctx context.Context) [][4]byte {
 	}
 	return lc.RemoteDnsServers
 }
+
+func ResetConf() {
+	os.Remove(confPath)
+	store.GetInstance().Clear()
+}
