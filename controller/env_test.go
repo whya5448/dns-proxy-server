@@ -111,10 +111,9 @@ func TestPostEnvSuccess(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 200, r.StatusCode())
 	assert.Equal(t,
-		`[{"name":""},{"name":"ThirdEnv","hostnames":[{"id":1,"hostname":"github.com","ip":[1,2,3,4],"ttl":30,"env":""}]}]`,
+		`[{"name":""},{"name":"ThirdEnv","hostnames":[{"id":1,"hostname":"github.com","ip":[1,2,3,4],"ttl":30}]}]`,
 		r.String(),
 	)
-
 }
 
 
