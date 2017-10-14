@@ -40,6 +40,23 @@ func TestLocalDnsSolver_Solve(t *testing.T) {
 
 }
 
+func TestLocalDnsSolver_SolveNotFoundHost(t *testing.T) {
+
+	defer local.ResetConf()
+
+	expectedHostname := "github.com"
+	ctx := logging.NewContext()
+
+	question := new(dns.Question)
+	question.Name = expectedHostname + "."
+	solver := NewLocalDNSSolver(store.GetInstance())
+
+	// act
+	_, err := solver.Solve(ctx, *question)
+	assert.NotNil(t, err, "Fail to solve")
+
+}
+
 
 type MockCache struct {
 	mock.Mock

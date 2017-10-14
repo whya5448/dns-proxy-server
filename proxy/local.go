@@ -36,8 +36,10 @@ func (s localDnsSolver) Solve(ctx context.Context, question dns.Question) (*dns.
 		if activeEnv == nil {
 			return nil, errors.New("original env")
 		}
+		var ttl int64 = 86400 // 24 hours
 		hostname,_ = activeEnv.GetHostname(key)
-		val := s.Cache.PutIfAbsent(key, timed.NewTimedValue(hostname, time.Now(), time.Duration(int64(hostname.Ttl)) * time.Second));
+		if hostname != nil { ttl = int64(hostname.Ttl) }
+		val := s.Cache.PutIfAbsent(key, timed.NewTimedValue(hostname, time.Now(), time.Duration(ttl) * time.Second));
 		LOGGER.Debugf("status=put, key=%s, value=%v", key, val)
 	}
 

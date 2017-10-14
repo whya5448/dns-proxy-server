@@ -7,7 +7,7 @@ import (
 
 var c cache.Cache;
 func init(){
-	c = lru.New(256);
+	c = lru.New(43690); // about 1 MB considering HostnameVo struct
 }
 
 //
