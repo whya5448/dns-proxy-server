@@ -89,3 +89,60 @@ func TestGetEnvsSuccess(t *testing.T) {
 	assert.Equal(t, `[{"name":"SecondEnv"}]`, r.String())
 
 }
+
+func TestPostEnvSuccess(t *testing.T) {
+
+	defer local.ResetConf()
+
+	s := httptest.NewServer(nil)
+	defer s.Close()
+
+	r, err := resty.R().
+		SetBody(`{
+			"name": "ThirdEnv",
+			"hostnames": [{"hostname": "github.com", "ip": [1,2,3,4], "ttl":30}]
+		}`).
+		Post(s.URL + ENV)
+	assert.Nil(t, err)
+	assert.Equal(t, 200, r.StatusCode())
+	assert.Empty(t, r.String())
+
+	r, err = resty.R().Get(s.URL + ENV)
+	assert.Nil(t, err)
+	assert.Equal(t, 200, r.StatusCode())
+	assert.Equal(t,
+		`[{"name":""},{"name":"ThirdEnv","hostnames":[{"id":1,"hostname":"github.com","ip":[1,2,3,4],"ttl":30,"env":""}]}]`,
+		r.String(),
+	)
+
+}
+
+
+func TestDeleteEnvSuccess(t *testing.T) {
+
+	defer local.ResetConf()
+
+	ctx := logging.NewContext()
+	local.LoadConfiguration(ctx)
+
+	err := utils.WriteToFile(`{ "remoteDnsServers": [], "envs": [{ "name": "SecondEnv" }]}`, utils.GetPath(*flags.ConfPath))
+
+	s := httptest.NewServer(nil)
+	defer s.Close()
+
+	r, err := resty.R().Get(s.URL + ENV)
+	assert.Nil(t, err)
+	assert.Equal(t, 200, r.StatusCode())
+	assert.Equal(t, `[{"name":"SecondEnv"}]`, r.String())
+
+	r, err = resty.R().SetBody(`{"name": "SecondEnv"}`).Delete(s.URL + ENV)
+	assert.Nil(t, err)
+	assert.Equal(t, 200, r.StatusCode())
+	assert.Empty(t, r.String())
+
+	r, err = resty.R().Get(s.URL + ENV)
+	assert.Nil(t, err)
+	assert.Equal(t, 200, r.StatusCode())
+	assert.Equal(t, `[{"name":""}]`, r.String())
+
+}
