@@ -13,6 +13,7 @@ import (
 	"regexp"
 	"github.com/mageddo/dns-proxy-server/flags"
 	"strings"
+	"github.com/mageddo/dns-proxy-server/cache/store"
 )
 
 var confPath string = utils.GetPath(*flags.ConfPath)

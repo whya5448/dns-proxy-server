@@ -6,5 +6,6 @@ type Cache interface {
 	ContainsKey(key interface{}) bool
 	Put(key, value interface{})
 	PutIfAbsent(key, value interface{}) interface{}
+	Clear()
 
 }

@@ -37,6 +37,10 @@ func (c *LRUCache) PutIfAbsent(key, value interface{}) interface{} {
 	return nil;
 }
 
+func (c *LRUCache) Clear() {
+	c.Cache.Purge()
+}
+
 //
 // Creates a LRU cache
 // size is the maximum size of the cache, -1 if it is unlimited

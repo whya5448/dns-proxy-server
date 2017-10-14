@@ -48,3 +48,21 @@ func TestPutAndGeRemovingLeastUsed(t *testing.T){
 	assert.Equal(t, "value4", cache.Get("key4").(string))
 
 }
+
+
+func TestPurge(t *testing.T){
+
+	cache := New(3);
+
+	cache.Put("key1", "value1");
+	cache.Put("key2", "value2");
+
+	assert.Equal(t, "value1", cache.Get("key1"))
+	assert.Equal(t, "value2", cache.Get("key2"))
+
+	cache.Clear()
+
+	assert.False(t, cache.ContainsKey("key1"))
+	assert.False(t, cache.ContainsKey("key2"))
+
+}
