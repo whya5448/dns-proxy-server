@@ -9,9 +9,15 @@ import (
 	"github.com/mageddo/dns-proxy-server/utils"
 )
 
+const (
+	// reference to the active environment
+	ENV_ACTIVE = "/env/active"
+)
+
 func init(){
 
-	Get("/env/active", func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
+
+	Get(ENV_ACTIVE, func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
 		res.Header().Add("Content-Type", "application/json")
 		if conf, _ := local.LoadConfiguration(ctx); conf != nil {
 			utils.GetJsonEncoder(res).Encode(local.EnvVo{Name: conf.ActiveEnv})
@@ -20,7 +26,7 @@ func init(){
 		confLoadError(res)
 	})
 
-	Put("/env/active", func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
+	Put(ENV_ACTIVE, func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
 
 		logger := log.NewLog(ctx)
 		logger.Infof("m=/env/active/, status=begin")

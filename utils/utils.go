@@ -210,6 +210,16 @@ func CreateExecutableFile(sourceData, dst string) error {
 	return cerr
 }
 
+func WriteToFile(sourceData, dst string) error {
+	out, err := os.OpenFile(dst, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0766)
+	if err != nil { return err }
+	defer out.Close()
+	_, err = io.Copy(out, bytes.NewReader([]byte(sourceData)))
+	cerr := out.Close()
+	if err != nil { return err }
+	return cerr
+}
+
 
 // Difference between b and a in milliseconds
 //

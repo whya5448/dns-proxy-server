@@ -110,7 +110,7 @@ type LocalConfiguration struct {
 
 type EnvVo struct {
 	Name string `json:"name"`
-	Hostnames []HostnameVo `json:"hostnames"`
+	Hostnames []HostnameVo `json:"hostnames,omitempty"`
 }
 
 type HostnameVo struct {
