@@ -9,7 +9,6 @@ import (
 
 func TestSaveConfiguration_ClearCacheAfterChangeConfiguration(t *testing.T) {
 
-	ResetConf()
 	defer ResetConf()
 
 	expectedHostname := "github.io"

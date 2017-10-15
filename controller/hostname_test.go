@@ -94,8 +94,6 @@ func TestPostHostname(t *testing.T) {
 
 func TestPostHostnameInvalidPayloadError(t *testing.T) {
 
-	defer local.ResetConf()
-
 	s := httptest.NewServer(nil)
 	defer s.Close()
 

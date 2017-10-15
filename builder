@@ -7,17 +7,19 @@ APP_VERSION=$(cat VERSION)
 REPO_URL=mageddo/dns-proxy-server
 
 create_release(){
-
-	PAYLOAD=`echo '{
-			"tag_name": "VERSION",
-			"target_commitish": "TARGET",
-			"name": "VERSION",
-			"body": "",
-			"draft": false,
-			"prerelease": true
-		}' | sed -e "s/VERSION/$APP_VERSION/" | sed -e "s/TARGET/$TRAVIS_BRANCH/"` && \
-	TAG_ID=`curl -i -s -f -X POST "https://api.github.com/repos/$REPO_URL/releases?access_token=$REPO_TOKEN" \
---data "$PAYLOAD" | grep -o -E 'id": [0-9]+'| awk '{print $2}' | head -n 1`
+	# release notes
+	DESC=$(cat RELEASE-NOTES.md | awk 'BEGIN {RS="|"} {print substr($0, 0, index(substr($0, 3), "###"))}' | sed ':a;N;$!ba;s/\n/\\n/g') && \
+	PAYLOAD='{
+		"tag_name": "%s",
+		"target_commitish": "%s",
+		"name": "%s",
+		"body": "%s",
+		"draft": false,
+		"prerelease": true
+	}'
+	PAYLOAD=$(printf "$PAYLOAD", '1.0' 'MASTER' '1.0' "$DESC")
+	TAG_ID=$(curl -i -s -f -X POST "https://api.github.com/repos/$REPO_URL/releases?access_token=$REPO_TOKEN" \
+--data "$PAYLOAD" | grep -o -E 'id": [0-9]+'| awk '{print $2}' | head -n 1)
 }
 
 upload_file(){
@@ -84,7 +86,7 @@ case $1 in
 
 		rm -rf build/
 		mkdir -p build/
-		go test -race -cover -ldflags "-X github.com/mageddo/dns-proxy-server/flags.version=test" ./.../
+		go test -v -race -cover -ldflags "-X github.com/mageddo/dns-proxy-server/flags.version=test" ./.../
 		go build -v -o build/dns-proxy-server -ldflags "-X github.com/mageddo/dns-proxy-server/flags.version=$APP_VERSION"
 		cp -r static build/
 		cd build/
