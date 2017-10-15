@@ -54,7 +54,7 @@ case $1 in
 		git checkout -b build_branch ${CURRENT_BRANCH}
 		echo "> Repository added, currentBranch=${CURRENT_BRANCH}"
 
-		git commit -am "Releasing ${APP_VERSION}" # if there is nothing to commit the program will exits
+		git commit -am "Releasing ${APP_VERSION}" || true
 		git tag ${APP_VERSION}
 		git push "$REMOTE" "build_branch:${CURRENT_BRANCH}"
 		git status
