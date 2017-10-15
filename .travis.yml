@@ -3,7 +3,9 @@ sudo: required
 services:
   - docker
 
-script: docker-compose up --abort-on-container-exit prod-ci-deploy
+script:
+  - if [ "$TRAVIS_BRANCH" = "master" ]; then docker-compose up --abort-on-container-exit prod-ci-deploy; fi
+  - if [ "$TRAVIS_BRANCH" != "master" ] ; then docker-compose up --abort-on-container-exit prod-build-dns-proxy-server; fi
 
 branches:
   only:
