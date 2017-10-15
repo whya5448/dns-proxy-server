@@ -22,7 +22,7 @@ services:
   # Run from docker image
   prod-docker-dns-prod-server:
     container_name: dns-proxy-server
-    image: defreitas/dns-proxy-server:2.2.1
+    image: defreitas/dns-proxy-server:2.2.2
     hostname: dns.mageddo
     volumes:
       - /opt/dns-proxy-server/conf:/app/conf
@@ -38,13 +38,13 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: docker-dns-server-docker-compiler
-    image: defreitas/dns-proxy-server:2.2.1
+    image: defreitas/dns-proxy-server:2.2.2
 
   # Build the project and generate binary at build folder
   prod-build-dns-proxy-server:
     extends: gocompiler-docker-dns-proxy
     container_name: docker-dns-server-compiler
-    command: bash -c "./builder build"
+    command: bash -c "builder apply-version && builder build"
 
   # build the project and make the github release
   prod-ci-deploy:
