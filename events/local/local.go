@@ -14,6 +14,7 @@ import (
 	"github.com/mageddo/dns-proxy-server/flags"
 	"strings"
 	"github.com/mageddo/dns-proxy-server/cache/store"
+	. "github.com/mageddo/dns-proxy-server/log"
 )
 
 var confPath string = utils.GetPath(*flags.ConfPath)
@@ -350,6 +351,8 @@ func (lc *LocalConfiguration) GetRemoteServers(ctx context.Context) [][4]byte {
 }
 
 func ResetConf() {
-	os.Remove(confPath)
+	if err := os.Remove(confPath); err != nil {
+		LOGGER.Fatalf("reset=failed, err=%v", err)
+	}
 	store.GetInstance().Clear()
 }

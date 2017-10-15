@@ -25,8 +25,6 @@ func TestGetActiveEnvSuccess(t *testing.T) {
 
 func TestPutChangeActiveEnvThatDoesNotExistsError(t *testing.T) {
 
-	defer local.ResetConf()
-
 	s := httptest.NewServer(nil)
 	defer s.Close()
 
