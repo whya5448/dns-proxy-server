@@ -8,7 +8,7 @@ REPO_URL=mageddo/dns-proxy-server
 
 create_release(){
 	# release notes
-	DESC=$(cat RELEASE-NOTES.md | awk 'BEGIN {RS="|"} {print substr($0, 0, index(substr($0, 3), "###"))}' | sed ':a;N;$!ba;s/\n/\\\\n/g') && \
+	DESC=$(cat RELEASE-NOTES.md | awk 'BEGIN {RS="|"} {print substr($0, 0, index(substr($0, 3), "###"))}' | sed ':a;N;$!ba;s/\n/\\r\\n/g') && \
 	PAYLOAD='{
 		"tag_name": "%s",
 		"target_commitish": "%s",
@@ -17,7 +17,7 @@ create_release(){
 		"draft": false,
 		"prerelease": true
 	}'
-	PAYLOAD=$(printf "$PAYLOAD", '1.0' 'MASTER' '1.0' "$DESC")
+	PAYLOAD=$(printf "$PAYLOAD" $APP_VERSION $CURRENT_BRANCH $APP_VERSION "$DESC")
 	TAG_ID=$(curl -i -s -f -X POST "https://api.github.com/repos/$REPO_URL/releases?access_token=$REPO_TOKEN" \
 --data "$PAYLOAD" | grep -o -E 'id": [0-9]+'| awk '{print $2}' | head -n 1)
 }
@@ -31,8 +31,8 @@ case $1 in
 
 	setup-repository )
 		git remote remove origin  && git remote add origin https://${REPO_TOKEN}@github.com/$REPO_URL.git
-		git checkout -b build_branch ${TRAVIS_BRANCH}
-		echo "> Repository added, travisBranch=${TRAVIS_BRANCH}"
+		git checkout -b build_branch ${CURRENT_BRANCH}
+		echo "> Repository added, travisBranch=${CURRENT_BRANCH}"
 
 	;;
 
