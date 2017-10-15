@@ -8,5 +8,7 @@ type Cache interface {
 	PutIfAbsent(key, value interface{}) interface{}
 	Remove(key interface{})
 	Clear()
+	KeySet() []interface{}
+	Size() int
 
 }

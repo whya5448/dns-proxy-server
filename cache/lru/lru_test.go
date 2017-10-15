@@ -83,3 +83,26 @@ func TestRemove(t *testing.T){
 	assert.False(t, cache.ContainsKey("key2"))
 
 }
+
+func TestKeySet(t *testing.T){
+
+	cache := New(3);
+
+	cache.Put("key1", "value1");
+	cache.Put("key2", "value2");
+
+	assert.Equal(t, []interface{}{"key1", "key2"}, cache.KeySet())
+
+}
+
+func TestSize(t *testing.T){
+
+	cache := New(3);
+
+	cache.Put("key1", "value1");
+	cache.Put("key2", "value2");
+
+	assert.Equal(t, 2, cache.Size())
+
+
+}

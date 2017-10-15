@@ -179,11 +179,11 @@ func GetPath(path string) string {
 }
 
 func GetJsonEncoder(w io.Writer) *json.Encoder {
-	decoder := json.NewEncoder(w)
+	enconder := json.NewEncoder(w)
 	if !flags.IsTestVersion() {
-		decoder.SetIndent("", "\t")
+		enconder.SetIndent("", "\t")
 	}
-	return decoder
+	return enconder
 }
 
 func GetUUID() int64 {
