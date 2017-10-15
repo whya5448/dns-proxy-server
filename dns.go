@@ -47,10 +47,10 @@ func handleQuestion(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 	questionsQtd, firstQuestion.Name, utils.DnsQTypeCodeToName(firstQuestion.Qtype))
 
 	// loading the solvers and try to solve the hostname in that order
-	solvers := []proxy.DnsSolver{proxy.DockerDnsSolver{}, proxy.NewLocalDNSSolver(store.GetInstance()), proxy.NewRemoteDnsSolver()}
+	solvers := []proxy.DnsSolver{&proxy.DockerDnsSolver{}, proxy.NewLocalDNSSolver(store.GetInstance()), proxy.NewRemoteDnsSolver()}
 	for _, solver := range solvers {
 
-		solverID := reflect.TypeOf(solver).Name()
+		solverID := reflect.TypeOf(solver).String()
 		logger.Debugf("status=begin, solver=%s", solverID)
 		// loop through questions
 		resp, err := solver.Solve(ctx, firstQuestion)
