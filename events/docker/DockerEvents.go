@@ -80,7 +80,8 @@ func HandleDockerEvents(){
 
 		cInspection, err := cli.ContainerInspect(ctx, event.ID)
 		if err != nil {
-			logger.Errorf("status=inspect-error, container=%s, err=%v", cInspection.Name, err)
+			logger.Warningf("status=inspect-error, id=%s, err=%v", event.ID, err)
+			continue
 		}
 		hostnames := getHostnames(cInspection)
 		action := event.Action
