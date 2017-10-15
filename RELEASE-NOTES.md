@@ -1,3 +1,6 @@
+### 2.2.1
+* Preventing nil pointer when container inspection fails
+
 ### 2.2.0
 * Increased code coverage
 * Implementing cache at local hostnames and remote server resolution
