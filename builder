@@ -8,7 +8,7 @@ REPO_URL=mageddo/dns-proxy-server
 
 create_release(){
 	# release notes
-	DESC=$(cat RELEASE-NOTES.md | awk 'BEGIN {RS="|"} {print substr($0, 0, index(substr($0, 3), "###"))}' | sed ':a;N;$!ba;s/\n/\\n/g') && \
+	DESC=$(cat RELEASE-NOTES.md | awk 'BEGIN {RS="|"} {print substr($0, 0, index(substr($0, 3), "###"))}' | sed ':a;N;$!ba;s/\n/\\\\n/g') && \
 	PAYLOAD='{
 		"tag_name": "%s",
 		"target_commitish": "%s",
