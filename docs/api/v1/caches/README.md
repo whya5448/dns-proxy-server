@@ -1,3 +1,7 @@
+### Caches
+* [List Caches](#list-caches)
+* [Get Cache Actual Size](#Get-Cache-Actual-Size)
+
 ### List caches
 
 	GET /v1/caches HTTP/1.1
@@ -6,7 +10,6 @@
 
 	HTTP/1.1 200 OK
 	Content-Type: application/json
-
 
 ```json
 {
