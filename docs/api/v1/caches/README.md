@@ -1,6 +1,6 @@
 ### Caches
 * [List Caches](#list-caches)
-* [Get Cache Actual Size](#Get-Cache-Actual-Size)
+* [Get Cache Actual Size](#get-cache-actual-size)
 
 ### List caches
 
