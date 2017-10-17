@@ -1,2 +1,2 @@
-### V1 APIs
+### v1 APIs
 * [Caches](caches)
