@@ -8,8 +8,8 @@ import (
 	"github.com/mageddo/go-logging"
 )
 const (
-	CACHE_V1 = "/v1/cache"
-	CACHE_SIZE_V1 = "/v1/cache/size"
+	CACHE_V1 = "/v1/caches"
+	CACHE_SIZE_V1 = "/v1/caches/size"
 )
 func init() {
 
