@@ -30,14 +30,14 @@ func (r remoteDnsSolver) Solve(ctx context.Context, question dns.Question) (*dns
 	var config *local.LocalConfiguration
 	var err error
 	if !c.ContainsKey(SERVERS) {
-		logger.Debugf("solver=remote, status=hot-load, hostname=%s", question.Name)
+		logger.Debugf("solver=remote, status=servers-hot-load")
 		if config, err = r.confloader(ctx); err != nil {
 			logger.Errorf("error=%v",err)
 			return nil, err
 		}
 		c.PutIfAbsent(SERVERS, config)
 	} else {
-		logger.Debugf("solver=remote, status=from-cache, hostname=%s", question.Name)
+		logger.Debugf("solver=remote, status=servers-from-cache")
 	}
 	config = c.Get(SERVERS).(*local.LocalConfiguration)
 
