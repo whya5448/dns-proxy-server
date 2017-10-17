@@ -165,6 +165,10 @@ if you don't want this service anymore
 	Are you really sure you want to uninstall this service? That cannot be undone. [yes|No] 
 	yes
 
-	
+
+### Rest API
+
+* [Here](http://mageddo.github.io/dns-proxy-server/docs/api/v1) documentation of DNS proxy server APIs
+
 ### Developing 
 Take a look at the [wiki](docs) for more details of how develop at this project

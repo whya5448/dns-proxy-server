@@ -18,21 +18,21 @@ type TimedValue interface {
 }
 
 type timedValueImpl struct {
-	creation time.Time
-	timeout time.Duration
-	value interface{}
+	CreationDate    time.Time
+	TimeoutDuration time.Duration
+	Val             interface{}
 }
 
 func(t *timedValueImpl) Creation() time.Time {
-	return t.creation
+	return t.CreationDate
 }
 
 func(t *timedValueImpl) Timeout() time.Duration {
-	return t.timeout
+	return t.TimeoutDuration
 }
 
 func(t *timedValueImpl) Value() interface{} {
-	return t.value
+	return t.Val
 }
 
 func(t *timedValueImpl) IsValid(now time.Time) bool {
@@ -40,5 +40,5 @@ func(t *timedValueImpl) IsValid(now time.Time) bool {
 }
 
 func NewTimedValue(value interface{}, creation time.Time, timeout time.Duration) TimedValue {
-	return &timedValueImpl{creation:creation, value:value, timeout:timeout}
+	return &timedValueImpl{CreationDate:creation, Val:value, TimeoutDuration:timeout}
 }

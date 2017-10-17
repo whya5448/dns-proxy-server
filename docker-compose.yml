@@ -44,7 +44,7 @@ services:
   prod-build-dns-proxy-server:
     extends: gocompiler-docker-dns-proxy
     container_name: docker-dns-server-compiler
-    command: bash -c "./builder build"
+    command: bash -c "builder build"
 
   # build the project and make the github release
   prod-ci-deploy:

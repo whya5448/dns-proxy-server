@@ -21,12 +21,12 @@ func (s localDnsSolver) Solve(ctx context.Context, question dns.Question) (*dns.
 	key := question.Name[:len(question.Name)-1]
 	var hostname *local.HostnameVo
 	if value, found := s.ContainsKey(key); found {
-		LOGGER.Debugf("status=from-cache, key=%s, value=%v", key, value)
+		LOGGER.Debugf("solver=local, status=from-cache, hostname=%s, value=%v", key, value)
 		if value != nil {
 			hostname = value.(*local.HostnameVo)
 		}
 	} else {
-		LOGGER.Debugf("status=hot-load, key=%s", key)
+		LOGGER.Debugf("solver=local, status=hot-load, hostname=%s", key)
 		conf, err := local.LoadConfiguration(ctx)
 		if err != nil {
 			LOGGER.Errorf("status=could-not-load-conf, err=%v", err)
