@@ -168,7 +168,7 @@ if you don't want this service anymore
 
 ### Rest API
 
-* [Here](http://mageddo.github.io/dns-proxy-server/docs/api/v1) documentation of DNS proxy server APIs
+* [Latest API documentation](https://github.com/mageddo/dns-proxy-server/tree/master/docs/api) of DNS proxy server APIs
 
 ### Developing 
 Take a look at the [wiki](docs) for more details of how develop at this project
