@@ -1,3 +1,6 @@
+### 2.2.2
+* Cache Rest API v1 is exposed
+
 ### 2.2.1
 * Preventing nil pointer when container inspection fails
 
