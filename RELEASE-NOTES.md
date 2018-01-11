@@ -1,3 +1,6 @@
+### 2.2.3
+* Some times container hostname don't get registered at machine startup
+
 ### 2.2.2
 * Cache Rest API v1 is exposed
 
