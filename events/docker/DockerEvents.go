@@ -40,6 +40,19 @@ func HandleDockerEvents(){
 		return
 	}
 
+	// more about events here: http://docs-stage.docker.com/v1.10/engine/reference/commandline/events/
+	var eventFilter = filters.NewArgs()
+	eventFilter.Add("event", "start")
+	eventFilter.Add("event", "die")
+	eventFilter.Add("event", "stop")
+
+	// registering at events before get the list of actual containers, this way no one container will be missed #55
+	body, err := cli.Events(ctx, types.EventsOptions{ Filters: eventFilter })
+	if err != nil {
+		logger.Errorf("status=error-to-attach-at-events-handler, solver=docker, err=%v", err)
+		return
+	}
+
 	for _, c := range containers {
 
 		cInspection, err := cli.ContainerInspect(ctx, c.ID)
@@ -52,20 +65,7 @@ func HandleDockerEvents(){
 		logger.Infof("status=container-from-list-success, container=%s, hostnames=%s", cInspection.Name, hostnames)
 
 	}
-
-	// more about events here: http://docs-stage.docker.com/v1.10/engine/reference/commandline/events/
-	var eventFilter = filters.NewArgs()
-	eventFilter.Add("event", "start")
-
-	eventFilter.Add("event", "die")
-	eventFilter.Add("event", "stop")
-
-	body, err := cli.Events(ctx, types.EventsOptions{ Filters: eventFilter })
-	if err != nil {
-		logger.Errorf("status=error-to-attach-at-events-handler, solver=docker, err=%v", err)
-		return
-	}
-
+	
 	dec := json.NewDecoder(body)
 	for {
 
