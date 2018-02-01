@@ -25,7 +25,7 @@ func (s DockerDnsSolver) Solve(ctx context.Context, question dns.Question) (*dns
 	}
 	i := strings.Index(key, ".")
 	if i > 0 && s.c.ContainsKey(key[i:]) {
-		logger.Debugf("solver=docker, status=solved-key-wildcard, solver=docker, hostname=%s, ip=%+v", key, s.c.Get(key))
+		logger.Debugf("solver=docker, status=solved-key-wildcard, solver=docker, hostname=%s, ip=%+v", key, s.c.Get(key[i:]))
 		return s.getMsg(key[i:], question), nil
 	}
 	return nil, errors.New("hostname not found " + key)
