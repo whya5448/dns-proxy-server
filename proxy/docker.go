@@ -15,11 +15,11 @@ type DockerDnsSolver struct {
 
 }
 
-func (DockerDnsSolver) Solve(ctx context.Context, question dns.Question) (*dns.Msg, error) {
+func (s DockerDnsSolver) Solve(ctx context.Context, question dns.Question) (*dns.Msg, error) {
 
 	logger := log.NewLog(ctx)
 	key := question.Name[:len(question.Name)-1]
-	if docker.ContainsKey(key) {
+	if s.containsKey(key) || s.solvesByDomain(key) {
 		logger.Debugf("solver=docker, status=solved-key, solver=docker, hostname=%s, ip=%s", key, docker.Get(key))
 		ip := docker.Get(key)
 		ipArr := strings.Split(ip, ".")
@@ -38,4 +38,16 @@ func (DockerDnsSolver) Solve(ctx context.Context, question dns.Question) (*dns.M
 		return m, nil
 	}
 	return nil, errors.New("hostname not found " + key)
+}
+
+func (s DockerDnsSolver) solvesByDomain(key string) bool {
+	i := strings.Index(key, ".")
+	if(i > 0){
+		return s.containsKey(key[i:])
+	}
+	return false;
+}
+
+func (DockerDnsSolver) containsKey(key string) bool {
+	return docker.ContainsKey(key)
 }
