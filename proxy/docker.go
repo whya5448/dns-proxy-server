@@ -31,8 +31,6 @@ func (s DockerDnsSolver) Solve(ctx context.Context, question dns.Question) (*dns
 	return nil, errors.New("hostname not found " + key)
 }
 
-
-
 func NewDockerSolver(c cache.Cache) DockerDnsSolver {
 	return DockerDnsSolver{c}
 }
