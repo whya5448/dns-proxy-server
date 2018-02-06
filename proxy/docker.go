@@ -1,14 +1,14 @@
 package proxy
 
 import (
-	"github.com/miekg/dns"
+	"errors"
 	"github.com/mageddo/dns-proxy-server/cache"
 	log "github.com/mageddo/go-logging"
-	"net"
-	"strings"
-	"strconv"
-	"errors"
+	"github.com/miekg/dns"
 	"golang.org/x/net/context"
+	"net"
+	"strconv"
+	"strings"
 )
 
 type DockerDnsSolver struct {
@@ -45,10 +45,10 @@ func (s DockerDnsSolver) getMsg(key string, question dns.Question) *dns.Msg {
 
 	rr := &dns.A{
 		Hdr: dns.RR_Header{Name: question.Name, Rrtype: dns.TypeA, Class: dns.ClassINET, Ttl: 0},
-		A: net.IPv4(byte(i1), byte(i2), byte(i3), byte(i4)),
+		A:   net.IPv4(byte(i1), byte(i2), byte(i3), byte(i4)),
 	}
 
 	m := new(dns.Msg)
 	m.Answer = append(m.Answer, rr)
-	return m;
+	return m
 }
