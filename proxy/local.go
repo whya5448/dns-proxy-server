@@ -25,7 +25,7 @@ func (s localDnsSolver) Solve(ctx context.Context, question dns.Question) (*dns.
 	}
 
 	i := strings.Index(key, ".")
-	if i > 0 && s.Cache.ContainsKey(key[i:]) {
+	if i > 0 {
 		return s.solveHostname(question, key[i:])
 	}
 	return nil, errors.New("hostname not found " + key)

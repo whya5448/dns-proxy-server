@@ -1,16 +1,16 @@
 package proxy
 
 import (
-	"testing"
+	"fmt"
+	hashlru "github.com/hashicorp/golang-lru"
+	"github.com/mageddo/dns-proxy-server/cache/lru"
+	"github.com/mageddo/dns-proxy-server/cache/store"
 	"github.com/mageddo/dns-proxy-server/events/local"
 	"github.com/mageddo/go-logging"
-	"github.com/stretchr/testify/assert"
 	"github.com/miekg/dns"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"github.com/mageddo/dns-proxy-server/cache/lru"
-	hashlru "github.com/hashicorp/golang-lru"
-	"fmt"
-	"github.com/mageddo/dns-proxy-server/cache/store"
+	"testing"
 	"time"
 )
 
@@ -23,7 +23,7 @@ func TestLocalDnsSolver_Solve(t *testing.T) {
 	assert.Nil(t, err, "failed to load configuration")
 
 	expectedHostname := "github.com"
-	host := local.HostnameVo{Hostname: expectedHostname, Env:"", Ttl:50, Ip:[4]byte{192,168,0,1}}
+	host := local.HostnameVo{Hostname: expectedHostname, Env: "", Ttl: 50, Ip: [4]byte{192, 168, 0, 1}}
 	conf.AddHostname(ctx, "", host)
 
 	question := new(dns.Question)
@@ -57,21 +57,6 @@ func TestLocalDnsSolver_SolveNotFoundHost(t *testing.T) {
 
 }
 
-
-type MockCache struct {
-	mock.Mock
-	lru.LRUCache
-}
-
-//
-// spy put method
-//
-func (m *MockCache) PutIfAbsent(key, value interface{}) interface{} {
-	fmt.Println("mocked!!!!!")
-	m.Called(key, value)
-	return m.LRUCache.PutIfAbsent(key, value)
-}
-
 //
 // Testing if cache is working
 // In first time must load hostname from file
@@ -87,7 +72,7 @@ func TestLocalDnsSolver_SolveValidatingCache(t *testing.T) {
 
 	// configuring a new host at local configuration
 	expectedHostname := "github.com"
-	host := local.HostnameVo{Hostname: expectedHostname, Env:"", Ttl:50, Ip:[4]byte{192,168,0,1}}
+	host := local.HostnameVo{Hostname: expectedHostname, Env: "", Ttl: 50, Ip: [4]byte{192, 168, 0, 1}}
 	conf.AddHostname(ctx, "", host)
 
 	// creating a request for the created host
@@ -103,7 +88,7 @@ func TestLocalDnsSolver_SolveValidatingCache(t *testing.T) {
 	solver := NewLocalDNSSolver(mockCache)
 
 	// we ask for the same host 5 times but it must load from file just once
-	for i:=5; i > 0; i-- {
+	for i := 5; i > 0; i-- {
 
 		// act
 		res, err := solver.Solve(ctx, *question)
@@ -119,8 +104,7 @@ func TestLocalDnsSolver_SolveValidatingCache(t *testing.T) {
 
 }
 
-
-func TestLocalDnsSolver_Solve_CacheExpiration(t *testing.T) {
+func TestLocalDnsSolver_SolveCacheExpiration(t *testing.T) {
 
 	defer local.ResetConf()
 
@@ -130,7 +114,7 @@ func TestLocalDnsSolver_Solve_CacheExpiration(t *testing.T) {
 
 	// configuring a new host at local configuration
 	expectedHostname := "github.com"
-	host := local.HostnameVo{Hostname: expectedHostname, Env:"", Ttl:2, Ip:[4]byte{192,168,0,1}}
+	host := local.HostnameVo{Hostname: expectedHostname, Env: "", Ttl: 2, Ip: [4]byte{192, 168, 0, 1}}
 	conf.AddHostname(ctx, "", host)
 
 	// creating a request for the created host
@@ -146,7 +130,7 @@ func TestLocalDnsSolver_Solve_CacheExpiration(t *testing.T) {
 	solver := NewLocalDNSSolver(mockCache)
 
 	// we ask for the same host 5 times but it must load from file just once
-	for i:=4; i > 0; i-- {
+	for i := 4; i > 0; i-- {
 
 		time.Sleep(time.Duration(int64(1100)) * time.Millisecond)
 
@@ -162,4 +146,73 @@ func TestLocalDnsSolver_Solve_CacheExpiration(t *testing.T) {
 
 	mockCache.AssertExpectations(t)
 
+}
+
+func TestLocalDnsSolver_SolvingByWildcard(t *testing.T) {
+
+	// arrange
+	c := lru.New(256)
+
+	solver := NewLocalDNSSolver(c)
+
+	defer local.ResetConf()
+	ctx := logging.NewContext()
+	conf, err := local.LoadConfiguration(ctx)
+	assert.Nil(t, err, "failed to load configuration")
+
+	host := local.HostnameVo{Hostname: ".github.com", Env: "", Ttl: 2, Ip: [4]byte{192, 168, 0, 1}}
+	conf.AddHostname(ctx, "", host)
+
+	question := new(dns.Question)
+	question.Name = "server1.github.com."
+
+	// act
+	res, err := solver.Solve(ctx, *question)
+
+	// assert
+	assert.Nil(t, err, "Fail to solve")
+	assert.Equal(t, 1, len(res.Answer))
+	assert.Equal(t, "server1.github.com.	0	IN	A	192.168.0.1", res.Answer[0].String())
+
+}
+
+func TestLocalDnsSolver_WildcardRegisteredButNotMatched(t *testing.T) {
+
+	// arrange
+	c := lru.New(256)
+
+	solver := NewLocalDNSSolver(c)
+
+	defer local.ResetConf()
+	ctx := logging.NewContext()
+	conf, err := local.LoadConfiguration(ctx)
+	assert.Nil(t, err, "failed to load configuration")
+
+	host := local.HostnameVo{Hostname: ".github.com", Env: "", Ttl: 2, Ip: [4]byte{192, 168, 0, 1}}
+	conf.AddHostname(ctx, "", host)
+
+	question := new(dns.Question)
+	question.Name = "server1.mageddo.com."
+
+	// act
+	res, err := solver.Solve(ctx, *question)
+
+	// assert
+	assert.NotNil(t, err, "Fail to solve")
+	assert.Nil(t, res)
+
+}
+
+type MockCache struct {
+	mock.Mock
+	lru.LRUCache
+}
+
+//
+// spy put method
+//
+func (m *MockCache) PutIfAbsent(key, value interface{}) interface{} {
+	fmt.Println("mocked!!!!!")
+	m.Called(key, value)
+	return m.LRUCache.PutIfAbsent(key, value)
 }
