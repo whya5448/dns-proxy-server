@@ -20,13 +20,13 @@ type localDnsSolver struct {
 func (s localDnsSolver) Solve(ctx context.Context, question dns.Question) (*dns.Msg, error) {
 
 	key := question.Name[:len(question.Name)-1]
-	if msg, err := s.solveHostname(question, key); err == nil {
+	if msg, err := s.solveHostname(ctx, question, key); err == nil {
 		return msg, err
 	}
 
 	i := strings.Index(key, ".")
 	if i > 0 {
-		return s.solveHostname(question, key[i:])
+		return s.solveHostname(ctx, question, key[i:])
 	}
 	return nil, errors.New("hostname not found " + key)
 }
@@ -60,7 +60,7 @@ func (*localDnsSolver) getMsg(question dns.Question, hostname *local.HostnameVo)
 	return m
 }
 
-func (s localDnsSolver) solveHostname(question dns.Question, key string) (*dns.Msg, error) {
+func (s localDnsSolver) solveHostname(ctx context.Context, question dns.Question, key string) (*dns.Msg, error) {
 	if value, found := s.ContainsKey(key); found {
 		LOGGER.Debugf("solver=local, status=from-cache, hostname=%s, value=%v", key, value)
 		if value != nil {
