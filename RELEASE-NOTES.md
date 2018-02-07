@@ -1,3 +1,7 @@
+### 2.3.3
+* Domains wildcard support
+If you register a hostname with `.` at start, then all subdomains will solve to that container/local storage entry
+
 ### 2.2.3
 * Some times container hostname don't get registered at machine startup
 
