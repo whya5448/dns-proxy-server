@@ -10,17 +10,19 @@ import (
 	"golang.org/x/net/context"
 	log "github.com/mageddo/go-logging"
 	"github.com/docker/engine-api/types"
+	"github.com/mageddo/dns-proxy-server/cache/lru"
+	"github.com/mageddo/dns-proxy-server/cache"
 	"strings"
 	"errors"
 )
 
-var cache = make(map[string]string)
+var c = lru.New(43690);
 
 func HandleDockerEvents(){
 	defaultLogger := log.NewContext()
 	logger := log.NewLog(defaultLogger)
 
-	// adaptar a api do docker aqui
+	// connecting to docker api
 	cli, err := client.NewClient("unix:///var/run/docker.sock", "v1.21", nil, nil)
 	if err != nil {
 		logger.Errorf("status=error-to-connect-at-host, solver=docker, err=%v", err)
@@ -97,7 +99,7 @@ func HandleDockerEvents(){
 
 		case "stop", "die":
 			for _, host := range hostnames {
-				remove(host)
+				c.Remove(host)
 			}
 			break
 
@@ -106,26 +108,8 @@ func HandleDockerEvents(){
 
 }
 
-func ContainsKey(key string) bool {
-	_, ok := cache[key]
-	if ok {
-		return true
-	}
-	return false
-}
-
-func Get(key string) string {
-	return cache[key]
-}
-
-func GetCache() map[string]string {
-	return cache
-}
-
-func remove(key string){
-	if ContainsKey(key) {
-		delete(cache, key)
-	}
+func GetCache() cache.Cache {
+	return c
 }
 
 func getHostnames(inspect types.ContainerJSON) []string {
@@ -169,7 +153,7 @@ func putHostnames(ctx context.Context, hostnames []string, inspect types.Contain
 			}
 		}
 		logger.Debugf("host=%s, ip=%s", host, ip)
-		cache[host] = ip
+		c.Put(host, ip)
 	}
 	return nil
 }

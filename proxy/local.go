@@ -1,15 +1,16 @@
 package proxy
 
 import (
-	. "github.com/mageddo/dns-proxy-server/log"
 	"errors"
-	"github.com/miekg/dns"
-	"net"
-	"github.com/mageddo/dns-proxy-server/events/local"
-	"golang.org/x/net/context"
 	"github.com/mageddo/dns-proxy-server/cache"
-	"time"
 	"github.com/mageddo/dns-proxy-server/cache/timed"
+	"github.com/mageddo/dns-proxy-server/events/local"
+	. "github.com/mageddo/dns-proxy-server/log"
+	"github.com/miekg/dns"
+	"golang.org/x/net/context"
+	"net"
+	"strings"
+	"time"
 )
 
 type localDnsSolver struct {
@@ -19,40 +20,13 @@ type localDnsSolver struct {
 func (s localDnsSolver) Solve(ctx context.Context, question dns.Question) (*dns.Msg, error) {
 
 	key := question.Name[:len(question.Name)-1]
-	var hostname *local.HostnameVo
-	if value, found := s.ContainsKey(key); found {
-		LOGGER.Debugf("solver=local, status=from-cache, hostname=%s, value=%v", key, value)
-		if value != nil {
-			hostname = value.(*local.HostnameVo)
-		}
-	} else {
-		LOGGER.Debugf("solver=local, status=hot-load, hostname=%s", key)
-		conf, err := local.LoadConfiguration(ctx)
-		if err != nil {
-			LOGGER.Errorf("status=could-not-load-conf, err=%v", err)
-			return nil, err
-		}
-		activeEnv,_ := conf.GetActiveEnv()
-		if activeEnv == nil {
-			return nil, errors.New("original env")
-		}
-		var ttl int64 = 86400 // 24 hours
-		hostname,_ = activeEnv.GetHostname(key)
-		if hostname != nil { ttl = int64(hostname.Ttl) }
-		val := s.Cache.PutIfAbsent(key, timed.NewTimedValue(hostname, time.Now(), time.Duration(ttl) * time.Second));
-		LOGGER.Debugf("status=put, key=%s, value=%v, ttl=%d", key, val, ttl)
+	if msg, err := s.solveHostname(ctx, question, key); err == nil {
+		return msg, err
 	}
 
-	if hostname != nil {
-		rr := &dns.A{
-			Hdr: dns.RR_Header{Name: question.Name, Rrtype: dns.TypeA, Class: dns.ClassINET, Ttl: 0},
-			A: net.IPv4(hostname.Ip[0], hostname.Ip[1], hostname.Ip[2], hostname.Ip[3]),
-		}
-
-		m := new(dns.Msg)
-		m.Answer = append(m.Answer, rr)
-		LOGGER.Debugf("status=success, solver=local, key=%s", key)
-		return m, nil
+	i := strings.Index(key, ".")
+	if i > 0 {
+		return s.solveHostname(ctx, question, key[i:])
 	}
 	return nil, errors.New("hostname not found " + key)
 }
@@ -72,6 +46,47 @@ func (s localDnsSolver) ContainsKey(key interface{}) (interface{}, bool) {
 	}
 	LOGGER.Debugf("status=expired, key=%v", key)
 	s.Cache.Remove(key)
-	return nil, false;
+	return nil, false
 }
 
+func (*localDnsSolver) getMsg(question dns.Question, hostname *local.HostnameVo) *dns.Msg {
+	rr := &dns.A{
+		Hdr: dns.RR_Header{Name: question.Name, Rrtype: dns.TypeA, Class: dns.ClassINET, Ttl: 0},
+		A:   net.IPv4(hostname.Ip[0], hostname.Ip[1], hostname.Ip[2], hostname.Ip[3]),
+	}
+	m := new(dns.Msg)
+	m.Answer = append(m.Answer, rr)
+	return m
+}
+
+func (s localDnsSolver) solveHostname(ctx context.Context, question dns.Question, key string) (*dns.Msg, error) {
+	if value, found := s.ContainsKey(key); found {
+		LOGGER.Debugf("solver=local, status=from-cache, hostname=%s, value=%v", key, value)
+		hostname := value.(*local.HostnameVo)
+		if hostname != nil {
+			return s.getMsg(question, hostname), nil
+		}
+	}
+
+	LOGGER.Debugf("solver=local, status=hot-load, hostname=%s", key)
+	conf, err := local.LoadConfiguration(ctx)
+	if err != nil {
+		LOGGER.Errorf("status=could-not-load-conf, err=%v", err)
+		return nil, err
+	}
+	activeEnv, _ := conf.GetActiveEnv()
+	if activeEnv == nil {
+		return nil, errors.New("original env")
+	}
+	var ttl int64 = 86400 // 24 hours
+	hostname, _ := activeEnv.GetHostname(key)
+	if hostname != nil {
+		ttl = int64(hostname.Ttl)
+	}
+	val := s.Cache.PutIfAbsent(key, timed.NewTimedValue(hostname, time.Now(), time.Duration(ttl)*time.Second))
+	LOGGER.Debugf("status=put, key=%s, value=%v, ttl=%d", key, val, ttl)
+	if hostname != nil {
+		return s.getMsg(question, hostname), nil
+	}
+	return nil, errors.New("hostname not found " + key)
+}
