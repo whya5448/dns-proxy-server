@@ -54,7 +54,6 @@ func (*localDnsSolver) getMsg(question dns.Question, hostname *local.HostnameVo)
 		Hdr: dns.RR_Header{Name: question.Name, Rrtype: dns.TypeA, Class: dns.ClassINET, Ttl: 0},
 		A:   net.IPv4(hostname.Ip[0], hostname.Ip[1], hostname.Ip[2], hostname.Ip[3]),
 	}
-
 	m := new(dns.Msg)
 	m.Answer = append(m.Answer, rr)
 	return m
@@ -63,8 +62,9 @@ func (*localDnsSolver) getMsg(question dns.Question, hostname *local.HostnameVo)
 func (s localDnsSolver) solveHostname(ctx context.Context, question dns.Question, key string) (*dns.Msg, error) {
 	if value, found := s.ContainsKey(key); found {
 		LOGGER.Debugf("solver=local, status=from-cache, hostname=%s, value=%v", key, value)
-		if value != nil {
-			return s.getMsg(question, value.(*local.HostnameVo)), nil
+		hostname := value.(*local.HostnameVo)
+		if hostname != nil {
+			return s.getMsg(question, hostname), nil
 		}
 	}
 
