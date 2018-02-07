@@ -29,14 +29,6 @@ The Dns Proxy Server basically follow the bellow order to solve the names:
 * then from local database file
 * then from 3rd configured remote DNS servers
 
-### Version 2 Improvements
-This tool comes from nodejs version(1.0), improving:
-* Performance - this version uses much less RAM and is much faster
-* Bug fixes
-* Binary distribution - now you can simply download a linux executable and use it, without need to install anything
-* Code design quality
-* And more
-
 ### Running
 
 ##### From docker
@@ -120,29 +112,33 @@ Start the server at [custom port](#configure-your-dns) and solving from it
 
 ### If you need terminal options 
 
-	$ ./dns-proxy-server --help
-	-compress
-		compress replies
-	-conf-path string
-		The config file path  (default "conf/config.json")
-	-cpuprofile string
-		write cpu profile to file
-	-default-dns
-		This DNS server will be the default server for this machine (default true)
-	-help
-		This message
-	-server-port int
-		The DNS server to start into (default 53)
-	-service string
-		Setup as service, starting with machine at boot
-			docker = start as docker service,
-			normal = start as normal service,
-			uninstall = uninstall the service from machine 
-	-tsig string
-		use MD5 hmac tsig: keyname:base64
-	-web-server-port int
-		The web server port (default 5380)
-
+```
+-compress
+  	compress replies
+-conf-path string
+  	The config file path  (default "conf/config.json")
+-cpuprofile string
+  	write cpu profile to file
+-default-dns
+  	This DNS server will be the default server for this machine (default true)
+-help
+  	This message
+-server-port int
+  	The DNS server to start into (default 53)
+-service string
+  	Setup as service, starting with machine at boot
+	docker = start as docker service,
+	normal = start as normal service,
+	uninstall = uninstall the service from machine 
+-service-publish-web-port
+  	Publish web port when running as service in docker mode (default true)
+-tsig string
+  	use MD5 hmac tsig: keyname:base64
+-version
+  	Current version
+-web-server-port int
+  	The web server port (default 5380)
+```
 
 ### Installing it as a service
 
