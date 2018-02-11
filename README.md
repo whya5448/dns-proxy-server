@@ -144,8 +144,13 @@ Start the server at [custom port](#configure-your-dns) and solving from it
 
 1. Download the [latest release](https://github.com/mageddo/dns-proxy-server/releases) and extract it
 2. Run the service installer
-
-		$ sudo ./dns-proxy-server -service=docker
+```
+$ sudo ./dns-proxy-server -service=docker
+```
+3. Then follow the progress at the log file
+```
+$ tail -f /var/log/dns-proxy-server.log 
+```
 
 this way it will start with the **OS**
 
