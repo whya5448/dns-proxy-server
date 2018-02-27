@@ -1,4 +1,4 @@
-package conf
+package resolvconf
 
 import (
 	. "github.com/mageddo/dns-proxy-server/log"

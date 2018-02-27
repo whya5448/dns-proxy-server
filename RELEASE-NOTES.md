@@ -1,3 +1,6 @@
+### 2.3.4
+* Enable/Disable log/Set log path using `MG_LOG_FILE` env or `--log-file` command line option
+
 ### 2.3.3
 * Domains wildcard support
 If you register a hostname with `.` at start, then all subdomains will solve to that container/local storage entry

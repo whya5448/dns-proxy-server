@@ -1,7 +1,6 @@
 package utils
 
 import (
-	. "github.com/mageddo/dns-proxy-server/log"
 	"path/filepath"
 	"os"
 	"encoding/json"
@@ -162,7 +161,6 @@ func GetCurrentPath() string {
 		return currDIr
 	}
 	currentPath, _ := filepath.Abs(filepath.Dir(os.Args[0]))
-	LOGGER.Infof("currentPath=%s", currentPath)
 	return currentPath
 
 }
@@ -173,7 +171,7 @@ func GetPath(path string) string {
 	}
 	currentPath := GetCurrentPath();
 	if strings.HasSuffix(currentPath, "/") {
-		currentPath = currentPath[0:len(currentPath)-1];
+		currentPath = currentPath[0:len(currentPath)-1]
 	}
 	return currentPath + path
 }

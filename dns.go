@@ -128,7 +128,7 @@ func main() {
 	go serve("tcp", name, secret, logger)
 	go serve("udp", name, secret, logger)
 	go func(){
-		webPort := conf.WebServerPort();
+		webPort := conf.WebServerPort()
 		logger.Infof("status=web-server-starting, port=%d", webPort)
 		if err := http.ListenAndServe(fmt.Sprintf(":%d", webPort), nil); err != nil {
 			logger.Errorf("status=failed-start-web-server, err=%v, port=%d", err, webPort)
@@ -151,8 +151,9 @@ func main() {
 	}()
 
 	logger.Infof("status=listing-signals")
+	fmt.Printf("server started\n")
 	s := <- utils.Sig
 	logger.Infof("status=exiting..., s=%s", s)
-	conf.RestoreResolvconfToDefault();
+	conf.RestoreResolvconfToDefault()
 	logger.Warningf("status=exiting, signal=%v", s)
 }

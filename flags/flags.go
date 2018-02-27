@@ -5,6 +5,8 @@ import (
 	"os"
 	"fmt"
 	"github.com/mageddo/dns-proxy-server/cache/store"
+	"strings"
+	"github.com/mageddo/dns-proxy-server/utils/env"
 )
 
 const TEST_MODE = "TEST_MODE"
@@ -23,6 +25,8 @@ var (
 		normal = start as normal service,
 		uninstall = uninstall the service from machine `)
 	publishServicePort = flag.Bool("service-publish-web-port", true, "Publish web port when running as service in docker mode")
+	logToFile = flag.String("log-file", "", "Log to file instead of console, (true=log to default log file, /tmp/log.log=log to custom log location)")
+	logLevel = flag.String("log-level", "DEBUG", "Log Level CRITICAL, ERROR, WARNING, NOTICE, INFO, DEBUG")
 	Version = flag.Bool("version", false, "Current version")
 	Help = flag.Bool("help", false, "This message")
 )
@@ -63,3 +67,30 @@ func IsTestVersion() bool {
 	}
 	return cache.Get(TEST_MODE).(bool)
 }
+
+func LogFile() string {
+	return *logToFile
+}
+
+//func LogFile() string {
+//	f := GetString(os.Getenv(env.MG_LOG_FILE), *logToFile)
+//	if strings.ToLower(f) == "true" {
+//		return "/var/log/dns-proxy-server.log"
+//	}
+//	if strings.ToLower(f) == "false" {
+//		return ""
+//	}
+//	return f
+//}
+
+//func GetString(value, defaultValue string) string {
+//	if len(value) == 0 {
+//		return defaultValue
+//	}
+//	return value
+//}
+
+func LogLevel() string {
+	return *logLevel
+}
+
