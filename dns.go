@@ -25,8 +25,8 @@ import (
 
 func init(){
 	log.SetLevel(conf.LogLevel())
+	log.SetOutput(conf.LogFile())
 }
-
 
 func handleQuestion(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 

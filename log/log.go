@@ -3,26 +3,18 @@ package log
 import (
 	"github.com/mageddo/go-logging"
 	"os"
-	"github.com/mageddo/dns-proxy-server/flags"
+	"io"
 )
 
 var LOGGER logging.Log
-
+var LEVEL string = ""
 func init(){
-	setup()
+	setup(os.Stdout)
 }
 
-func setup() {
+func setup(out io.Writer) {
 
 	mode := "dev"
-	var out = os.Stdout
-	var err error
-	if f := flags.LogFile(); f != "" {
-		if out, err = os.OpenFile(f, os.O_CREATE|os.O_APPEND|os.O_WRONLY, os.ModeAppend); err != nil {
-			panic(err)
-		}
-	}
-
 	backend := logging.NewLogBackend(out, "", 0)
 	// setando o log dependendo do ambiente
 	switch mode {
@@ -43,13 +35,35 @@ func setup() {
 		break
 	}
 	LOGGER = logging.NewLog(logging.NewContext())
+	if LEVEL != "" {
+		SetLevel(LEVEL)
+	}
 }
 
 func SetLevel(level string) error {
+	LEVEL = level
 	lvl, err := logging.LogLevel(level)
 	if err != nil {
 		return err
 	}
 	logging.SetLevel(lvl, "")
+	return nil
+}
+
+func SetOutput(f string) error {
+	if f == "console" {
+		setup(os.Stdout)
+		return nil
+	}
+	if f == "" {
+		SetLevel("CRITICAL")
+		return nil
+	}
+
+	out, err := os.OpenFile(f, os.O_CREATE|os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+	if err != nil {
+		return err
+	}
+	setup(out)
 	return nil
 }

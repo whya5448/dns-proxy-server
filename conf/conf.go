@@ -6,6 +6,7 @@ import (
 	"os"
 	"github.com/mageddo/dns-proxy-server/utils/env"
 	"github.com/mageddo/go-logging"
+	"strings"
 )
 
 func CpuProfile() string {
@@ -49,13 +50,6 @@ func getConf() (*local.LocalConfiguration, error) {
 	return local.LoadConfiguration(logging.NewContext())
 }
 
-func GetString(value, defaultValue string) string {
-	if len(value) == 0 {
-		return defaultValue
-	}
-	return value
-}
-
 func LogLevel() string {
 	if lvl := os.Getenv(env.MG_LOG_LEVEL); lvl != "" {
 		return lvl
@@ -64,5 +58,30 @@ func LogLevel() string {
 	if conf, _ := getConf(); conf != nil && conf.LogLevel != "" {
 		return conf.LogLevel
 	}
+
 	return flags.LogLevel()
+}
+
+func LogFile() string {
+	f := os.Getenv(env.MG_LOG_FILE)
+
+	if conf, _ := getConf(); f == "" &&  conf != nil && conf.LogFile != "" {
+		f = conf.LogFile
+	}
+	f = GetString(f, flags.LogToFile())
+
+	if strings.ToLower(f) == "true" {
+		return "/var/log/dns-proxy-server.log"
+	}
+	if strings.ToLower(f) == "false" {
+		return ""
+	}
+	return f
+}
+
+func GetString(value, defaultValue string) string {
+	if len(value) == 0 {
+		return defaultValue
+	}
+	return value
 }

@@ -108,6 +108,7 @@ type LocalConfiguration struct {
 	DnsServerPort int `json:"dnsServerPort"`
 	DefaultDns *bool `json:"defaultDns"`
 	LogLevel string `json:"logLevel"`
+	LogFile string `json:"logFile"`
 }
 
 type EnvVo struct {

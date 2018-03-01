@@ -1,5 +1,6 @@
-### 2.3.4
-* Enable/Disable log/Set log path using `MG_LOG_FILE` env or `--log-file` command line option
+### 2.4.0
+* Enable/Disable log/set log path using `MG_LOG_FILE` env or `--log-file` command line option or json config
+* Change log level using `MG_LOG_LEVEL` env or `--log-level` command line option or json config
 
 ### 2.3.3
 * Domains wildcard support
