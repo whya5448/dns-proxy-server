@@ -58,13 +58,11 @@ func LogLevel() string {
 	if conf, _ := getConf(); conf != nil && conf.LogLevel != "" {
 		return conf.LogLevel
 	}
-
 	return flags.LogLevel()
 }
 
 func LogFile() string {
 	f := os.Getenv(env.MG_LOG_FILE)
-
 	if conf, _ := getConf(); f == "" &&  conf != nil && conf.LogFile != "" {
 		f = conf.LogFile
 	}

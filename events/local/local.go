@@ -17,7 +17,11 @@ import (
 	. "github.com/mageddo/dns-proxy-server/log"
 )
 
-var confPath string = utils.GetPath(*flags.ConfPath)
+var confPath string = GetConfPath()
+
+func GetConfPath() string {
+	return utils.GetPath(*flags.ConfPath)
+}
 
 func LoadConfiguration(ctx context.Context) (*LocalConfiguration, error){
 
