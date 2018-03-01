@@ -3,7 +3,6 @@ package lru
 import (
 	"github.com/mageddo/dns-proxy-server/cache"
 	"github.com/hashicorp/golang-lru"
-	"github.com/mageddo/dns-proxy-server/log"
 )
 
 type LRUCache struct {
@@ -60,8 +59,7 @@ func (c *LRUCache) Size() int {
 func New(size int) cache.Cache {
 	c, err := lru.New(size)
 	if err != nil {
-		log.LOGGER.Errorf("status=cannot-create-cache, msg=%v", err)
-		return nil;
+		return nil
 	}
 	return &LRUCache{c}
 }

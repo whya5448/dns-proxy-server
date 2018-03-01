@@ -1,4 +1,4 @@
-package conf
+package resolvconf
 
 import "strings"
 

@@ -1,7 +1,7 @@
 package main
 
 import (
-	_ "github.com/mageddo/dns-proxy-server/log"
+	"github.com/mageddo/dns-proxy-server/log"
 	"fmt"
 	"os"
 	"runtime/pprof"
@@ -17,15 +17,21 @@ import (
 	"github.com/mageddo/dns-proxy-server/conf"
 	"github.com/mageddo/dns-proxy-server/utils/exitcodes"
 	"github.com/mageddo/dns-proxy-server/service"
-	log "github.com/mageddo/go-logging"
+	"github.com/mageddo/go-logging"
 	"runtime/debug"
 	"github.com/mageddo/dns-proxy-server/cache/store"
+	"github.com/mageddo/dns-proxy-server/resolvconf"
 )
+
+func init(){
+	log.SetLevel(conf.LogLevel())
+	log.SetOutput(conf.LogFile())
+}
 
 func handleQuestion(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 
-	ctx := log.NewContext()
-	logger := log.NewLog(ctx)
+	ctx := logging.NewContext()
+	logger := logging.NewLog(ctx)
 
 	defer func() {
 		err := recover()
@@ -80,7 +86,7 @@ func handleQuestion(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 
 }
 
-func serve(net, name, secret string, logger log.Log) {
+func serve(net, name, secret string, logger logging.Log) {
 	port := fmt.Sprintf(":%d", conf.DnsServerPort())
 	logger.Debugf("status=begin, port=%d", conf.DnsServerPort())
 	switch name {
@@ -101,8 +107,8 @@ func serve(net, name, secret string, logger log.Log) {
 
 func main() {
 
-	ctx := log.NewContext()
-	logger := log.NewLog(ctx)
+	ctx := logging.NewContext()
+	logger := logging.NewLog(ctx)
 
 	service.NewService(ctx).Install()
 
@@ -128,7 +134,7 @@ func main() {
 	go serve("tcp", name, secret, logger)
 	go serve("udp", name, secret, logger)
 	go func(){
-		webPort := conf.WebServerPort();
+		webPort := conf.WebServerPort()
 		logger.Infof("status=web-server-starting, port=%d", webPort)
 		if err := http.ListenAndServe(fmt.Sprintf(":%d", webPort), nil); err != nil {
 			logger.Errorf("status=failed-start-web-server, err=%v, port=%d", err, webPort)
@@ -142,7 +148,7 @@ func main() {
 		controller.MapRequests()
 		if conf.SetupResolvConf() {
 			logger.Infof("status=setResolvconf")
-			err := conf.SetCurrentDNSServerToMachine()
+			err := resolvconf.SetCurrentDNSServerToMachine()
 			if err != nil {
 				logger.Errorf("status=setResolvconf, err=%v", err)
 				exitcodes.Exit(exitcodes.FAIL_SET_DNS_AS_DEFAULT)
@@ -151,8 +157,9 @@ func main() {
 	}()
 
 	logger.Infof("status=listing-signals")
+	fmt.Printf("server started\n")
 	s := <- utils.Sig
 	logger.Infof("status=exiting..., s=%s", s)
-	conf.RestoreResolvconfToDefault();
+	resolvconf.RestoreResolvconfToDefault()
 	logger.Warningf("status=exiting, signal=%v", s)
 }
