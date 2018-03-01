@@ -69,26 +69,22 @@ func IsTestVersion() bool {
 }
 
 func LogFile() string {
-	return *logToFile
+	f := GetString(os.Getenv(env.MG_LOG_FILE), *logToFile)
+	if strings.ToLower(f) == "true" {
+		return "/var/log/dns-proxy-server.log"
+	}
+	if strings.ToLower(f) == "false" {
+		return ""
+	}
+	return f
 }
 
-//func LogFile() string {
-//	f := GetString(os.Getenv(env.MG_LOG_FILE), *logToFile)
-//	if strings.ToLower(f) == "true" {
-//		return "/var/log/dns-proxy-server.log"
-//	}
-//	if strings.ToLower(f) == "false" {
-//		return ""
-//	}
-//	return f
-//}
-
-//func GetString(value, defaultValue string) string {
-//	if len(value) == 0 {
-//		return defaultValue
-//	}
-//	return value
-//}
+func GetString(value, defaultValue string) string {
+	if len(value) == 0 {
+		return defaultValue
+	}
+	return value
+}
 
 func LogLevel() string {
 	return *logLevel

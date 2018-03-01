@@ -4,24 +4,26 @@ import (
 	"github.com/mageddo/go-logging"
 	"os"
 	"github.com/mageddo/dns-proxy-server/flags"
-	"github.com/mageddo/dns-proxy-server/conf"
 )
 
 var LOGGER logging.Log
 
 func init(){
+	setup()
+}
+
+func setup() {
 
 	mode := "dev"
 	var out = os.Stdout
 	var err error
-
 	if f := flags.LogFile(); f != "" {
-		if out, err = os.OpenFile(f, os.O_CREATE|os.O_APPEND, 0766); err != nil {
+		if out, err = os.OpenFile(f, os.O_CREATE|os.O_APPEND|os.O_WRONLY, os.ModeAppend); err != nil {
 			panic(err)
 		}
 	}
-	backend := logging.NewLogBackend(out, "", 0)
 
+	backend := logging.NewLogBackend(out, "", 0)
 	// setando o log dependendo do ambiente
 	switch mode {
 	case "prod":
@@ -40,12 +42,14 @@ func init(){
 		logging.SetBackend(backend2Formatter)
 		break
 	}
+	LOGGER = logging.NewLog(logging.NewContext())
+}
 
-	lvl, err := logging.LogLevel(conf.LogLevel())
+func SetLevel(level string) error {
+	lvl, err := logging.LogLevel(level)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	logging.SetLevel(lvl, "")
-
-	LOGGER = logging.NewLog(logging.NewContext())
+	return nil
 }

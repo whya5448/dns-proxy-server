@@ -8,3 +8,4 @@
 *.orig
 *.tmp
 conf/config.json
+*.log
