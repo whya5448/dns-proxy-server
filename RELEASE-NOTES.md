@@ -1,3 +1,6 @@
+### 2.4.1
+* Service restart command waa with typo
+
 ### 2.4.0
 * Enable/Disable log/set log path using `MG_LOG_FILE` env or `--log-file` command line option or json config
 * Change log level using `MG_LOG_LEVEL` env or `--log-level` command line option or json config
