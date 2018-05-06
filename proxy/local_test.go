@@ -17,7 +17,7 @@ func TestLocalDnsSolver_Solve(t *testing.T) {
 
 	defer local.ResetConf()
 
-	conf, err := local.LoadConfiguration(ctx)
+	conf, err := local.LoadConfiguration()
 	assert.Nil(t, err, "failed to load configuration")
 
 	expectedHostname := "github.com"
@@ -62,7 +62,7 @@ func TestLocalDnsSolver_SolveValidatingCache(t *testing.T) {
 
 	defer local.ResetConf()
 
-	conf, err := local.LoadConfiguration(ctx)
+	conf, err := local.LoadConfiguration()
 	assert.Nil(t, err, "failed to load configuration")
 
 	// configuring a new host at local configuration
@@ -103,7 +103,7 @@ func TestLocalDnsSolver_SolveCacheExpiration(t *testing.T) {
 
 	defer local.ResetConf()
 
-	conf, err := local.LoadConfiguration(ctx)
+	conf, err := local.LoadConfiguration()
 	assert.Nil(t, err, "failed to load configuration")
 
 	// configuring a new host at local configuration

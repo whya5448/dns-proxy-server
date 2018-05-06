@@ -8,16 +8,13 @@ import (
 	"net/http"
 	"github.com/mageddo/dns-proxy-server/events/local"
 	"github.com/mageddo/dns-proxy-server/flags"
-	"github.com/mageddo/go-logging"
 	"github.com/mageddo/dns-proxy-server/utils"
 )
 
 func TestGetHostnamesByEnv(t *testing.T) {
 
 	defer local.ResetConf()
-
-	ctx := logging.NewContext()
-	local.LoadConfiguration(ctx)
+	local.LoadConfiguration()
 
 	err := utils.WriteToFile(`{ "remoteDnsServers": [], "envs": [
 		{ "name": "MyEnv", "hostnames": [{"hostname": "github.io", "ip": [1,2,3,4], "ttl": 55}] }
@@ -39,9 +36,7 @@ func TestGetHostnamesByEnv(t *testing.T) {
 func TestGetHostnamesByEnvAndHostname(t *testing.T) {
 
 	defer local.ResetConf()
-
-	ctx := logging.NewContext()
-	local.LoadConfiguration(ctx)
+	local.LoadConfiguration()
 
 	err := utils.WriteToFile(`{ "remoteDnsServers": [], "envs": [
 		{ "name": "MyEnv", "hostnames": [{"hostname": "github.io", "ip": [1,2,3,4], "ttl": 55}] }
@@ -65,8 +60,7 @@ func TestPostHostname(t *testing.T) {
 
 	defer local.ResetConf()
 
-	ctx := logging.NewContext()
-	local.LoadConfiguration(ctx)
+	local.LoadConfiguration()
 
 	err := utils.WriteToFile(`{ "remoteDnsServers": [], "envs": [{ "name": "MyOtherEnv" }]}`, utils.GetPath(*flags.ConfPath))
 
@@ -110,10 +104,7 @@ func TestPostHostnameInvalidPayloadError(t *testing.T) {
 func TestPutHostname(t *testing.T) {
 
 	defer local.ResetConf()
-
-	ctx := logging.NewContext()
-	local.LoadConfiguration(ctx)
-
+	local.LoadConfiguration()
 	err := utils.WriteToFile(`{ "remoteDnsServers": [], "envs": [
 		{ "name": "MyEnv", "hostnames": [{"id": 999, "hostname": "github.io", "ip": [1,2,3,4], "ttl": 55}] }
 	]}`, utils.GetPath(*flags.ConfPath))
@@ -145,8 +136,7 @@ func TestDeleteHostname(t *testing.T) {
 
 	defer local.ResetConf()
 
-	ctx := logging.NewContext()
-	local.LoadConfiguration(ctx)
+	local.LoadConfiguration()
 
 	err := utils.WriteToFile(`{ "remoteDnsServers": [], "envs": [
 		{ "name": "MyEnv", "hostnames": [{"hostname": "github.io", "ip": [1,2,3,4], "ttl": 55}] }

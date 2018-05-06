@@ -8,7 +8,6 @@ import (
 	"github.com/mageddo/dns-proxy-server/events/local"
 	"github.com/mageddo/dns-proxy-server/utils"
 	"github.com/mageddo/dns-proxy-server/flags"
-	"github.com/mageddo/go-logging"
 )
 
 func TestGetActiveEnvSuccess(t *testing.T) {
@@ -42,8 +41,7 @@ func TestPutChangeActiveEnvSuccess(t *testing.T) {
 
 	defer local.ResetConf()
 
-	ctx := logging.NewContext()
-	local.LoadConfiguration(ctx)
+	local.LoadConfiguration()
 
 	err := utils.WriteToFile(`{
 		"remoteDnsServers": [], "envs": [{ "name": "testEnv" }]
@@ -72,12 +70,8 @@ func TestPutChangeActiveEnvSuccess(t *testing.T) {
 func TestGetEnvsSuccess(t *testing.T) {
 
 	defer local.ResetConf()
-
-	ctx := logging.NewContext()
-	local.LoadConfiguration(ctx)
-
+	local.LoadConfiguration()
 	err := utils.WriteToFile(`{ "remoteDnsServers": [], "envs": [{ "name": "SecondEnv" }]}`, utils.GetPath(*flags.ConfPath))
-
 	assert.Nil(t, err)
 
 	s := httptest.NewServer(nil)
@@ -120,9 +114,7 @@ func TestPostEnvSuccess(t *testing.T) {
 func TestDeleteEnvSuccess(t *testing.T) {
 
 	defer local.ResetConf()
-
-	ctx := logging.NewContext()
-	local.LoadConfiguration(ctx)
+	local.LoadConfiguration()
 
 	err := utils.WriteToFile(`{ "remoteDnsServers": [], "envs": [{ "name": "SecondEnv" }]}`, utils.GetPath(*flags.ConfPath))
 
