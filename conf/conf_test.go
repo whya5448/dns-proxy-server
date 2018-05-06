@@ -6,7 +6,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/mageddo/dns-proxy-server/flags"
 	"github.com/mageddo/dns-proxy-server/events/local"
-	"github.com/mageddo/go-logging"
 	"github.com/mageddo/dns-proxy-server/utils"
 	"flag"
 	"github.com/mageddo/dns-proxy-server/utils/env"
@@ -29,8 +28,7 @@ func TestFlagValuesFromArgs(t *testing.T) {
 func TestFlagValuesFromConf(t *testing.T) {
 
 	defer local.ResetConf()
-	ctx := logging.NewContext()
-	local.LoadConfiguration(ctx)
+	local.LoadConfiguration()
 
 	err := utils.WriteToFile(`{ "webServerPort": 8080, "dnsServerPort": 62, "defaultDns": false }`, utils.GetPath(*flags.ConfPath))
 	assert.Nil(t, err)
@@ -48,11 +46,10 @@ func TestLogLevel_DefaultValue(t *testing.T) {
 func TestLogLevel_ReadFromConfig(t *testing.T) {
 
 	// arrange
-	ctx := logging.NewContext()
-	c, err := local.LoadConfiguration(ctx)
+	c, err := local.LoadConfiguration()
 	assert.Nil(t, err)
 	c.LogLevel = "INFO"
-	local.SaveConfiguration(ctx, c)
+	local.SaveConfiguration(c)
 
 	// act
 	level := LogLevel()
@@ -90,11 +87,10 @@ func TestLogFile_DefaultValue(t *testing.T) {
 func TestLogFile_ReadFromConfig(t *testing.T) {
 
 	// arrange
-	ctx := logging.NewContext()
-	c, err := local.LoadConfiguration(ctx)
+	c, err := local.LoadConfiguration()
 	assert.Nil(t, err)
 	c.LogFile = "false"
-	local.SaveConfiguration(ctx, c)
+	local.SaveConfiguration(c)
 
 	// act
 	level := LogFile()

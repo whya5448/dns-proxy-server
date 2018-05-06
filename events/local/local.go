@@ -136,7 +136,7 @@ func (lc *LocalConfiguration) GetEnv(envName string) (*EnvVo, int) {
 	return nil, -1
 }
 
-func (foundEnv *EnvVo) AddHostname(ctx context.Context, hostname *HostnameVo) error {
+func (foundEnv *EnvVo) AddHostname(hostname *HostnameVo) error {
 
 	logging.Infof("status=begin, env=%s, hostname=%+v", foundEnv.Name, hostname)
 	if foundEnv == nil {
@@ -240,14 +240,14 @@ func (lc *LocalConfiguration) RemoveDns(index int){
 }
 
 
-func (lc *LocalConfiguration) AddHostname(ctx context.Context, envName string, hostname HostnameVo) error {
+func (lc *LocalConfiguration) AddHostname(envName string, hostname HostnameVo) error {
 	hostname.Id = lc.nextId()
 	logging.Infof("status=begin, evnName=%s, hostname=%+v", envName, hostname)
 	foundEnv, _ := lc.GetEnv(envName)
 	if foundEnv == nil {
 		return errors.New("env not found")
 	}
-	err := foundEnv.AddHostname(ctx, &hostname)
+	err := foundEnv.AddHostname(&hostname)
 	if err != nil {
 		return err
 	}

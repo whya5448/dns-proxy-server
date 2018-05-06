@@ -32,7 +32,6 @@
 package main
 
 import (
-	. "github.com/mageddo/dns-proxy-server/log"
 	"flag"
 	"fmt"
 	"os"
@@ -43,6 +42,7 @@ import (
 	"github.com/miekg/dns"
 	"net"
 	"errors"
+	"github.com/mageddo/go-logging"
 )
 
 var (
@@ -56,7 +56,7 @@ func handleReflect(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 	defer func() {
 		err := recover()
 		if err != nil {
-			LOGGER.Errorf("status=error, error=%v", err)
+			logging.Errorf("status=error, error=%v", err)
 		}
 	}()
 
@@ -67,7 +67,7 @@ func handleReflect(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 		questionName = "null"
 	}
 
-	LOGGER.Infof("questions=%d, 1stQuestion=%s", len(reqMsg.Question), questionName)
+	logging.Infof("questions=%d, 1stQuestion=%s", len(reqMsg.Question), questionName)
 
 	resp := SolveName(questionName)
 	resp.SetReply(reqMsg)
@@ -79,7 +79,7 @@ func handleReflect(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 		firstAnswer = resp.Answer[0]
 	}
 
-	LOGGER.Infof("resp=%v", firstAnswer)
+	logging.Infof("resp=%v", firstAnswer)
 	respWriter.WriteMsg(resp)
 
 }
@@ -112,7 +112,8 @@ func main2() {
 	if *cpuprofile != "" {
 		f, err := os.Create(*cpuprofile)
 		if err != nil {
-			LOGGER.Fatal(err)
+			logging.Error(err)
+			os.Exit(-1)
 		}
 		pprof.StartCPUProfile(f)
 		defer pprof.StopCPUProfile()

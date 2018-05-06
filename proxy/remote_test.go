@@ -7,7 +7,6 @@ import (
 	"github.com/mageddo/go-logging"
 	"github.com/mageddo/dns-proxy-server/events/local"
 	"context"
-	"github.com/mageddo/dns-proxy-server/log"
 )
 
 type MockedRemoteDnsSolver struct {
@@ -16,18 +15,16 @@ type MockedRemoteDnsSolver struct {
 }
 
 func (m MockedRemoteDnsSolver) loadConfiguration(ctx context.Context) (*local.LocalConfiguration, error) {
-	log.LOGGER.Infof("status=mocked-config")
-	return local.LoadConfiguration(ctx)
+	logging.Infof("status=mocked-config")
+	return local.LoadConfiguration()
 }
 
 func TestRemoteDnsSolver_SolveCacheSuccess(t *testing.T) {
 
-	ctx := logging.NewContext()
-
 	remoteSolver := new(MockedRemoteDnsSolver)
 	remoteSolver.confloader = func(ctx context.Context) (*local.LocalConfiguration, error) {
 		remoteSolver.MethodCalled("confloader", ctx)
-		return local.LoadConfiguration(ctx)
+		return local.LoadConfiguration()
 	}
 
 	remoteSolver.On("confloader", ctx).Once()

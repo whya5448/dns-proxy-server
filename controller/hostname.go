@@ -58,7 +58,7 @@ func init(){
 		}
 		logging.Infof("m=/hostname/, status=parsed-host, host=%+v", hostname)
 		if conf, _ := local.LoadConfiguration(); conf != nil {
-			if err := conf.AddHostname(ctx, hostname.Env, hostname); err != nil {
+			if err := conf.AddHostname(hostname.Env, hostname); err != nil {
 				logging.Infof("m=/hostname/, status=error, action=create-hostname, err=%+v", err)
 				BadRequest(res, err.Error())
 				return
