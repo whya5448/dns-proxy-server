@@ -1,7 +1,6 @@
 package resolvconf
 
 import (
-	. "github.com/mageddo/dns-proxy-server/log"
 	"bytes"
 	"os"
 	"bufio"
@@ -13,13 +12,14 @@ import (
 	"fmt"
 	"github.com/mageddo/dns-proxy-server/conf"
 	"net"
+	"github.com/mageddo/go-logging"
 )
 
 func RestoreResolvconfToDefault() error {
-	LOGGER.Infof("status=begin")
+	logging.Infof("status=begin")
 	hd := newDNSServerCleanerHandler()
 	err := ProcessResolvconf(hd)
-	LOGGER.Infof("status=success, err=%v", err)
+	logging.Infof("status=success, err=%v", err)
 	return err
 }
 
@@ -31,7 +31,7 @@ func SetMachineDNSServer(serverIP string) error {
 func ProcessResolvconf( handler DnsHandler ) error {
 
 	var newResolvConfBuff bytes.Buffer
-	LOGGER.Infof("status=begin")
+	logging.Infof("status=begin")
 
 	resolvconf := conf.GetResolvConf()
 	fileRead, err := os.Open(resolvconf)
@@ -44,7 +44,7 @@ func ProcessResolvconf( handler DnsHandler ) error {
 		hasContent = false
 		foundDnsProxyEntry = false
 	)
-	LOGGER.Infof("status=open-conf-file, file=%s", fileRead.Name())
+	logging.Infof("status=open-conf-file, file=%s", fileRead.Name())
 	scanner := bufio.NewScanner(fileRead)
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -53,7 +53,7 @@ func ProcessResolvconf( handler DnsHandler ) error {
 		if entryType == PROXY {
 			foundDnsProxyEntry = true
 		}
-		LOGGER.Debugf("status=readline, line=%s, type=%s", line,  entryType)
+		logging.Debugf("status=readline, line=%s, type=%s", line,  entryType)
 		if r := handler.process(line, entryType); r != nil {
 			newResolvConfBuff.WriteString(*r)
 			newResolvConfBuff.WriteByte('\n')
@@ -70,7 +70,7 @@ func ProcessResolvconf( handler DnsHandler ) error {
 	if err != nil {
 		return err
 	}
-	LOGGER.Infof("status=success, buffLength=%d", length)
+	logging.Infof("status=success, buffLength=%d", length)
 	return nil
 }
 
@@ -108,7 +108,7 @@ func SetCurrentDNSServerToMachineAndLockIt() error {
 func SetCurrentDNSServerToMachine() error {
 
 	ip, err := GetCurrentIpAddress()
-	LOGGER.Infof("status=begin, ip=%s, err=%v", ip, err)
+	logging.Infof("status=begin, ip=%s, err=%v", ip, err)
 	if err != nil {
 		return err
 	}
@@ -125,7 +125,7 @@ func UnlockResolvConf() error {
 
 func LockFile(lock bool, file string) error {
 
-	LOGGER.Infof("status=begin, lock=%t, file=%s", lock, file)
+	logging.Infof("status=begin, lock=%t, file=%s", lock, file)
 	flag := "-i"
 	if lock {
 		flag = "+i"
@@ -133,16 +133,16 @@ func LockFile(lock bool, file string) error {
 	cmd := exec.Command("chattr", flag, file)
 	err := cmd.Run()
 	if err != nil {
-		LOGGER.Warningf("status=error-at-execute, lock=%t, file=%s, err=%v", lock, file, err)
+		logging.Warningf("status=error-at-execute, lock=%t, file=%s, err=%v", lock, file, err)
 		return err
 	}
 
 	status := cmd.ProcessState.Sys().(syscall.WaitStatus)
 	if status.ExitStatus() != 0 {
-		LOGGER.Warningf("status=bad-exit-code, lock=%t, file=%s", lock, file)
+		logging.Warningf("status=bad-exit-code, lock=%t, file=%s", lock, file)
 		return errors.New(fmt.Sprintf("Failed to lock file %d", status.ExitStatus()))
 	}
-	LOGGER.Infof("status=success, lock=%t, file=%s", lock, file)
+	logging.Infof("status=success, lock=%t, file=%s", lock, file)
 	return nil
 
 }

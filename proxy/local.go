@@ -5,12 +5,12 @@ import (
 	"github.com/mageddo/dns-proxy-server/cache"
 	"github.com/mageddo/dns-proxy-server/cache/timed"
 	"github.com/mageddo/dns-proxy-server/events/local"
-	. "github.com/mageddo/dns-proxy-server/log"
 	"github.com/miekg/dns"
 	"golang.org/x/net/context"
 	"net"
 	"strings"
 	"time"
+	"github.com/mageddo/go-logging"
 )
 
 type localDnsSolver struct {
@@ -37,14 +37,14 @@ func NewLocalDNSSolver(c cache.Cache) *localDnsSolver {
 
 func (s localDnsSolver) ContainsKey(key interface{}) (interface{}, bool) {
 	if !s.Cache.ContainsKey(key) {
-		LOGGER.Debugf("status=notfound, key=%v", key)
+		logging.Debugf("status=notfound, key=%v", key)
 		return nil, false
 	}
 	if v := s.Cache.Get(key).(timed.TimedValue); v.IsValid(time.Now()) {
-		LOGGER.Debugf("status=fromcache, key=%v", key)
+		logging.Debugf("status=fromcache, key=%v", key)
 		return v.Value(), true
 	}
-	LOGGER.Debugf("status=expired, key=%v", key)
+	logging.Debugf("status=expired, key=%v", key)
 	s.Cache.Remove(key)
 	return nil, false
 }
@@ -61,17 +61,17 @@ func (*localDnsSolver) getMsg(question dns.Question, hostname *local.HostnameVo)
 
 func (s localDnsSolver) solveHostname(ctx context.Context, question dns.Question, key string) (*dns.Msg, error) {
 	if value, found := s.ContainsKey(key); found {
-		LOGGER.Debugf("solver=local, status=from-cache, hostname=%s, value=%v", key, value)
+		logging.Debugf("solver=local, status=from-cache, hostname=%s, value=%v", key, value)
 		hostname := value.(*local.HostnameVo)
 		if hostname != nil {
 			return s.getMsg(question, hostname), nil
 		}
 	}
 
-	LOGGER.Debugf("solver=local, status=hot-load, hostname=%s", key)
-	conf, err := local.LoadConfiguration(ctx)
+	logging.Debugf("solver=local, status=hot-load, hostname=%s", key)
+	conf, err := local.LoadConfiguration()
 	if err != nil {
-		LOGGER.Errorf("status=could-not-load-conf, err=%v", err)
+		logging.Errorf("status=could-not-load-conf, err=%v", err)
 		return nil, err
 	}
 	activeEnv, _ := conf.GetActiveEnv()
@@ -84,7 +84,7 @@ func (s localDnsSolver) solveHostname(ctx context.Context, question dns.Question
 		ttl = int64(hostname.Ttl)
 	}
 	val := s.Cache.PutIfAbsent(key, timed.NewTimedValue(hostname, time.Now(), time.Duration(ttl)*time.Second))
-	LOGGER.Debugf("status=put, key=%s, value=%v, ttl=%d", key, val, ttl)
+	logging.Debugf("status=put, key=%s, value=%v, ttl=%d", key, val, ttl)
 	if hostname != nil {
 		return s.getMsg(question, hostname), nil
 	}

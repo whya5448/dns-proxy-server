@@ -3,7 +3,7 @@ package proxy
 import (
 	"errors"
 	"github.com/mageddo/dns-proxy-server/cache"
-	log "github.com/mageddo/go-logging"
+	"github.com/mageddo/go-logging"
 	"github.com/miekg/dns"
 	"golang.org/x/net/context"
 	"net"
@@ -17,15 +17,14 @@ type DockerDnsSolver struct {
 
 func (s DockerDnsSolver) Solve(ctx context.Context, question dns.Question) (*dns.Msg, error) {
 
-	logger := log.NewLog(ctx)
 	key := question.Name[:len(question.Name)-1]
 	if s.c.ContainsKey(key) {
-		logger.Debugf("solver=docker, status=solved-key, solver=docker, hostname=%s, ip=%+v", key, s.c.Get(key))
+		logging.Debugf("solver=docker, status=solved-key, solver=docker, hostname=%s, ip=%+v", key, s.c.Get(key))
 		return s.getMsg(key, question), nil
 	}
 	i := strings.Index(key, ".")
 	if i > 0 && s.c.ContainsKey(key[i:]) {
-		logger.Debugf("solver=docker, status=solved-key-wildcard, solver=docker, hostname=%s, ip=%+v", key, s.c.Get(key[i:]))
+		logging.Debugf("solver=docker, status=solved-key-wildcard, solver=docker, hostname=%s, ip=%+v", key, s.c.Get(key[i:]))
 		return s.getMsg(key[i:], question), nil
 	}
 	return nil, errors.New("hostname not found " + key)

@@ -1,8 +1,8 @@
 package resolvconf
 
 import (
-	. "github.com/mageddo/dns-proxy-server/log"
 	"fmt"
+	"github.com/mageddo/go-logging"
 )
 
 type setMachineDNSServerHandler struct {
@@ -13,7 +13,7 @@ func (hd *setMachineDNSServerHandler) process(line string, entryType DnsEntry) *
 
 	switch entryType {
 	case PROXY:
-		LOGGER.Infof("status=found-dns-proxy-entry")
+		logging.Infof("status=found-dns-proxy-entry")
 		v := getDNSLine(hd.serverIP)
 		return &v
 	case SERVER:

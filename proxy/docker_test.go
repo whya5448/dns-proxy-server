@@ -5,14 +5,13 @@ import (
 	"github.com/miekg/dns"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/assert"
-	"github.com/mageddo/go-logging"
 	"github.com/mageddo/dns-proxy-server/cache/lru"
 	"github.com/mageddo/dns-proxy-server/cache"
 	glru "github.com/hashicorp/golang-lru"
+	"context"
 )
 
-var ctx = logging.NewContext()
-var logger = logging.NewLog(ctx)
+var ctx = context.Background()
 
 func TestDockerSolve_HostFound(t *testing.T){
 	c := newCacheMock()

@@ -2,7 +2,7 @@ version: '2'
 services:
 
   # Base Image to build project
-  gocompiler-docker-dns-proxy:
+  compiler-dps:
     image: golang:1.9
     container_name: docker-dns-gocompiler
     working_dir: /app/src/github.com/mageddo/dns-proxy-server
@@ -18,9 +18,8 @@ services:
     hostname: dns-proxy-server.dev
     network_mode: bridge
 
-
   # Run from docker image
-  prod-docker-dns-prod-server:
+  prod-dps:
     container_name: dns-proxy-server
     image: defreitas/dns-proxy-server:2.4.1
     hostname: dns.mageddo
@@ -32,24 +31,24 @@ services:
       - 5380:5380
     network_mode: bridge
 
-  # Build project and generate docker image
-  prod-build-docker-dns-proy-server:
+  # Build the project and generate binary at build folder
+  prod-build-binary-dps:
+    extends: compiler-dps
+    container_name: docker-dns-server-compiler
+    command: bash -c "builder build"
+
+  # Build project and generate docker image you will need to run prod-build-image-dps first
+  prod-build-image-dps:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: docker-dns-server-docker-compiler
     image: defreitas/dns-proxy-server:2.4.1
 
-  # Build the project and generate binary at build folder
-  prod-build-dns-proxy-server:
-    extends: gocompiler-docker-dns-proxy
-    container_name: docker-dns-server-compiler
-    command: bash -c "builder build"
-
   # build the project and make the github release
   prod-ci-deploy:
     container_name: prod-ci-deploy
-    extends: gocompiler-docker-dns-proxy
+    extends: compiler-dps
     command: bash -c "builder deploy-ci"
     environment:
       - CURRENT_BRANCH=$TRAVIS_BRANCH # current branch name

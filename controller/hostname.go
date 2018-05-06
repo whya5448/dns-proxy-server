@@ -5,8 +5,9 @@ import (
 	"encoding/json"
 	"github.com/mageddo/dns-proxy-server/events/local"
 	"golang.org/x/net/context"
-	log "github.com/mageddo/go-logging"
+	"github.com/mageddo/go-logging"
 	"fmt"
+	. "github.com/mageddo/go-httpmap"
 )
 
 const (
@@ -16,9 +17,9 @@ const (
 
 func init(){
 
-	Get(HOSTNAME, func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
+	Get(HOSTNAME, func(ctx context.Context, res http.ResponseWriter, req *http.Request){
 		res.Header().Add("Content-Type", "application/json")
-		if conf, _ := local.LoadConfiguration(ctx); conf != nil {
+		if conf, _ := local.LoadConfiguration(); conf != nil {
 			envName := req.URL.Query().Get("env")
 			if env, _ := conf.GetEnv(envName);  env != nil {
 				json.NewEncoder(res).Encode(env)
@@ -30,9 +31,9 @@ func init(){
 		confLoadError(res)
 	})
 
-	Get(HOSTNAME_FIND, func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
+	Get(HOSTNAME_FIND, func(ctx context.Context, res http.ResponseWriter, req *http.Request){
 		res.Header().Add("Content-Type", "application/json")
-		if conf, _ := local.LoadConfiguration(ctx); conf != nil {
+		if conf, _ := local.LoadConfiguration(); conf != nil {
 			env := req.URL.Query().Get("env")
 			hostname := req.URL.Query().Get("hostname")
 			var err error
@@ -47,64 +48,61 @@ func init(){
 		confLoadError(res)
 	})
 
-	Post(HOSTNAME, func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
-		logger := log.NewLog(ctx)
+	Post(HOSTNAME, func(ctx context.Context, res http.ResponseWriter, req *http.Request){
 		res.Header().Add("Content-Type", "application/json")
-		logger.Infof("m=/hostname/, status=begin, action=create-hostname")
+		logging.Infof("m=/hostname/, status=begin, action=create-hostname")
 		var hostname local.HostnameVo
 		if err := json.NewDecoder(req.Body).Decode(&hostname); err != nil {
 			BadRequest(res, "Invalid JSON")
 			return
 		}
-		logger.Infof("m=/hostname/, status=parsed-host, host=%+v", hostname)
-		if conf, _ := local.LoadConfiguration(ctx); conf != nil {
-			if err := conf.AddHostname(ctx, hostname.Env, hostname); err != nil {
-				logger.Infof("m=/hostname/, status=error, action=create-hostname, err=%+v", err)
+		logging.Infof("m=/hostname/, status=parsed-host, host=%+v", hostname)
+		if conf, _ := local.LoadConfiguration(); conf != nil {
+			if err := conf.AddHostname(hostname.Env, hostname); err != nil {
+				logging.Infof("m=/hostname/, status=error, action=create-hostname, err=%+v", err)
 				BadRequest(res, err.Error())
 				return
 			}
-			logger.Infof("m=/hostname/, status=success, action=create-hostname")
+			logging.Infof("m=/hostname/, status=success, action=create-hostname")
 			return
 		}
 		confLoadError(res)
 	})
 
-	Put(HOSTNAME, func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
-		logger := log.NewLog(ctx)
+	Put(HOSTNAME, func(ctx context.Context, res http.ResponseWriter, req *http.Request){
 		res.Header().Add("Content-Type", "application/json")
-		logger.Infof("m=/hostname/, status=begin, action=update-hostname")
+		logging.Infof("m=/hostname/, status=begin, action=update-hostname")
 		var hostname local.HostnameVo
 		if err := json.NewDecoder(req.Body).Decode(&hostname); err != nil {
 			BadRequest(res, "Invalid JSON")
 			return
 		}
-		logger.Infof("m=/hostname/, status=parsed-host, host=%+v", hostname)
-		if conf, _ := local.LoadConfiguration(ctx); conf != nil {
-			if err := conf.UpdateHostname(ctx, hostname.Env, hostname);  err != nil {
-				logger.Infof("m=/hostname/, status=error, action=update-hostname, err=%+v", err)
+		logging.Infof("m=/hostname/, status=parsed-host, host=%+v", hostname)
+		if conf, _ := local.LoadConfiguration(); conf != nil {
+			if err := conf.UpdateHostname(hostname.Env, hostname);  err != nil {
+				logging.Infof("m=/hostname/, status=error, action=update-hostname, err=%+v", err)
 				BadRequest(res, err.Error())
 				return
 			}
-			logger.Infof("m=/hostname/, status=success, action=update-hostname")
+			logging.Infof("m=/hostname/, status=success, action=update-hostname")
 			return
 		}
 		confLoadError(res)
 	})
 
-	Delete(HOSTNAME, func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
-		logger := log.NewLog(ctx)
+	Delete(HOSTNAME, func(ctx context.Context, res http.ResponseWriter, req *http.Request){
 		res.Header().Add("Content-Type", "application/json")
-		logger.Infof("m=/hostname/, status=begin, action=delete-hostname")
+		logging.Infof("m=/hostname/, status=begin, action=delete-hostname")
 		var hostname local.HostnameVo
 		json.NewDecoder(req.Body).Decode(&hostname)
-		logger.Infof("m=/hostname/, status=parsed-host, action=delete-hostname, host=%+v", hostname)
-		if conf, _ := local.LoadConfiguration(ctx); conf != nil {
-			if err := conf.RemoveHostnameByEnvAndHostname(ctx, hostname.Env, hostname.Hostname);  err != nil {
-				logger.Infof("m=/hostname/, status=error, action=delete-hostname, err=%+v", err)
+		logging.Infof("m=/hostname/, status=parsed-host, action=delete-hostname, host=%+v", hostname)
+		if conf, _ := local.LoadConfiguration(); conf != nil {
+			if err := conf.RemoveHostnameByEnvAndHostname(hostname.Env, hostname.Hostname);  err != nil {
+				logging.Infof("m=/hostname/, status=error, action=delete-hostname, err=%+v", err)
 				BadRequest(res, err.Error())
 				return
 			}
-			logger.Infof("m=/hostname/, status=success, action=delete-hostname")
+			logging.Infof("m=/hostname/, status=success, action=delete-hostname")
 			return
 		}
 		confLoadError(res)

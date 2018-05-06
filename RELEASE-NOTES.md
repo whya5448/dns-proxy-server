@@ -1,3 +1,6 @@
+### 2.5.0
+* Migrate to static logging tool
+
 ### 2.4.1
 * Service restart command was with typo
 

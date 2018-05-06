@@ -8,7 +8,7 @@ import (
 	"io"
 	"github.com/docker/engine-api/client"
 	"golang.org/x/net/context"
-	log "github.com/mageddo/go-logging"
+	"github.com/mageddo/go-logging"
 	"github.com/docker/engine-api/types"
 	"github.com/mageddo/dns-proxy-server/cache/lru"
 	"github.com/mageddo/dns-proxy-server/cache"
@@ -16,16 +16,14 @@ import (
 	"errors"
 )
 
-var c = lru.New(43690);
+var c = lru.New(43690)
 
 func HandleDockerEvents(){
-	defaultLogger := log.NewContext()
-	logger := log.NewLog(defaultLogger)
 
 	// connecting to docker api
 	cli, err := client.NewClient("unix:///var/run/docker.sock", "v1.21", nil, nil)
 	if err != nil {
-		logger.Errorf("status=error-to-connect-at-host, solver=docker, err=%v", err)
+		logging.Errorf("status=error-to-connect-at-host, solver=docker, err=%v", err)
 		return
 	}
 
@@ -34,11 +32,11 @@ func HandleDockerEvents(){
 	ctx := context.Background()
 
 	serverVersion, err := cli.ServerVersion(ctx)
-	logger.Infof("serverVersion=%+v, err=%v", serverVersion, err)
+	logging.Infof("serverVersion=%+v, err=%v", serverVersion, err)
 
 	containers, err := cli.ContainerList(ctx, options)
 	if err != nil {
-		logger.Errorf("status=error-to-list-container, solver=docker, err=%v", err)
+		logging.Errorf("status=error-to-list-container, solver=docker, err=%v", err)
 		return
 	}
 
@@ -51,28 +49,27 @@ func HandleDockerEvents(){
 	// registering at events before get the list of actual containers, this way no one container will be missed #55
 	body, err := cli.Events(ctx, types.EventsOptions{ Filters: eventFilter })
 	if err != nil {
-		logger.Errorf("status=error-to-attach-at-events-handler, solver=docker, err=%v", err)
+		logging.Errorf("status=error-to-attach-at-events-handler, solver=docker, err=%v", err)
 		return
 	}
 
 	for _, c := range containers {
 
 		cInspection, err := cli.ContainerInspect(ctx, c.ID)
-		logger.Infof("status=container-from-list-begin, container=%s", cInspection.Name)
+		logging.Infof("status=container-from-list-begin, container=%s", cInspection.Name)
 		if err != nil {
-			logger.Errorf("status=inspect-error-at-list, container=%s, err=%v", c.Names, err)
+			logging.Errorf("status=inspect-error-at-list, container=%s, err=%v", c.Names, err)
 		}
 		hostnames := getHostnames(cInspection)
-		putHostnames(defaultLogger, hostnames, cInspection)
-		logger.Infof("status=container-from-list-success, container=%s, hostnames=%s", cInspection.Name, hostnames)
+		putHostnames(hostnames, cInspection)
+		logging.Infof("status=container-from-list-success, container=%s, hostnames=%s", cInspection.Name, hostnames)
 
 	}
 	
 	dec := json.NewDecoder(body)
 	for {
 
-		logCtx := log.NewContext()
-		logger = log.NewLog(logCtx)
+		ctx := context.Background()
 
 		var event events.Message
 		err := dec.Decode(&event)
@@ -82,7 +79,7 @@ func HandleDockerEvents(){
 
 		cInspection, err := cli.ContainerInspect(ctx, event.ID)
 		if err != nil {
-			logger.Warningf("status=inspect-error, id=%s, err=%v", event.ID, err)
+			logging.Warningf("status=inspect-error, id=%s, err=%v", event.ID, err)
 			continue
 		}
 		hostnames := getHostnames(cInspection)
@@ -90,11 +87,11 @@ func HandleDockerEvents(){
 		if len(action) == 0 {
 			action = event.Status
 		}
-		logger.Infof("status=resolved-hosts, action=%s, hostnames=%s", action, hostnames)
+		logging.Infof("status=resolved-hosts, action=%s, hostnames=%s", action, hostnames)
 
 		switch action {
 		case "start":
-			putHostnames(logCtx, hostnames, cInspection)
+			putHostnames(hostnames, cInspection)
 			break
 
 		case "stop", "die":
@@ -136,8 +133,7 @@ func getHostnames(inspect types.ContainerJSON) []string {
 	return hostnames
 }
 
-func putHostnames(ctx context.Context, hostnames []string, inspect types.ContainerJSON) error {
-	logger := log.NewLog(ctx)
+func putHostnames(hostnames []string, inspect types.ContainerJSON) error {
 	for _, host := range hostnames {
 
 		var ip string = ""
@@ -148,11 +144,11 @@ func putHostnames(ctx context.Context, hostnames []string, inspect types.Contain
 			ip = inspect.NetworkSettings.IPAddress;
 			if len(ip) == 0 {
 				err := fmt.Sprintf("no network found to %s", inspect.Name)
-				logger.Error(err)
+				logging.Error(err)
 				return errors.New(err)
 			}
 		}
-		logger.Debugf("host=%s, ip=%s", host, ip)
+		logging.Debugf("host=%s, ip=%s", host, ip)
 		c.Put(host, ip)
 	}
 	return nil

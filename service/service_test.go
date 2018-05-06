@@ -1,8 +1,7 @@
 package service
 
 import (
-	. "github.com/mageddo/dns-proxy-server/log"
-	log "github.com/mageddo/go-logging"
+	"github.com/mageddo/go-logging"
 	"testing"
 	"io/ioutil"
 	"github.com/stretchr/testify/assert"
@@ -15,13 +14,11 @@ import (
 func TestSetupFor_NormalModeInstallStartSuccess(t *testing.T) {
 
 	if !flags.IsTestVersion() {
-		LOGGER.Infof("status=test-skiped")
+		logging.Infof("status=test-skiped")
 		return
 	}
 
-	ctx := log.NewContext()
-
-	sc := NewService(ctx)
+	sc := NewService()
 	cmd := "'sh -c \"echo hi && sleep 20 && echo bye\"'"
 	err := sc.SetupFor(DNS_PROXY_SERVER_PATH, DNS_PROXY_SERVER_SERVICE, &Script{cmd})
 	assert.Nil(t, err)

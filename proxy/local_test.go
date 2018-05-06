@@ -6,7 +6,6 @@ import (
 	"github.com/mageddo/dns-proxy-server/cache/lru"
 	"github.com/mageddo/dns-proxy-server/cache/store"
 	"github.com/mageddo/dns-proxy-server/events/local"
-	"github.com/mageddo/go-logging"
 	"github.com/miekg/dns"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -18,13 +17,12 @@ func TestLocalDnsSolver_Solve(t *testing.T) {
 
 	defer local.ResetConf()
 
-	ctx := logging.NewContext()
-	conf, err := local.LoadConfiguration(ctx)
+	conf, err := local.LoadConfiguration()
 	assert.Nil(t, err, "failed to load configuration")
 
 	expectedHostname := "github.com"
 	host := local.HostnameVo{Hostname: expectedHostname, Env: "", Ttl: 50, Ip: [4]byte{192, 168, 0, 1}}
-	conf.AddHostname(ctx, "", host)
+	conf.AddHostname( "", host)
 
 	question := new(dns.Question)
 	question.Name = expectedHostname + "."
@@ -45,8 +43,6 @@ func TestLocalDnsSolver_SolveNotFoundHost(t *testing.T) {
 	defer local.ResetConf()
 
 	expectedHostname := "github.com"
-	ctx := logging.NewContext()
-
 	question := new(dns.Question)
 	question.Name = expectedHostname + "."
 	solver := NewLocalDNSSolver(store.GetInstance())
@@ -66,14 +62,13 @@ func TestLocalDnsSolver_SolveValidatingCache(t *testing.T) {
 
 	defer local.ResetConf()
 
-	ctx := logging.NewContext()
-	conf, err := local.LoadConfiguration(ctx)
+	conf, err := local.LoadConfiguration()
 	assert.Nil(t, err, "failed to load configuration")
 
 	// configuring a new host at local configuration
 	expectedHostname := "github.com"
 	host := local.HostnameVo{Hostname: expectedHostname, Env: "", Ttl: 50, Ip: [4]byte{192, 168, 0, 1}}
-	conf.AddHostname(ctx, "", host)
+	conf.AddHostname( "", host)
 
 	// creating a request for the created host
 	question := new(dns.Question)
@@ -108,14 +103,13 @@ func TestLocalDnsSolver_SolveCacheExpiration(t *testing.T) {
 
 	defer local.ResetConf()
 
-	ctx := logging.NewContext()
-	conf, err := local.LoadConfiguration(ctx)
+	conf, err := local.LoadConfiguration()
 	assert.Nil(t, err, "failed to load configuration")
 
 	// configuring a new host at local configuration
 	expectedHostname := "github.com"
 	host := local.HostnameVo{Hostname: expectedHostname, Env: "", Ttl: 2, Ip: [4]byte{192, 168, 0, 1}}
-	conf.AddHostname(ctx, "", host)
+	conf.AddHostname( "", host)
 
 	// creating a request for the created host
 	question := new(dns.Question)
@@ -156,12 +150,11 @@ func TestLocalDnsSolver_SolvingByWildcard(t *testing.T) {
 	solver := NewLocalDNSSolver(c)
 
 	defer local.ResetConf()
-	ctx := logging.NewContext()
-	conf, err := local.LoadConfiguration(ctx)
+	conf, err := local.LoadConfiguration()
 	assert.Nil(t, err, "failed to load configuration")
 
 	host := local.HostnameVo{Hostname: ".github.com", Env: "", Ttl: 2, Ip: [4]byte{192, 168, 0, 1}}
-	conf.AddHostname(ctx, "", host)
+	conf.AddHostname( "", host)
 
 	question := new(dns.Question)
 	question.Name = "server1.github.com."
@@ -184,12 +177,11 @@ func TestLocalDnsSolver_WildcardRegisteredButNotMatched(t *testing.T) {
 	solver := NewLocalDNSSolver(c)
 
 	defer local.ResetConf()
-	ctx := logging.NewContext()
-	conf, err := local.LoadConfiguration(ctx)
+	conf, err := local.LoadConfiguration()
 	assert.Nil(t, err, "failed to load configuration")
 
 	host := local.HostnameVo{Hostname: ".github.com", Env: "", Ttl: 2, Ip: [4]byte{192, 168, 0, 1}}
-	conf.AddHostname(ctx, "", host)
+	conf.AddHostname( "", host)
 
 	question := new(dns.Question)
 	question.Name = "server1.mageddo.com."

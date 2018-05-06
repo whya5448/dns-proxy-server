@@ -2,7 +2,7 @@
 
 Setup the environment
 
-    $ docker-compose -d gocompiler-docker-dns-proxy up
+    $ docker-compose -d compiler-dps up
     $ docker exec -it gocompiler bash
 
 Running the application 

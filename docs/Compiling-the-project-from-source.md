@@ -5,7 +5,7 @@ Docker-Dns-proxy uses docker to simplify the compile process
 
 Generate the binaries
 
-	$ docker-compose up prod-build-dns-proxy-server
+	$ docker-compose up prod-build-binary-dps
 	Starting docker-dns-server-compiler
 	Attaching to docker-dns-server-compiler
 	docker-dns-server-compiler           | ok  	github.com/mageddo/dns-proxy-server/conf	0.008s
@@ -18,7 +18,7 @@ Generate the binaries
 
 Create the docker image
 
-    $ docker-compose build prod-build-docker-dns-proy-server
+    $ docker-compose build prod-build-image-dps
 
 # Used tecnologies 
 

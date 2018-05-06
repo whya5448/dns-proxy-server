@@ -1,11 +1,11 @@
 package main
 
 import (
-	. "github.com/mageddo/dns-proxy-server/log"
 	"github.com/miekg/dns"
 	"os"
 	"net"
-	
+
+	"github.com/mageddo/go-logging"
 )
 
 // reference https://miek.nl/2014/August/16/go-dns-package/
@@ -23,17 +23,17 @@ func main(){
 
 	// if the answer not be returned
 	if r == nil {
-		LOGGER.Fatalf("**** error: %s", err.Error())
+		logging.Errorf("**** error: %s", err.Error())
 	}
 
 	// what the code of the return message ?
 	if r.Rcode != dns.RcodeSuccess {
-		LOGGER.Fatalf(" *** invalid answer name %s after MX query for %s", os.Args[1], os.Args[1])
+		logging.Errorf(" *** invalid answer name %s after MX query for %s", os.Args[1], os.Args[1])
 	}
 
 	// looping through the anwsers
 	for _, a := range r.Answer {
-		LOGGER.Infof("%v", a)
+		logging.Infof("%v", a)
 	}
 
 }
