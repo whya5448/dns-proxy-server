@@ -7,6 +7,7 @@ import (
 	"golang.org/x/net/context"
 	log "github.com/mageddo/go-logging"
 	"fmt"
+	. "github.com/mageddo/go-httpmap"
 )
 
 const (
@@ -16,7 +17,7 @@ const (
 
 func init(){
 
-	Get(HOSTNAME, func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
+	Get(HOSTNAME, func(ctx context.Context, res http.ResponseWriter, req *http.Request){
 		res.Header().Add("Content-Type", "application/json")
 		if conf, _ := local.LoadConfiguration(ctx); conf != nil {
 			envName := req.URL.Query().Get("env")
@@ -30,7 +31,7 @@ func init(){
 		confLoadError(res)
 	})
 
-	Get(HOSTNAME_FIND, func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
+	Get(HOSTNAME_FIND, func(ctx context.Context, res http.ResponseWriter, req *http.Request){
 		res.Header().Add("Content-Type", "application/json")
 		if conf, _ := local.LoadConfiguration(ctx); conf != nil {
 			env := req.URL.Query().Get("env")
@@ -47,7 +48,7 @@ func init(){
 		confLoadError(res)
 	})
 
-	Post(HOSTNAME, func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
+	Post(HOSTNAME, func(ctx context.Context, res http.ResponseWriter, req *http.Request){
 		logger := log.NewLog(ctx)
 		res.Header().Add("Content-Type", "application/json")
 		logger.Infof("m=/hostname/, status=begin, action=create-hostname")
@@ -69,7 +70,7 @@ func init(){
 		confLoadError(res)
 	})
 
-	Put(HOSTNAME, func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
+	Put(HOSTNAME, func(ctx context.Context, res http.ResponseWriter, req *http.Request){
 		logger := log.NewLog(ctx)
 		res.Header().Add("Content-Type", "application/json")
 		logger.Infof("m=/hostname/, status=begin, action=update-hostname")
@@ -91,7 +92,7 @@ func init(){
 		confLoadError(res)
 	})
 
-	Delete(HOSTNAME, func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
+	Delete(HOSTNAME, func(ctx context.Context, res http.ResponseWriter, req *http.Request){
 		logger := log.NewLog(ctx)
 		res.Header().Add("Content-Type", "application/json")
 		logger.Infof("m=/hostname/, status=begin, action=delete-hostname")

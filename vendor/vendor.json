@@ -159,6 +159,12 @@
 			"revisionTime": "2016-08-13T22:13:03Z"
 		},
 		{
+			"checksumSHA1": "dgp/yzViJU2D1VjVBye1jFxTv0M=",
+			"path": "github.com/mageddo/go-httpmap",
+			"revision": "51aa467628f65b9dfcd8c4888a7cbf33dd7b0982",
+			"revisionTime": "2018-05-06T17:23:18Z"
+		},
+		{
 			"checksumSHA1": "NYMQv/xaka0eXZ6nFLHrRzpjigk=",
 			"path": "github.com/mageddo/go-logging",
 			"revision": "7a44b89dd8729895685b465e309f2c8253be6a42",

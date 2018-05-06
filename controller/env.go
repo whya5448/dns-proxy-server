@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"context"
 	"github.com/mageddo/dns-proxy-server/utils"
+	. "github.com/mageddo/go-httpmap"
 )
 
 const (
@@ -18,7 +19,7 @@ const (
 func init(){
 
 
-	Get(ENV_ACTIVE, func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
+	Get(ENV_ACTIVE, func(ctx context.Context, res http.ResponseWriter, req *http.Request){
 		res.Header().Add("Content-Type", "application/json")
 		if conf, _ := local.LoadConfiguration(ctx); conf != nil {
 			utils.GetJsonEncoder(res).Encode(local.EnvVo{Name: conf.ActiveEnv})
@@ -27,7 +28,7 @@ func init(){
 		confLoadError(res)
 	})
 
-	Put(ENV_ACTIVE, func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
+	Put(ENV_ACTIVE, func(ctx context.Context, res http.ResponseWriter, req *http.Request){
 
 		logger := log.NewLog(ctx)
 		logger.Infof("m=/env/active/, status=begin")
@@ -50,7 +51,7 @@ func init(){
 
 	})
 
-	Get(ENV, func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
+	Get(ENV, func(ctx context.Context, res http.ResponseWriter, req *http.Request){
 		res.Header().Add("Content-Type", "application/json")
 		if conf, _ := local.LoadConfiguration(ctx); conf != nil {
 			utils.GetJsonEncoder(res).Encode(conf.Envs)
@@ -59,7 +60,7 @@ func init(){
 		confLoadError(res)
 	})
 
-	Post(ENV, func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
+	Post(ENV, func(ctx context.Context, res http.ResponseWriter, req *http.Request){
 		logger := log.NewLog(ctx)
 		res.Header().Add("Content-Type", "application/json")
 		logger.Infof("m=/env/, status=begin, action=create-env")
@@ -78,7 +79,7 @@ func init(){
 		confLoadError(res)
 	})
 
-	Delete(ENV, func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string){
+	Delete(ENV, func(ctx context.Context, res http.ResponseWriter, req *http.Request){
 		logger := log.NewLog(ctx)
 		res.Header().Add("Content-Type", "application/json")
 		logger.Infof("m=/env/, status=begin, action=delete-env")

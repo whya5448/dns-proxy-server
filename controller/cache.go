@@ -6,6 +6,7 @@ import (
 	"github.com/mageddo/dns-proxy-server/utils"
 	"github.com/mageddo/dns-proxy-server/cache/store"
 	"github.com/mageddo/go-logging"
+	. "github.com/mageddo/go-httpmap"
 )
 const (
 	CACHE_V1 = "/v1/caches"
@@ -13,7 +14,7 @@ const (
 )
 func init() {
 
-	Get(CACHE_V1, func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string) {
+	Get(CACHE_V1, func(ctx context.Context, res http.ResponseWriter, req *http.Request) {
 
 		logger := logging.NewLog(ctx)
 		c, encoder := store.GetInstance(), utils.GetJsonEncoder(res)
@@ -31,7 +32,7 @@ func init() {
 		}
 	})
 
-	Get(CACHE_SIZE_V1, func(ctx context.Context, res http.ResponseWriter, req *http.Request, url string) {
+	Get(CACHE_SIZE_V1, func(ctx context.Context, res http.ResponseWriter, req *http.Request) {
 
 		logger := logging.NewLog(ctx)
 		c, encoder := store.GetInstance(), utils.GetJsonEncoder(res)
