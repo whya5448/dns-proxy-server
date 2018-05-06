@@ -13,7 +13,12 @@
 
 ```json
 {
-	"key1": "value1"
+  "acme.com": {
+    "CreationDate": "2018-05-06T19:31:40.62282457Z",
+    "TimeoutDuration": 86400000000000, // nano seconds
+    "Val": null
+  },
+	....
 }
 ```
 
