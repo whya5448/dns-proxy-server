@@ -16,9 +16,8 @@ func init() {
 
 	Get(CACHE_V1, func(ctx context.Context, res http.ResponseWriter, req *http.Request) {
 
-		logger := logging.NewLog(ctx)
 		c, encoder := store.GetInstance(), utils.GetJsonEncoder(res)
-		logger.Debugf("m=%s, size=%d", CACHE_V1, c.Size())
+		logging.Debugf("m=%s, size=%d", CACHE_V1, c.Size())
 		res.Header().Add("Content-Type", "application/json")
 
 		cacheObject := make(map[string]interface{})
@@ -27,20 +26,19 @@ func init() {
 		}
 
 		if err := encoder.Encode(cacheObject); err != nil {
-			logger.Errorf("m=%s, err=%v", CACHE_V1, err)
+			logging.Errorf("m=%s, err=%v", CACHE_V1, err)
 			RespMessage(res, http.StatusServiceUnavailable, "Could not get caches, please try again later")
 		}
 	})
 
 	Get(CACHE_SIZE_V1, func(ctx context.Context, res http.ResponseWriter, req *http.Request) {
 
-		logger := logging.NewLog(ctx)
 		c, encoder := store.GetInstance(), utils.GetJsonEncoder(res)
-		logger.Debugf("m=%s, size=%d", CACHE_SIZE_V1, c.Size())
+		logging.Debugf("m=%s, size=%d", CACHE_SIZE_V1, c.Size())
 		res.Header().Add("Content-Type", "application/json")
 
 		if err := encoder.Encode(map[string]interface{}{"size": c.Size()}); err != nil {
-			logger.Errorf("m=%s, err=%v", CACHE_SIZE_V1, err)
+			logging.Errorf("m=%s, err=%v", CACHE_SIZE_V1, err)
 			RespMessage(res, http.StatusServiceUnavailable, "Temporary unavailable, please try again later")
 		}
 	})

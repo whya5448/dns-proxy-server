@@ -165,10 +165,22 @@
 			"revisionTime": "2018-05-06T17:23:18Z"
 		},
 		{
-			"checksumSHA1": "NYMQv/xaka0eXZ6nFLHrRzpjigk=",
+			"checksumSHA1": "ALgMULpOi2xSp6n7gvva7Wqmf3U=",
 			"path": "github.com/mageddo/go-logging",
-			"revision": "7a44b89dd8729895685b465e309f2c8253be6a42",
-			"revisionTime": "2017-08-26T21:24:42Z"
+			"revision": "8a9fe7be7eb3a469ebd798a23ca0706cfc2be869",
+			"revisionTime": "2018-05-06T01:37:09Z"
+		},
+		{
+			"checksumSHA1": "3a2Cl6bL2Q6uYapCm6w+t2gPrEQ=",
+			"path": "github.com/mageddo/go-logging/native",
+			"revision": "8a9fe7be7eb3a469ebd798a23ca0706cfc2be869",
+			"revisionTime": "2018-05-06T01:37:09Z"
+		},
+		{
+			"checksumSHA1": "lfX48z2cH3wjbmocIz9KCMmFN0s=",
+			"path": "github.com/mageddo/go-logging/pkg/trace",
+			"revision": "8a9fe7be7eb3a469ebd798a23ca0706cfc2be869",
+			"revisionTime": "2018-05-06T01:37:09Z"
 		},
 		{
 			"checksumSHA1": "cavsxjKtP9+BRItaR8LAealFNjA=",

@@ -4,10 +4,9 @@ import (
 	"fmt"
 	"github.com/mageddo/dns-proxy-server/flags"
 	"github.com/mageddo/dns-proxy-server/utils"
-	log "github.com/mageddo/go-logging"
 	"os"
-	"golang.org/x/net/context"
 	"errors"
+	"github.com/mageddo/go-logging"
 )
 
 const (
@@ -15,17 +14,14 @@ const (
 	DNS_PROXY_SERVER_PATH = "/etc/init.d/dns-proxy-server"
 )
 
-type Service struct {
-	ctx context.Context
-	logger log.Log
-}
+type Service struct {}
 
 type Script struct {
 	Script string
 }
 
-func NewService(ctx context.Context) *Service {
-	return &Service{ctx, log.NewLog(ctx)}
+func NewService() *Service {
+	return &Service{}
 }
 
 func (sc *Service) Install() {
@@ -34,7 +30,7 @@ func (sc *Service) Install() {
 	if len(serviceMode) == 0 {
 		return
 	}
-	sc.logger.Infof("mode=%s, version=%s", serviceMode, flags.GetRawCurrentVersion())
+	logging.Infof("mode=%s, version=%s", serviceMode, flags.GetRawCurrentVersion())
 	var err error
 	switch serviceMode {
 	case "docker":
@@ -45,7 +41,7 @@ func (sc *Service) Install() {
 		sc.Uninstall()
 	}
 	if err != nil {
-		sc.logger.Error(err)
+		logging.Error(err)
 		os.Exit(-1)
 	}
 	os.Exit(0)
@@ -54,41 +50,43 @@ func (sc *Service) Install() {
 
 func (sc *Service) SetupFor(servicePath, serviceName string, script *Script) error {
 
-	sc.logger.Debugf("status=begin, servicePath=%s", servicePath)
+	logging.Debugf("status=begin, servicePath=%s", servicePath)
 
 	err := utils.CreateExecutableFile(fmt.Sprintf(SERVICE_TEMPLATE, script.Script), servicePath)
 
 	if err != nil {
 		err := fmt.Sprintf("status=service-template, msg=%v", err)
-		sc.logger.Warning(err)
+		logging.Warning(err)
 		return errors.New(fmt.Sprintf("status=service-template, msg=%v", err))
 	}
 
 	if utils.Exists("update-rc.d") { // debian
 		_, err, _ = utils.Exec("update-rc.d", serviceName, "defaults")
 		if err != nil {
-			sc.logger.Fatalf("status=fatal-install-service, service=update-rc.d, msg=%s", err.Error())
+			logging.Errorf("status=fatal-install-service, service=update-rc.d, msg=%s", err.Error(), err)
+			os.Exit(-1)
 		}
 	} else if utils.Exists("chkconfig") { // redhat
 		_, err, _ = utils.Exec("chkconfig", serviceName, "on")
 		if err != nil {
-			sc.logger.Fatalf("status=fatal-install-service, service=chkconfig, msg=%s", err.Error())
+			logging.Errorf("status=fatal-install-service, service=chkconfig, msg=%s", err.Error(), err)
+			os.Exit(-2)
 		}
 	} else { // not known
-		sc.logger.Warningf("status=impossible to setup to start at boot")
+		logging.Warningf("status=impossible to setup to start at boot")
 	}
 
 	out, err, _ := utils.Exec("service", serviceName, "stop")
 	if err != nil {
-		sc.logger.Debugf("status=stop-service, msg=out=%s", string(out))
+		logging.Debugf("status=stop-service, msg=out=%s", string(out))
 	}
 	_, err, _ = utils.Exec("service", serviceName, "start")
 	if err != nil {
 		err := fmt.Sprintf("status=start-service, msg=%v", err)
-		sc.logger.Warning(err)
+		logging.Warning(err)
 		return errors.New(err)
 	}
-	sc.logger.Infof("status=success, servicePath=%s", servicePath)
+	logging.Infof("status=success, servicePath=%s", servicePath)
 	return nil
 
 }
@@ -96,11 +94,11 @@ func (sc *Service) SetupFor(servicePath, serviceName string, script *Script) err
 
 func (sc *Service) Uninstall() error {
 
-	sc.logger.Infof("status=begin")
+	logging.Infof("status=begin")
 	var err error
 
 	if out, err, _ := utils.Exec("service", DNS_PROXY_SERVER_SERVICE, "stop"); err != nil {
-		sc.logger.Infof("status=stop-fail, msg=maibe-no-running, out=%s", string(out))
+		logging.Infof("status=stop-fail, msg=maibe-no-running, out=%s", string(out))
 	}
 
 	if utils.Exists("update-rc.d") {
@@ -108,14 +106,14 @@ func (sc *Service) Uninstall() error {
 	} else if utils.Exists("chkconfig") {
 		_, err, _ = utils.Exec("chkconfig", DNS_PROXY_SERVER_SERVICE, "off")
 	} else {
-		sc.logger.Warningf("status=impossible to remove service")
+		logging.Warningf("status=impossible to remove service")
 	}
 	if err != nil {
 		err := fmt.Sprintf("status=fatal-remove-service, msg=%v", err)
-		sc.logger.Warning(err)
+		logging.Warning(err)
 		return errors.New(err)
 	}
-	sc.logger.Infof("status=success")
+	logging.Infof("status=success")
 	return nil
 }
 

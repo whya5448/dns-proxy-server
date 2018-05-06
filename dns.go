@@ -1,6 +1,7 @@
 package main
 
 import (
+	_ "github.com/mageddo/dns-proxy-server/controller"
 	"github.com/mageddo/dns-proxy-server/log"
 	"fmt"
 	"os"
@@ -13,7 +14,6 @@ import (
 	"github.com/mageddo/dns-proxy-server/events/local"
 	"github.com/mageddo/dns-proxy-server/events/docker"
 	"net/http"
-	"github.com/mageddo/dns-proxy-server/controller"
 	"github.com/mageddo/dns-proxy-server/conf"
 	"github.com/mageddo/dns-proxy-server/utils/exitcodes"
 	"github.com/mageddo/dns-proxy-server/service"
@@ -21,22 +21,20 @@ import (
 	"runtime/debug"
 	"github.com/mageddo/dns-proxy-server/cache/store"
 	"github.com/mageddo/dns-proxy-server/resolvconf"
+	"context"
 )
 
 func init(){
-	log.SetLevel(conf.LogLevel())
+	// TODO unavailable log.SetLevel(conf.LogLevel())
 	log.SetOutput(conf.LogFile())
 }
 
 func handleQuestion(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 
-	ctx := logging.NewContext()
-	logger := logging.NewLog(ctx)
-
 	defer func() {
 		err := recover()
 		if err != nil {
-			logger.Errorf("status=error, error=%v, stack=%s", err, string(debug.Stack()))
+			logging.Errorf("status=error, error=%v, stack=%s", err, string(debug.Stack()))
 		}
 	}()
 
@@ -45,11 +43,11 @@ func handleQuestion(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 	if questionsQtd != 0 {
 		firstQuestion = reqMsg.Question[0]
 	}else{
-		logger.Error("status=question-is-nil")
+		logging.Error("status=question-is-nil")
 		return
 	}
 
-	logger.Debugf("status=begin, reqId=%d, questions=%d, question=%s, type=%s", reqMsg.Id,
+	logging.Debugf("status=begin, reqId=%d, questions=%d, question=%s, type=%s", reqMsg.Id,
 	questionsQtd, firstQuestion.Name, utils.DnsQTypeCodeToName(firstQuestion.Qtype))
 
 	// loading the solvers and try to solve the hostname in that order
@@ -60,19 +58,19 @@ func handleQuestion(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 	for _, solver := range solvers {
 
 		solverID := reflect.TypeOf(solver).String()
-		logger.Debugf("status=begin, solver=%s", solverID)
+		logging.Debugf("status=begin, solver=%s", solverID)
 		// loop through questions
-		resp, err := solver.Solve(ctx, firstQuestion)
+		resp, err := solver.Solve(context.Background(), firstQuestion)
 		if err == nil {
 
 			var firstAnswer dns.RR
 			answerLenth := len(resp.Answer)
 
-			logger.Debugf("status=answer-found, solver=%s, length=%d", solverID, answerLenth)
+			logging.Debugf("status=answer-found, solver=%s, length=%d", solverID, answerLenth)
 			if answerLenth != 0 {
 				firstAnswer = resp.Answer[0]
 			}
-			logger.Debugf("status=resolved, solver=%s, alength=%d, answer=%v", solverID, answerLenth, firstAnswer)
+			logging.Debugf("status=resolved, solver=%s, alength=%d, answer=%v", solverID, answerLenth, firstAnswer)
 
 			resp.SetReply(reqMsg)
 			resp.Compress = conf.Compress()
@@ -80,15 +78,15 @@ func handleQuestion(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 			break
 		}
 
-		logger.Debugf("status=not-resolved, solver=%s, err=%v", solverID, err)
+		logging.Debugf("status=not-resolved, solver=%s, err=%v", solverID, err)
 
 	}
 
 }
 
-func serve(net, name, secret string, logger logging.Log) {
+func serve(net, name, secret string) {
 	port := fmt.Sprintf(":%d", conf.DnsServerPort())
-	logger.Debugf("status=begin, port=%d", conf.DnsServerPort())
+	logging.Debugf("status=begin, port=%d", conf.DnsServerPort())
 	switch name {
 	case "":
 		server := &dns.Server{Addr: port, Net: net, TsigSecret: nil}
@@ -107,10 +105,7 @@ func serve(net, name, secret string, logger logging.Log) {
 
 func main() {
 
-	ctx := logging.NewContext()
-	logger := logging.NewLog(ctx)
-
-	service.NewService(ctx).Install()
+	service.NewService().Install()
 
 	var name, secret string
 	if conf.Tsig() != "" {
@@ -120,7 +115,8 @@ func main() {
 	if conf.CpuProfile() != "" {
 		f, err := os.Create(conf.CpuProfile())
 		if err != nil {
-			logger.Fatal(err)
+			logging.Error(err)
+			os.Exit(-3)
 		}
 		pprof.StartCPUProfile(f)
 		defer pprof.StopCPUProfile()
@@ -128,38 +124,37 @@ func main() {
 
 	dns.HandleFunc(".", handleQuestion)
 
-	local.LoadConfiguration(ctx)
+	local.LoadConfiguration()
 
 	go docker.HandleDockerEvents()
-	go serve("tcp", name, secret, logger)
-	go serve("udp", name, secret, logger)
+	go serve("tcp", name, secret)
+	go serve("udp", name, secret)
 	go func(){
 		webPort := conf.WebServerPort()
-		logger.Infof("status=web-server-starting, port=%d", webPort)
+		logging.Infof("status=web-server-starting, port=%d", webPort)
 		if err := http.ListenAndServe(fmt.Sprintf(":%d", webPort), nil); err != nil {
-			logger.Errorf("status=failed-start-web-server, err=%v, port=%d", err, webPort)
+			logging.Errorf("status=failed-start-web-server, err=%v, port=%d", err, webPort)
 			exitcodes.Exit(exitcodes.FAIL_START_WEB_SERVER)
 		}else{
-			logger.Infof("status=web-server-started, port=%d", webPort)
+			logging.Infof("status=web-server-started, port=%d", webPort)
 		}
 	}()
 	go func() {
-		logger.Infof("status=setup-requests")
-		controller.MapRequests()
+		logging.Infof("status=setup-requests")
 		if conf.SetupResolvConf() {
-			logger.Infof("status=setResolvconf")
+			logging.Infof("status=setResolvconf")
 			err := resolvconf.SetCurrentDNSServerToMachine()
 			if err != nil {
-				logger.Errorf("status=setResolvconf, err=%v", err)
+				logging.Errorf("status=setResolvconf, err=%v", err)
 				exitcodes.Exit(exitcodes.FAIL_SET_DNS_AS_DEFAULT)
 			}
 		}
 	}()
 
-	logger.Infof("status=listing-signals")
+	logging.Infof("status=listing-signals")
 	fmt.Printf("server started\n")
 	s := <- utils.Sig
-	logger.Infof("status=exiting..., s=%s", s)
+	logging.Infof("status=exiting..., s=%s", s)
 	resolvconf.RestoreResolvconfToDefault()
-	logger.Warningf("status=exiting, signal=%v", s)
+	logging.Warningf("status=exiting, signal=%v", s)
 }

@@ -5,7 +5,6 @@ import (
 	"github.com/mageddo/dns-proxy-server/flags"
 	"os"
 	"github.com/mageddo/dns-proxy-server/utils/env"
-	"github.com/mageddo/go-logging"
 	"strings"
 )
 
@@ -47,7 +46,7 @@ func GetResolvConf() string {
 }
 
 func getConf() (*local.LocalConfiguration, error) {
-	return local.LoadConfiguration(logging.NewContext())
+	return local.LoadConfiguration()
 }
 
 func LogLevel() string {

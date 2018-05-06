@@ -16,7 +16,7 @@ func init(){
 
 	Get("/configuration/", func(ctx context.Context, res http.ResponseWriter, req *http.Request){
 		res.Header().Add("Content-Type", "application/json")
-		if conf, _ := local.LoadConfiguration(ctx); conf != nil {
+		if conf, _ := local.LoadConfiguration(); conf != nil {
 			utils.GetJsonEncoder(res).Encode(conf)
 			return
 		}
