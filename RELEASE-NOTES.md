@@ -1,3 +1,6 @@
+### 2.5.1
+* Fixing ping slowness, takes more than 10 seconds to respond 
+
 ### 2.5.0
 * Migrate to static logging tool
 
