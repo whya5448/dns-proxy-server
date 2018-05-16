@@ -66,7 +66,8 @@ func (r remoteDnsSolver) Solve(ctx context.Context, question dns.Question) (*dns
 		}
 		return res, nil
 	}
-	return nil, err
+	logging.Infof("status=complete, name=%s, res=%d, err=%s", question.Name, getRCode(res), err)
+	return res, err
 }
 
 func NewRemoteDnsSolver() *remoteDnsSolver {
@@ -74,4 +75,12 @@ func NewRemoteDnsSolver() *remoteDnsSolver {
 		confloader: func(ctx context.Context) (*local.LocalConfiguration, error) {
 			return local.LoadConfiguration()
 		}}
+}
+
+
+func getRCode(msg *dns.Msg) int {
+	if msg == nil {
+		return -1
+	}
+	return msg.Rcode
 }
