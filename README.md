@@ -33,7 +33,7 @@ The Dns Proxy Server basically follow the bellow order to solve the names:
 
 ##### From docker
 
-	$ docker run --hostname dns.mageddo --name dns-proxy-server -p 5380:5380 \
+	$ docker run --rm --hostname dns.mageddo --name dns-proxy-server -p 5380:5380 \
     -v /opt/dns-proxy-server/conf:/app/conf \
     -v /var/run/docker.sock:/var/run/docker.sock \
     -v /etc/resolv.conf:/etc/resolv.conf \
@@ -148,6 +148,18 @@ Start the server at [custom port](#configure-your-dns) and solving from it
 
 ### Installing it as a service
 
+__Option 1__
+
+```bash
+docker run --hostname dns.mageddo --name dns-proxy-server -p 5380:5380 \
+	--restart=unless-stopped -d \
+	-v /opt/dns-proxy-server/conf:/app/conf \
+	-v /var/run/docker.sock:/var/run/docker.sock \
+	-v /etc/resolv.conf:/etc/resolv.conf \
+	defreitas/dns-proxy-server
+```
+
+__Option 2__
 1. Download the [latest release](https://github.com/mageddo/dns-proxy-server/releases) and extract it
 2. Run the service installer
 ```
