@@ -40,6 +40,7 @@ func (r remoteDnsSolver) Solve(ctx context.Context, question dns.Question) (*dns
 	}
 	config = c.Get(SERVERS).(*local.LocalConfiguration)
 
+	var res *dns.Msg
 	for _, server := range config.GetRemoteServers(ctx) {
 
 		if len(server) != 4 {
@@ -51,27 +52,35 @@ func (r remoteDnsSolver) Solve(ctx context.Context, question dns.Question) (*dns
 		formatServer := fmt.Sprintf("%d.%d.%d.%d", server[0], server[1], server[2], server[3])
 		logging.Debugf("status=format-server, server=%s", formatServer)
 
-		var r *dns.Msg
-		r, _, err = client.Exchange(m, net.JoinHostPort(formatServer, "53"))
+		res, _, err = client.Exchange(m, net.JoinHostPort(formatServer, "53"))
 
 		// if the answer not be returned
-		if r == nil {
+		if res == nil {
 			err = errors.New(fmt.Sprintf("status=answer-can-not-be-null, err=%v", err))
 			logging.Infof("status=no-answer, err=%s", err)
 			continue
-		} else if r.Rcode != dns.RcodeSuccess { // what the code of the return message ?
-			err = errors.New(fmt.Sprintf("status=invalid-answer-name, name=%s, rcode=%d", question.Name, r.Rcode))
-			logging.Infof("status=bad-code, name=%s, rcode=%d, err=%s", question.Name, r.Rcode, err)
+		} else if res.Rcode != dns.RcodeSuccess { // what the code of the return message ?
+			err = errors.New(fmt.Sprintf("status=invalid-answer-name, name=%s, rcode=%d", question.Name, res.Rcode))
+			logging.Infof("status=bad-code, name=%s, rcode=%d, err=%s", question.Name, res.Rcode, err)
 			continue
 		}
-		return r, nil
+		return res, nil
 	}
-	return nil, err
+	logging.Infof("status=complete, name=%s, res=%d, err=%s", question.Name, getRCode(res), err)
+	return res, err
 }
 
 func NewRemoteDnsSolver() *remoteDnsSolver {
 	return &remoteDnsSolver{
 		confloader: func(ctx context.Context) (*local.LocalConfiguration, error) {
-		return local.LoadConfiguration()
-	}}
+			return local.LoadConfiguration()
+		}}
+}
+
+
+func getRCode(msg *dns.Msg) int {
+	if msg == nil {
+		return -1
+	}
+	return msg.Rcode
 }

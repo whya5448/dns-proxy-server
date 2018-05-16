@@ -61,7 +61,7 @@ func handleQuestion(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 		logging.Debugf("status=begin, solver=%s", solverID)
 		// loop through questions
 		resp, err := solver.Solve(context.Background(), firstQuestion)
-		if err == nil {
+		if resp != nil {
 
 			var firstAnswer dns.RR
 			answerLenth := len(resp.Answer)
@@ -77,7 +77,6 @@ func handleQuestion(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 			respWriter.WriteMsg(resp)
 			break
 		}
-
 		logging.Debugf("status=not-resolved, solver=%s, err=%v", solverID, err)
 
 	}
