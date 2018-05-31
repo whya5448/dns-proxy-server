@@ -18,7 +18,7 @@ Dns-proxy-server is a end user(developers, Server Administrators) DNS server too
 
 ### Requirements
 * Linux/Windows/MAC
-* Docker 1.9.x
+* Docker 1.9.x (Only if you run DPS using docker or want to solve docker containers hostname using DPS)
 
 ### DNS resolution order
 DNS  Proxy Server follow the below order to solve hostnames
