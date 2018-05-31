@@ -59,10 +59,8 @@ pictures (sorry they are in portuguese)
 Starting some docker container and keeping it alive for DNS queries
 
 ```bash
-$ docker run -d --hostname nginx.dev.intranet \
-  -e 'HOSTNAMES=nginx2.dev.intranet,nginx3.dev.intranet' \
-  nginx
-d96280ba54b44446f342ca78c0bc3b6b23efd78393d8e51e68757b5004314924
+$ docker run --rm --hostname nginx.dev.intranet \
+  -e 'HOSTNAMES=nginx2.dev.intranet,nginx3.dev.intranet' nginx
 ```
 
 Solving the docker container hostname from Dns Proxy Server
