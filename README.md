@@ -28,6 +28,6 @@ DNS  Proxy Server follow the below order to solve hostnames
 * Then from 3rd configured remote DNS servers
 
 ### Documents
-* [Running it on Linux/Windows/MAC](http://mageddo.github.io/dns-proxy-server/docs/api/running.html)
+* [Running it on Linux/Windows/MAC](http://mageddo.github.io/dns-proxy-server/docs/running.html)
 * [Latest Rest API Features](http://mageddo.github.io/dns-proxy-server/docs/api/)
 * [Coding](docs/developing) at DNS Proxy Server
