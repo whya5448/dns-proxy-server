@@ -2,9 +2,7 @@
 	<a href="https://travis-ci.org/mageddo/dns-proxy-server"><img src="https://travis-ci.org/mageddo/dns-proxy-server.svg?branch=master" alt="Build Status"></img></a>
 </p>
 
-### [Features](http://mageddo.github.io/dns-proxy-server/docs/features)
-* [Take a look at features for more details](http://mageddo.github.io/dns-proxy-server/docs/features)
-
+### Features
 Dns-proxy-server is a end user(developers, Server Administrators) DNS server tool to develop systems with docker solving docker containers hostnames:
 
 * Solve hostnames from local configuration database
@@ -14,7 +12,7 @@ Dns-proxy-server is a end user(developers, Server Administrators) DNS server too
 * [Graphic interface to manage it](http:/127.0.0.1:5380/static/)
 	* List and edit DNS local entries
 
-**For more details see** [Release Notes](RELEASE-NOTES.md)
+**For more details see** [the Documentation ](http://mageddo.github.io/dns-proxy-server/docs/features) or [Release Notes](RELEASE-NOTES.md) 
 
 ![](http://i.imgur.com/Bhe9P36.png)
 
