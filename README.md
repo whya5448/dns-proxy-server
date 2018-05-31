@@ -2,15 +2,15 @@
 	<a href="https://travis-ci.org/mageddo/dns-proxy-server"><img src="https://travis-ci.org/mageddo/dns-proxy-server.svg?branch=master" alt="Build Status"></img></a>
 </p>
 
-### Features
+### [Features](http://mageddo.github.io/dns-proxy-server/docs/features)
+* [Take a look at features for more details](http://mageddo.github.io/dns-proxy-server/docs/features)
+
 Dns-proxy-server is a end user(developers, Server Administrators) DNS server tool to develop systems with docker solving docker containers hostnames:
 
 * Solve hostnames from local configuration database
 * Solve hostnames from docker containers using docker **hostname** option or **HOSTNAMES** env
 * Solve hostnames from a list of configured DNS servers(as a proxy) if no answer of two above
-* Solve hostnames using wildcards
-> If you register a hostname with `.` at start, then all subdomains will solve to that container/local storage entry
-
+* [Solve hostnames using wildcards](http://mageddo.github.io/dns-proxy-server/docs/features#Solve-hostnames-using-wildcards)
 * [Graphic interface to manage it](http:/127.0.0.1:5380/static/)
 	* List and edit DNS local entries
 
@@ -128,14 +128,14 @@ Start the server at [custom port](#configure-your-dns) and solving from it
   -log-file string
     	Log to file instead of console, (true=log to default log file, /tmp/log.log=log to custom log location) (default "console")
   -log-level string
-    	Log Level CRITICAL, ERROR, WARNING, NOTICE, INFO, DEBUG (default "DEBUG")
+    	Log Level ERROR, WARNING, INFO, DEBUG (default "DEBUG")
   -server-port int
     	The DNS server to start into (default 53)
   -service string
     	Setup as service, starting with machine at boot
 		docker = start as docker service,
 		normal = start as normal service,
-		uninstall = uninstall the service from machine
+		uninstall = uninstall the service from machine 
   -service-publish-web-port
     	Publish web port when running as service in docker mode (default true)
   -tsig string
@@ -186,8 +186,8 @@ if you don't want this service anymore
 
 
 ### Rest API
-
-* [Latest API documentation](https://github.com/mageddo/dns-proxy-server/tree/master/docs/api) of DNS proxy server APIs
+* [Latest API features](http://mageddo.github.io/dns-proxy-server/docs/api/) of DNS proxy server APIs
 
 ### Developing 
-Take a look at the [wiki](docs) for more details of how develop at this project
+
+Take a look at the [wiki](docs/developing) for more details of how develop at this project
