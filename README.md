@@ -17,7 +17,7 @@ Dns-proxy-server is a end user(developers, Server Administrators) DNS server too
 ![](https://i.imgur.com/aR9dl0O.png)
 
 ### Requirements
-* Linux/Windows/MAC
+* Linux/Windows
 * Docker 1.9.x (Only if you run DPS using docker or want to solve docker containers hostname using DPS)
 
 ### DNS resolution order
@@ -28,6 +28,9 @@ DNS  Proxy Server follow the below order to solve hostnames
 * Then from 3rd configured remote DNS servers
 
 ### Documents
-* [Running it on Linux/Windows/MAC](http://mageddo.github.io/dns-proxy-server/docs/running.html)
+* [Running it on Linux/Windows](http://mageddo.github.io/dns-proxy-server/docs/running.html)
 * [Latest Rest API Features](http://mageddo.github.io/dns-proxy-server/docs/api/)
 * [Coding](docs/developing) at DNS Proxy Server
+
+### MAC Support
+Based on users feedback, DPS don't work on MAC, unfortunatly I'm haven't a MAC computer to work on that, if you want to contribute please try to fix it then open a pull request, thanks.

@@ -1,7 +1,7 @@
 ### Index
 * Running
 	* [Running on Linux](#running-on-linux)
-	* [Running on Windows / MAC](#running-on-windows--mac)
+	* [Running on Windows](#running-on-windows)
 * [Testing the DNS server](#testing-the-dns-server)
 * [Installing it as a Linux service](#installing-it-as-a-linux-service)
 * [File configuration/Terminal Options](#configure-your-dns)
@@ -26,13 +26,11 @@ Download the [latest version](https://github.com/mageddo/dns-proxy-server/releas
 
 Dns Proxy Server is now your current DNS server, to back everything to original state just press `CTRL + C`
 
-### Running on Windows / MAC
+### Running on Windows
 
 > We have [cases](https://github.com/mageddo/dns-proxy-server/issues/66) of people got DPS running on Windows,
 below the information we have of how to run DPS on these OS, if you confirm that or have some information that
 would be helpful to archieve this please contribute creating a pull request or issue documenting that
-
-> I'm not a Windows/MAC user then I will need help to get DPS totally functional at these platforms
 
 1. Start up DPS
 
@@ -43,8 +41,6 @@ docker run --name dns-proxy-server -p 5380:5380 -p 53:53/udp \
 ```
 
 2. Change your default internet adapter DNS to `127.0.0.1`
-
-**Windows documented only**
 
 * Press `Windows + R` and type `ncpa.cpl` then press **enter** or go to your network interfaces Window
 * Change your default internet adapterDNS to `127.0.0.1` by following the below 
