@@ -26,17 +26,15 @@ func (r remoteDnsSolver) Solve(ctx context.Context, question dns.Question) (*dns
 	m.SetQuestion(dns.Fqdn(question.Name), question.Qtype) // CAN BE A, AAA, MX, etc.
 	m.RecursionDesired = true
 
+	logging.Debugf("solver=remote, name=%s, qtype=%d", ctx, question.Name, question.Qtype)
 	var config *local.LocalConfiguration
 	var err error
 	if !c.ContainsKey(SERVERS) {
-		logging.Debugf("solver=remote, status=servers-hot-load", ctx)
 		if config, err = r.confloader(ctx); err != nil {
-			logging.Errorf("error=%v",err)
+			logging.Errorf("error=%v", err)
 			return nil, err
 		}
 		c.PutIfAbsent(SERVERS, config)
-	} else {
-		logging.Debugf("solver=remote, status=servers-from-cache", ctx)
 	}
 	config = c.Get(SERVERS).(*local.LocalConfiguration)
 
