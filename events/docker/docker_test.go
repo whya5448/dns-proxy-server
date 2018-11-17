@@ -129,7 +129,7 @@ func TestMustSolveIPFromFirstContainerWhenDefaultNetworkIsNotSet(t *testing.T){
 	putHostnames([]string{"acme.com"}, inspect)
 
 	// assert
-	assert.Equal(t, "192.168.0.1", c.Get("acme.com"))
+	assert.Contains(t, c.Get("acme.com"), "192.168.0")
 }
 
 func createNetwork(ip string) *network.EndpointSettings {
