@@ -2,43 +2,24 @@ package proxy
 
 import (
 	"errors"
-	"fmt"
 	"github.com/mageddo/dns-proxy-server/events/local"
 	"github.com/mageddo/go-logging"
 	"github.com/miekg/dns"
 	"golang.org/x/net/context"
 	"net"
-	"strings"
 )
 
 type localDnsSolver struct {
 }
 
 func (s localDnsSolver) Solve(ctx context.Context, question dns.Question) (*dns.Msg, error) {
-
 	questionName := question.Name[:len(question.Name)-1]
-
-	// simple solving
-	var key = questionName
-	if msg, err := s.solveHostname(ctx, question, key); err == nil {
-		return msg, nil
-	}
-
-	// solving domain by wild card
-	key = fmt.Sprintf(".%s", questionName)
-	if msg, err := s.solveHostname(ctx, question, key); err == nil {
-		return msg, nil
-	}
-
-	// Solving subdomains by wildcard
-	i := strings.Index(questionName, ".")
-	if i > 0 {
-		key = questionName[i:]
-		if msg, err := s.solveHostname(ctx, question, key); err == nil {
+	for _, host := range getAllHosts("." + questionName) {
+		if msg, err := s.solveHostname(ctx, question, host); err == nil {
 			return msg, nil
 		}
 	}
-	return nil, errors.New("hostname not found " + key)
+	return nil, errors.New("hostname not found " + questionName)
 }
 
 func NewLocalDNSSolver() *localDnsSolver {

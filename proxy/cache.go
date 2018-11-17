@@ -33,7 +33,7 @@ func (s CacheDnsSolver) Solve(ctx context.Context, question dns.Question) (*dns.
 	}
 	msg, err := s.decorator.Solve(ctx, question)
 	if err != nil {
-		return nil, err
+		return msg, err
 	}
 	for _, answer := range msg.Answer {
 		ttl := int64(answer.Header().Ttl)

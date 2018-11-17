@@ -1,3 +1,7 @@
+### 2.9.1
+* Supporting Multilevel wildcard
+* Fixing ping slowness, bug introduced on **2.9.0**
+
 ### 2.9.0
 * Now remote resolved names are cached respecting TTL
 * Refactored local storage cache
