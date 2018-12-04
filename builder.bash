@@ -27,6 +27,19 @@ upload_file(){
 "https://uploads.github.com/repos/$REPO_URL/releases/$TAG_ID/assets?name=$TARGET_FILE&access_token=$REPO_TOKEN"
 }
 
+assemble(){
+	echo "> Testing ..."
+	go test -race -cover -ldflags "-X github.com/mageddo/dns-proxy-server/flags.version=test" ./.../
+	echo "> Tests completed"
+
+	echo "> Building..."
+
+	rm -rf build/
+	mkdir -p build/
+
+	cp -r static build/
+}
+
 case $1 in
 
 	setup-repository )
@@ -63,12 +76,12 @@ case $1 in
 		create_release
 		echo "> Release created with id $TAG_ID"
 
-		SOURCE_FILE="build/dns-proxy-server-$APP_VERSION.tgz"
-		TARGET_FILE=dns-proxy-server-$APP_VERSION.tgz
-		echo "> Source file hash"
-		md5sum $SOURCE_FILE && ls -lha $SOURCE_FILE
-
-		upload_file
+		for TARGET_FILE in $PWD/build/*.tgz; do
+			SOURCE_FILE="$PWD/build/$TARGET_FILE"
+			echo "> Source file hash"
+			md5sum $SOURCE_FILE && ls -lha $SOURCE_FILE
+			upload_file
+		done
 
 	;;
 
@@ -76,29 +89,41 @@ case $1 in
 
 		# updating files version
 		sed -i -E "s/(dns-proxy-server.*)[0-9]+\.[0-9]+\.[0-9]+/\1$APP_VERSION/" docker-compose.yml
-		sed -i -E "s/[0-9]+\.[0-9]+\.[0-9]+/$APP_VERSION/g" Dockerfile.hub
+		sed -i -E "s/[0-9]+\.[0-9]+\.[0-9]+/$APP_VERSION/g" Dockerfile*.hub
 
 	;;
 
 	build )
 
-		echo "> Starting build"
+		assemble
 
-		rm -rf build/
-		mkdir -p build/
+		if [ ! -z "$2" ]
+		then
+			builder.bash compile $2 $3
+			exit 0
+		fi
 
-		echo "> Testing ..."
-		go test -race -cover -ldflags "-X github.com/mageddo/dns-proxy-server/flags.version=test" ./.../
-		echo "> Tests completed"
+		# LINUX
+		# INTEL / AMD
+		builder.bash compile linux 386
+		builder.bash compile linux amd64
 
-		echo "> Building..."
-		go build -v -o build/dns-proxy-server -ldflags "-X github.com/mageddo/dns-proxy-server/flags.version=$APP_VERSION"
-		cp -r static build/
-		cd build/
-		tar -czvf dns-proxy-server-${APP_VERSION}.tgz *
+		# ARM
+		builder.bash compile linux arm
+		builder.bash compile linux arm64
 
 		echo "> Build success"
 
+	;;
+
+	compile )
+		GOOS=$2
+		GOARCH=$3
+		echo "> Compiling os=${GOOS}, arch=${GOARCH}"
+		go build -o $PWD/build/dns-proxy-server -ldflags "-X github.com/mageddo/dns-proxy-server/flags.version=$APP_VERSION"
+		TAR_FILE=dns-proxy-server-${GOOS}-${GOARCH}-${APP_VERSION}.tgz
+		cd $PWD/build/
+		tar --exclude=*.tgz -czf $TAR_FILE *
 	;;
 
 	validate-release )
@@ -115,10 +140,11 @@ case $1 in
 		echo "> build started, current branch=$CURRENT_BRANCH"
 		if [ "$CURRENT_BRANCH" = "master" ]; then
 			echo "> deploying new version"
-			builder validate-release || exit 0 && builder apply-version && builder build && builder upload-release
+			builder.bash validate-release || exit 0 && builder.bash apply-version && builder.bash build &&\
+			builder.bash upload-release && builder.bash trigger-docker-hub
 		else
 			echo "> building candidate"
-			builder build
+			builder.bash build
 		fi
 
 	;;

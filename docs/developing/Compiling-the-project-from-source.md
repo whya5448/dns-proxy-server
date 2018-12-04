@@ -2,7 +2,6 @@
 
 **DPS** uses docker to simplify the compile process
 
-
 Generate the binaries
 
 ```bash
@@ -22,7 +21,7 @@ Then binaries mus be available at **build** folder
 
 ```
 $ ls build/
-dns-proxy-server  dns-proxy-server-2.5.1.tgz  static
+dns-proxy-server dns-proxy-server-2.5.1.tgz  static
 ``` 
 
 If you want you can build the docker image
@@ -31,8 +30,24 @@ If you want you can build the docker image
 $ docker-compose build prod-build-image-dps && docker-compose up prod-dps
 ```
 
-### Used tecnologies 
+Take a look at docker-compose.yml for prod-build-image-dps* to build other arch 
+
+### Building binary for specific ARCH
+
+You can generate DPS binaries for [all archs that are supported by golang](https://golang.org/doc/install/source#environment),
+DPS were designed to run on linux though.
+
+```bash
+$ docker-compose run prod-build-binary-dps builder.bash build linux amd64
+> Testing
+> Tests completed
+> Building...
+> Compiling os=linux, arch=amd64
+```
+
+### Used technologies 
 
 * Docker
 * Docker Compose
-* Golang 1.9
+* Golang
+

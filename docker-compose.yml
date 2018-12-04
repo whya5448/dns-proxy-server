@@ -7,7 +7,7 @@ services:
     working_dir: /app/src/github.com/mageddo/dns-proxy-server
     volumes:
       - $PWD:/app/src/github.com/mageddo/dns-proxy-server
-      - $PWD/builder:/bin/builder
+      - $PWD/builder.bash:/bin/builder.bash
       - /var/run/docker.sock:/var/run/docker.sock
     command: tail -f /dev/null
     environment:
@@ -32,22 +32,38 @@ services:
   # Build the project and generate binary at build folder
   prod-build-binary-dps:
     extends: compiler-dps
-    container_name: docker-dns-server-compiler
-    command: bash -c "builder build"
+    command: bash -c "builder.bash build"
 
-  # Build project and generate docker image you will need to run prod-build-image-dps first
+  # Build project and generate docker image you will need to run prod-build-binary-dps first
   prod-build-image-dps:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: docker-dns-server-docker-compiler
     image: defreitas/dns-proxy-server:2.9.1
+
+  prod-build-image-dps-arm7x86:
+    build:
+      context: .
+      dockerfile: Dockerfile.arm7x86
+    image: defreitas/dns-proxy-server-arm7x86:2.7.0
+
+  prod-build-image-dps-arm8x64:
+    build:
+      context: .
+      dockerfile: Dockerfile.arm8x64
+    image: defreitas/dns-proxy-server-arm8x64:2.7.0
+
+  prod-build-image-dps-arm8x86:
+    build:
+      context: .
+      dockerfile: Dockerfile.arm8x86
+    image: defreitas/dns-proxy-server-arm8x86:2.7.0
 
   # build the project and make the github release
   prod-ci-deploy:
     container_name: prod-ci-deploy
     extends: compiler-dps
-    command: bash -c "builder deploy-ci"
+    command: bash -c "builder.bash deploy-ci"
     environment:
       - CURRENT_BRANCH=$TRAVIS_BRANCH # current branch name
       - REPO_TOKEN=$REPO_TOKEN # github token to deploy the binary
