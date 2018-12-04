@@ -1,3 +1,6 @@
+### 2.10.1
+* Official support for ARM
+
 ### 2.9.1
 * Supporting Multilevel wildcard
 * Fixing ping slowness, bug introduced on **2.9.0**
