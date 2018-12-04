@@ -137,6 +137,19 @@ case $1 in
 
 	deploy-ci )
 
+	EC=0
+	docker-compose up --force-recreate --abort-on-container-exit prod-ci-deploy || EC=$?
+	if [ "$EC" = "3" ]; then
+		exit 0
+	fi
+	docker-compose build prod-build-image-dps-arm7x86 prod-build-image-dps-arm8x64 &&\
+	echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin &&\
+	docker-compose push prod-build-image-dps-arm7x86 prod-build-image-dps-arm8x64
+
+	;;
+
+	release )
+
 		echo "> build started, current branch=$CURRENT_BRANCH"
 		if [ "$CURRENT_BRANCH" = "master" ]; then
 			echo "> deploying new version"
@@ -144,6 +157,7 @@ case $1 in
 
 		else
 			echo "> building candidate"
+			builder.bash validate-release
 			builder.bash build
 		fi
 
