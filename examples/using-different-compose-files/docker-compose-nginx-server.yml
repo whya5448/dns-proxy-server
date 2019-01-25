@@ -1,0 +1,9 @@
+version: '3'
+services:
+  nginx:
+    image: nginx
+    networks:
+      - dps
+networks:
+  dps:
+    external: true
