@@ -111,6 +111,9 @@ type LocalConfiguration struct {
 	LogLevel string `json:"logLevel"`
 	LogFile string `json:"logFile"`
 	RegisterContainerNames *bool `json:"registerContainerNames"`
+
+	// hostname to solve host machine IP
+	HostMachineHostname string `json:"hostMachineHostname"`
 }
 
 type EnvVo struct {

@@ -1,18 +1,19 @@
 package resolvconf
 
 import (
-	"bytes"
-	"os"
 	"bufio"
-	"strings"
-	"io/ioutil"
-	"os/exec"
-	"syscall"
+	"bytes"
 	"errors"
 	"fmt"
+	"github.com/mageddo/dns-proxy-server/cache/store"
 	"github.com/mageddo/dns-proxy-server/conf"
-	"net"
 	"github.com/mageddo/go-logging"
+	"io/ioutil"
+	"net"
+	"os"
+	"os/exec"
+	"strings"
+	"syscall"
 )
 
 func RestoreResolvconfToDefault() error {
@@ -27,6 +28,24 @@ func SetMachineDNSServer(serverIP string) error {
 	hd := newSetMachineDnsServerHandler(serverIP)
 	return ProcessResolvconf(hd)
 }
+
+func GetSearchDomainEntry() (string, error) {
+	fileRead, err := os.Open(conf.GetResolvConf())
+	if err != nil {
+		return "", err
+	}
+	defer fileRead.Close()
+	scanner := bufio.NewScanner(fileRead)
+	for ; scanner.Scan();  {
+		line := scanner.Text()
+		switch getDnsEntryType(line) {
+		case SEARCH:
+			return line[len(SEARCH) + 1:], nil
+		}
+	}
+	return "", nil
+}
+
 
 func ProcessResolvconf( handler DnsHandler ) error {
 
@@ -88,6 +107,8 @@ func getDnsEntryType(line string) DnsEntry {
 		return COMMENT
 	} else if strings.HasPrefix(line, "nameserver") {
 		return SERVER
+	} else if strings.HasPrefix(line, "search") {
+		return SEARCH
 	} else {
 		return ELSE
 	}
@@ -154,6 +175,7 @@ const(
 	COMMENTED_SERVER DnsEntry = "COMMENTED_SERVER"
 	SERVER DnsEntry = "SERVER"
 	PROXY DnsEntry = "PROXY"
+	SEARCH DnsEntry = "SEARCH"
 	ELSE DnsEntry = "ELSE"
 )
 
@@ -172,4 +194,26 @@ func GetCurrentIpAddress() (string, error) {
 		}
 	}
 	return "", nil
+}
+
+const SEARCH_DOMAIN_KEY = "SEARCH_DOMAIN"
+func GetSearchDomainEntryCached() (string, error){
+	cache := store.GetInstance()
+	if cache.ContainsKey(SEARCH_DOMAIN_KEY) {
+		logging.Debugf("status=cached-search-domain, domain=%s", cache.Get(SEARCH_DOMAIN_KEY))
+		return cache.Get(SEARCH_DOMAIN_KEY).(string), nil
+	}
+	logging.Debugf("status=hot-load-search-domain")
+	entry, err := GetSearchDomainEntry()
+	if err == nil {
+		cache.Put(SEARCH_DOMAIN_KEY, entry)
+	}
+	return entry, err
+}
+
+func GetHostname(subdomain string) string {
+	if domainEntry, err := GetSearchDomainEntryCached(); err == nil && len(domainEntry) !=0 {
+		return fmt.Sprintf("%s.%s", subdomain, domainEntry)
+	}
+	return subdomain
 }

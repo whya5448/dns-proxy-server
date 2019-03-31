@@ -71,7 +71,7 @@ func logKeyToSyslogCode(key string) int {
 	case "ERROR":
 		return logging.ERROR
 	}
-	panic("Unknow log level: " + key)
+	panic("Unknown log level: " + key)
 }
 
 
@@ -106,4 +106,14 @@ func RegisterContainerNames() bool {
 		return *conf.RegisterContainerNames
 	}
 	return flags.RegisterContainerNames()
+}
+
+func GetHostname() string {
+	if hostname := os.Getenv(env.MG_HOST_MACHINE_HOSTNAME); len(strings.Trim(hostname, " ")) != 0 {
+		return hostname
+	}
+	if conf, _ := getConf(); conf != nil &&  len(conf.HostMachineHostname) != 0 {
+		return conf.HostMachineHostname
+	}
+	return *flags.Hostname
 }
