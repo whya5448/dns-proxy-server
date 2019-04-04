@@ -17,7 +17,6 @@ import (
 	"github.com/miekg/dns"
 	"net/http"
 	"os"
-	"reflect"
 	"runtime/debug"
 	"runtime/pprof"
 	"strings"
@@ -48,39 +47,26 @@ func handleQuestion(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 		questionsQtd, firstQuestion.Name, utils.DnsQTypeCodeToName(firstQuestion.Qtype),
 	)
 
-	// loading the solvers and try to solve the hostname in that order
-	for _, solver := range *getSolvers() {
-
-		solverID := reflect.TypeOf(solver).String()
-		logging.Debugf("status=begin, solver=%s", ctx, solverID)
-		resp, err := solver.Solve(ctx, firstQuestion)
-		if resp != nil {
-
-			var firstAnswer dns.RR
-			answerLenth := len(resp.Answer)
-
-			logging.Debugf("status=answer-found, solver=%s, length=%d", ctx, solverID, answerLenth)
-			if answerLenth != 0 {
-				firstAnswer = resp.Answer[0]
-			}
-			logging.Debugf("status=resolved, solver=%s, length=%d, answer=%v", ctx, solverID, answerLenth, firstAnswer)
-
-			resp.SetReply(reqMsg)
-			resp.Compress = conf.Compress()
-			respWriter.WriteMsg(resp)
-			break
-		}
-		logging.Debugf("status=not-resolved, solver=%s, err=%v", ctx, solverID, err)
-
+	solverFactory := proxy.NewCnameDnsSolverFactory(&proxy.DefaultDnsSolverFactory{})
+	msg, err := solverFactory.Solve(ctx, firstQuestion, getSolvers())
+	if err != nil {
+		logging.Errorf("status=not-resolved, question=%+v", ctx, firstQuestion, err)
+		respWriter.WriteMsg(msg)
+	} else {
+		logging.Debugf("status=resolved, question=%+v, answers=%+v", ctx, firstQuestion, msg.Answer)
+		msg.SetReply(reqMsg)
+		msg.Compress = conf.Compress()
+		respWriter.WriteMsg(msg)
 	}
 
 }
 
 var solversCreated int32 = 0
-var solvers *[]proxy.DnsSolver = nil
-func getSolvers() *[]proxy.DnsSolver {
+var solvers []proxy.DnsSolver = nil
+func getSolvers() []proxy.DnsSolver {
 	if atomic.CompareAndSwapInt32(&solversCreated, 0, 1) {
-		solvers = &[]proxy.DnsSolver{
+		// loading the solvers and try to solve the hostname in that order
+		solvers = []proxy.DnsSolver{
 			proxy.NewSystemSolver(), proxy.NewDockerSolver(docker.GetCache()),
 			proxy.NewCacheDnsSolver(proxy.NewLocalDNSSolver()), proxy.NewCacheDnsSolver(proxy.NewRemoteDnsSolver()),
 		}

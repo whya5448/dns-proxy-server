@@ -1,0 +1,14 @@
+body {
+	padding-top: 5rem;
+}
+
+.navbar-inverse {
+	background: black;
+	position: fixed!important;
+	top: 0;
+	width: 100%;
+}
+
+.records-actions .btn {
+	margin-right: 5px;
+}
