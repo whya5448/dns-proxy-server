@@ -93,6 +93,10 @@ case $1 in
 
 	;;
 
+	assemble )
+		assemble
+	;;
+
 	build )
 
 		assemble

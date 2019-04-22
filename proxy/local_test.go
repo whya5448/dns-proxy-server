@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/mageddo/dns-proxy-server/cache/lru"
 	"github.com/mageddo/dns-proxy-server/events/local"
+	"github.com/mageddo/dns-proxy-server/events/local/localvo"
 	"github.com/miekg/dns"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -12,14 +13,12 @@ import (
 
 func TestLocalDnsSolver_Solve(t *testing.T) {
 
-	defer local.ResetConf()
-
-	conf, err := local.LoadConfiguration()
-	assert.Nil(t, err, "failed to load configuration")
+	// arrange
+	local.ResetConf()
 
 	expectedHostname := "github.com"
-	host := local.HostnameVo{Hostname: expectedHostname, Type: local.A, Env: "", Ttl: 50, Ip: [4]byte{192, 168, 0, 1}}
-	assert.Nil(t, conf.AddHostname( "", host))
+	host := localvo.Hostname{Hostname: expectedHostname, Type: localvo.A, Ttl: 50, Ip: [4]byte{192, 168, 0, 1}}
+	assert.Nil(t, local.AddHostname( "", host))
 
 	question := new(dns.Question)
 	question.Name = expectedHostname + "."
@@ -37,7 +36,8 @@ func TestLocalDnsSolver_Solve(t *testing.T) {
 
 func TestLocalDnsSolver_SolveNotFoundHost(t *testing.T) {
 
-	defer local.ResetConf()
+	// arrange
+	local.ResetConf()
 
 	expectedHostname := "github.com"
 	question := new(dns.Question)
@@ -46,6 +46,8 @@ func TestLocalDnsSolver_SolveNotFoundHost(t *testing.T) {
 
 	// act
 	_, err := solver.Solve(testCtx, *question)
+
+	// assert
 	assert.NotNil(t, err, "Fail to solve")
 
 }
@@ -53,14 +55,12 @@ func TestLocalDnsSolver_SolveNotFoundHost(t *testing.T) {
 func TestLocalDnsSolver_SolvingByWildcardFirstLevel(t *testing.T) {
 
 	// arrange
+	local.ResetConf()
+
 	solver := NewLocalDNSSolver()
 
-	defer local.ResetConf()
-	conf, err := local.LoadConfiguration()
-	assert.Nil(t, err, "failed to load configuration")
-
-	host := local.HostnameVo{Hostname: ".github.com", Type:local.A, Env: "", Ttl: 2, Ip: [4]byte{192, 168, 0, 1}}
-	assert.Nil(t, conf.AddHostname( "", host))
+	host := localvo.Hostname{Hostname: ".github.com", Type:localvo.A, Ttl: 2, Ip: [4]byte{192, 168, 0, 1}}
+	assert.Nil(t, local.AddHostname( "", host))
 
 	question := new(dns.Question)
 	question.Name = "server1.github.com."
@@ -78,14 +78,12 @@ func TestLocalDnsSolver_SolvingByWildcardFirstLevel(t *testing.T) {
 func TestLocalDnsSolver_SolvingByWildcardSecondLevel(t *testing.T) {
 
 	// arrange
+	local.ResetConf()
+
 	solver := NewLocalDNSSolver()
 
-	defer local.ResetConf()
-	conf, err := local.LoadConfiguration()
-	assert.Nil(t, err, "failed to load configuration")
-
-	host := local.HostnameVo{Hostname: ".github.com", Type:local.A, Env: "", Ttl: 2, Ip: [4]byte{192, 168, 0, 1}}
-	assert.Nil(t, conf.AddHostname( "", host))
+	host := localvo.Hostname{Hostname: ".github.com", Type: localvo.A, Ttl: 2, Ip: [4]byte{192, 168, 0, 1}}
+	assert.Nil(t, local.AddHostname( "", host))
 
 	question := new(dns.Question)
 	question.Name = "site.server1.github.com."
@@ -104,14 +102,12 @@ func TestLocalDnsSolver_SolvingByWildcardSecondLevel(t *testing.T) {
 func TestShouldSolveCname(t *testing.T) {
 
 	// arrange
+	local.ResetConf()
+
 	solver := NewLocalDNSSolver()
 
-	defer local.ResetConf()
-	conf, err := local.LoadConfiguration()
-	assert.Nil(t, err, "failed to load configuration")
-
-	host := local.HostnameVo{Hostname: "mageddo.github.com", Type:local.CNAME, Env: "", Ttl: 2, Target:"github.com"}
-	assert.Nil(t, conf.AddHostname( "", host))
+	host := localvo.Hostname{Hostname: "mageddo.github.com", Type: localvo.CNAME, Ttl: 2, Target: "github.com"}
+	assert.Nil(t, local.AddHostname( "", host))
 
 	question := new(dns.Question)
 	question.Name = "mageddo.github.com."
@@ -129,13 +125,14 @@ func TestShouldSolveCname(t *testing.T) {
 func TestLocalDnsSolver_WildcardRegisteredButNotMatched(t *testing.T) {
 
 	// arrange
+	local.ResetConf()
+
 	solver := NewLocalDNSSolver()
 
-	defer local.ResetConf()
 	conf, err := local.LoadConfiguration()
 	assert.Nil(t, err, "failed to load configuration")
 
-	host := local.HostnameVo{Hostname: ".github.com", Env: "", Ttl: 2, Ip: [4]byte{192, 168, 0, 1}}
+	host := localvo.Hostname{Hostname: ".github.com", Ttl: 2, Ip: [4]byte{192, 168, 0, 1}}
 	conf.AddHostname( "", host)
 
 	question := new(dns.Question)

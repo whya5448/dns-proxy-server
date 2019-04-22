@@ -2,16 +2,18 @@ package local
 
 import (
 	"bufio"
+	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/mageddo/dns-proxy-server/cache/store"
+	"github.com/mageddo/dns-proxy-server/events/local/localvo"
+	"github.com/mageddo/dns-proxy-server/events/local/storagev1"
+	"github.com/mageddo/dns-proxy-server/events/local/storagev2"
 	"github.com/mageddo/dns-proxy-server/flags"
 	"github.com/mageddo/dns-proxy-server/utils"
 	"github.com/mageddo/go-logging"
-	"golang.org/x/net/context"
+	"io/ioutil"
 	"os"
-	"regexp"
 	"strings"
 	"time"
 )
@@ -22,345 +24,225 @@ func GetConfPath() string {
 	return utils.GetPath(*flags.ConfPath)
 }
 
-func LoadConfiguration() (*LocalConfiguration, error){
-
-	configuration := LocalConfiguration {
-		Envs: make([]EnvVo, 0),
-		RemoteDnsServers: make([][4]byte, 0),
-	}
-
+func LoadConfiguration() (*localvo.Configuration, error){
 	if _, err := os.Stat(confPath); err == nil {
-
-		f, _ := os.Open(confPath)
-
-		defer f.Close()
-
-		dec := json.NewDecoder(f)
-		dec.Decode(&configuration)
-
-		for i := range configuration.Envs {
-			env := &configuration.Envs[i]
-			for j := range env.Hostnames {
-				host := &env.Hostnames[j]
-				if host.Id <= 0 {
-					logging.Infof("status=without-id, hostname=%s, id=%d", host.Hostname, host.Id)
-					host.Id = configuration.nextId()
-				}
-			}
-		}
-		logging.Debugf("status=success-loaded-file, path=%s", confPath)
-	} else {
-		err := os.MkdirAll(confPath[:strings.LastIndex(confPath, "/")], 0755)
+		confBytes, err := ioutil.ReadFile(confPath)
 		if err != nil {
-			logging.Errorf("status=error-to-create-conf-path, path=%s", confPath)
+			logging.Error("status=can't-read-conf-file, file=%s", confPath)
 			return nil, err
 		}
-		SaveConfiguration(&configuration)
-		logging.Info("status=success-creating-conf-file, path=%s", confPath)
+		if configuration, err := LoadVersionedConfiguration(confBytes); err != nil {
+			logging.Error("status=can't-read-conf-file-version, file=%s", confPath)
+			return nil, err
+		} else {
+			setHostnameIds(configuration)
+			logging.Debugf("status=success-loaded-file, path=%s", confPath)
+			return configuration, nil
+		}
+	} else {
+		defaultConfig := &localvo.Configuration{
+			Version:          1,
+			Envs:             make([]localvo.Env, 0),
+			RemoteDnsServers: make([][4]byte, 0),
+		}
+		storeDefaultConfig(defaultConfig)
+		return defaultConfig, nil
 	}
-	return &configuration, nil
 }
 
-func SaveConfiguration(c *LocalConfiguration) {
+func setHostnameIds(configuration *localvo.Configuration) {
+	atLeastOneUpdated := false
+	for _, env := range configuration.Envs {
+		for i := range env.Hostnames {
+			host := &env.Hostnames[i]
+			if host.Id == 0 {
+				logging.Infof("status=without-id, hostname=%s, id=%d", host.Hostname, host.Id)
+				host.Id = time.Now().UnixNano()
+				atLeastOneUpdated = true
+			}
+		}
+	}
+	if atLeastOneUpdated {
+		SaveConfiguration(configuration)
+	}
+}
 
-	t := time.Now()
-	logging.Debugf("status=begin")
+func LoadVersionedConfiguration(confBytes []byte) (*localvo.Configuration, error) {
+	switch readVersion(confBytes) {
+	case 1:
+		v1Config := &storagev1.ConfigurationV1{
+			Envs: make([]storagev1.EnvV1, 0),
+			RemoteDnsServers: make([][4]byte, 0),
+		}
+		err := json.Unmarshal(confBytes, v1Config)
+		return v1Config.ToConfig(), err
+	case 2:
+		v2Config := &storagev2.ConfigurationV2{
+			Envs: make([]storagev2.EnvV2, 0),
+			RemoteDnsServers: make([][4]byte, 0),
+		}
+		err := json.Unmarshal(confBytes, v2Config)
+		return v2Config.ToConfig(), err
+	}
+	return nil, errors.New("unrecognized version")
+}
+
+func readVersion(confBytes []byte) int {
+	m := make(map[string]interface{})
+	json.Unmarshal(confBytes, m)
+	version, found := m["version"]
+	if found {
+		return version.(int)
+	} else {
+		return 1
+	}
+}
+
+func SaveConfiguration(c *localvo.Configuration) {
+
 	if len(c.Envs) == 0 {
 		c.Envs = NewEmptyEnv()
 	}
 
-	logging.Debugf("status=save")
+	var confVO interface{}
+	switch c.Version {
+	case 2:
+		confVO = storagev2.ValueOf(c)
+	default:
+		confVO = storagev1.ValueOf(c)
+	}
+	storeToFile(confVO)
+}
+
+func storeDefaultConfig(configuration *localvo.Configuration) error {
+	err := os.MkdirAll(confPath[:strings.LastIndex(confPath, "/")], 0755)
+	if err != nil {
+		logging.Errorf("status=error-to-create-conf-path, path=%s", confPath)
+		return err
+	}
+	SaveConfiguration(configuration)
+	logging.Info("status=success-creating-conf-file, path=%s", confPath)
+	return nil
+}
+
+func NewEmptyEnv() []localvo.Env {
+	return []localvo.Env{{Hostnames: []localvo.Hostname{}, Name:""}}
+}
+
+func Exists(name string) (bool, error) {
+	_, err := os.Stat(name)
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	return err == nil, err
+}
+
+func ResetConf() {
+	if exists, _ := Exists(confPath); exists {
+		if err := os.Remove(confPath); err != nil {
+			logging.Errorf("failed to reset conf", err)
+			os.Exit(-1)
+		}
+	}
+	store.GetInstance().Clear()
+}
+
+func storeToFile(confFileVO interface{}){
+	now := time.Now()
+	logging.Debugf("status=save, confPath=%s", confPath)
 	f, err := os.OpenFile(confPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0777)
 	if err != nil {
-		logging.Errorf("status=error-to-create-conf-file, err=%v", err)
+		logging.Errorf("status=error-to-create-conf-file, confPath=%s, err=%v", confPath, err)
 		return
 	}
+
 	defer f.Close()
 	wr := bufio.NewWriter(f)
 	defer wr.Flush()
 	enc := json.NewEncoder(wr)
 	enc.SetIndent("", "\t")
-	err = enc.Encode(c)
+	err = enc.Encode(confFileVO)
 	if err != nil {
 		logging.Errorf("status=error-to-encode, error=%v", err)
 	}
 	store.GetInstance().Clear()
-	logging.Infof("status=success, time=%d", utils.DiffMillis(t, time.Now()))
-
+	logging.Infof("status=success, confPath=%s, time=%d", confPath, utils.DiffMillis(now, time.Now()))
 }
 
-type LocalConfiguration struct {
-	/**
-	 * The remote servers to ask when, DPS can not solve from docker or local file,
-	 * it will try one by one in order, if no one is specified then 8.8.8.8 is used by default
-	 * DO NOT call this variable directly, use GetRemoteDnsServers instead
-	 */
-	RemoteDnsServers [][4]byte `json:"remoteDnsServers"`
-	Envs []EnvVo `json:"envs"`
-	ActiveEnv string `json:"activeEnv"`
-	LastId int `json:"lastId"`
-
-	/// ----
-	WebServerPort int `json:"webServerPort"`
-	DnsServerPort int `json:"dnsServerPort"`
-	DefaultDns *bool `json:"defaultDns"`
-	LogLevel string `json:"logLevel"`
-	LogFile string `json:"logFile"`
-	RegisterContainerNames *bool `json:"registerContainerNames"`
-
-	// hostname to solve host machine IP
-	HostMachineHostname string `json:"hostMachineHostname"`
-
-	// domain utilized to solve container names
-	Domain string `json:"domain"`
-}
-
-type EnvVo struct {
-	Name string `json:"name"`
-	Hostnames []HostnameVo `json:"hostnames,omitempty"`
-}
-
-type EntryType string
-const (
-	A EntryType = "A"
-	CNAME EntryType = "CNAME"
-)
-
-type HostnameVo struct {
-	Id int `json:"id"`
-	Hostname string `json:"hostname"`
-	Ip [4]byte `json:"ip"` // hostname ip when type=A
-	Target string `json:"target"` // target hostname when type=CNAME
-	Ttl int `json:"ttl"`
-	Env string `json:"env,omitempty"` // apenas para o post do rest,
-	Type EntryType `json:"type"`
-}
-
-func (lc *LocalConfiguration) GetEnv(envName string) (*EnvVo, int) {
-	for i := range lc.Envs {
-		env := &lc.Envs[i]
-		if (*env).Name == envName {
-			return env, i
+func SetActiveEnv(env localvo.Env) error {
+	if conf, err := LoadConfiguration(); err == nil {
+		if err := conf.SetActiveEnv(env); err == nil {
+			SaveConfiguration(conf)
+			return nil
+		} else {
+			return err
 		}
-	}
-	return nil, -1
-}
-
-func (foundEnv *EnvVo) AddHostname(hostname *HostnameVo) error {
-
-	logging.Infof("status=begin, env=%s, hostname=%+v", foundEnv.Name, hostname)
-	if foundEnv == nil {
-		return errors.New("env not found")
-	}
-	foundHost, _ := foundEnv.GetHostname(hostname.Hostname)
-	if foundHost != nil {
-		return errors.New(fmt.Sprintf("The host '%s' already exists", hostname.Hostname))
-	}
-
-	(*foundEnv).Hostnames = append(foundEnv.Hostnames, *hostname)
-	logging.Infof("status=success, foundEnv=%s", foundEnv.Name)
-	return nil
-}
-
-func (lc *LocalConfiguration) GetActiveEnv() (*EnvVo, int) {
-	return lc.GetEnv(lc.ActiveEnv)
-}
-
-func(env *EnvVo) GetHostname(hostname string) (*HostnameVo, int) {
-	for i := range env.Hostnames {
-		host := &env.Hostnames[i]
-		if (*host).Hostname == hostname {
-			logging.Debugf("status=hostname-found, env=%s, hostname=%s", env.Name, hostname)
-			return host, i
-		}
-	}
-	logging.Debugf("status=hostname-not-found, env=%s, hostname=%s", env.Name, hostname)
-	return nil, -1
-}
-
-func(env *EnvVo) FindHostnameByName(ctx context.Context, hostname string) *[]HostnameVo {
-	logging.Infof("status=begin, hostname=%s", hostname)
-	hostList := []HostnameVo{}
-	for _, host := range env.Hostnames {
-		if matched, _ := regexp.MatchString(fmt.Sprintf(".*%s.*", hostname), host.Hostname); matched {
-			hostList = append(hostList, host)
-		}
-	}
-	logging.Infof("status=success, hostname=%s, length=%d", hostname, len(hostList))
-	return &hostList
-}
-
-func(lc *LocalConfiguration) FindHostnameByNameAndEnv(ctx context.Context, envName, hostname string) (*[]HostnameVo, error) {
-	logging.Infof("status=begin, envName=%s, hostname=%s", envName, hostname)
-	env,_ := lc.GetEnv(envName)
-	if env == nil {
-		return nil, errors.New("env not found")
-	}
-	logging.Infof("status=success, envName=%s, hostname=%s", envName, hostname)
-	return env.FindHostnameByName(ctx, hostname), nil
-}
-
-func(env *EnvVo) GetHostnameById(id int) (*HostnameVo, int) {
-	for i := range env.Hostnames {
-		host := &env.Hostnames[i]
-		if (*host).Id == id {
-			return host, i
-		}
-	}
-	return nil, -1
-}
-
-func (lc *LocalConfiguration) AddEnv(ctx context.Context, env EnvVo) error {
-	logging.Infof("status=begin, env=%s", env.Name)
-	foundEnv, _ := lc.GetEnv(env.Name)
-	if foundEnv != nil {
-		return errors.New(fmt.Sprintf("The '%s' env already exists", env.Name))
-	}
-	lc.Envs = append(lc.Envs, env)
-	SaveConfiguration(lc)
-	logging.Infof("status=success, env=%s", env.Name)
-	return nil
-}
-
-func (lc *LocalConfiguration) RemoveEnvByName(name string) error {
-	logging.Infof("status=begin, env=%s", name)
-	env, i := lc.GetEnv(name)
-	if env == nil {
-		return errors.New(fmt.Sprintf("The env '%s' was not found", name))
-	}
-	lc.RemoveEnv(i)
-	SaveConfiguration(lc)
-	logging.Infof("status=success, env=%s", name)
-	return nil
-}
-
-func (lc *LocalConfiguration) RemoveEnv(index int){
-	logging.Infof("status=begin, index=%d", index)
-	lc.Envs = append(lc.Envs[:index], lc.Envs[index+1:]...)
-	SaveConfiguration(lc)
-	logging.Infof("status=success, index=%d", index)
-}
-
-func (lc *LocalConfiguration) AddDns( dns [4]byte){
-	lc.RemoteDnsServers = append(lc.RemoteDnsServers, dns)
-	SaveConfiguration(lc)
-}
-
-func (lc *LocalConfiguration) RemoveDns(index int){
-	lc.RemoteDnsServers = append(lc.RemoteDnsServers[:index], lc.RemoteDnsServers[index+1:]...)
-	SaveConfiguration(lc)
-}
-
-
-func (lc *LocalConfiguration) AddHostname(envName string, hostname HostnameVo) error {
-	if hostname.Type == "" {
-		return errors.New("Type is required")
-	}
-	hostname.Id = lc.nextId()
-	logging.Infof("status=begin, evnName=%s, hostname=%+v", envName, hostname)
-	foundEnv, _ := lc.GetEnv(envName)
-	if foundEnv == nil {
-		return errors.New("env not found")
-	}
-	err := foundEnv.AddHostname(&hostname)
-	if err != nil {
+	} else {
 		return err
 	}
-	SaveConfiguration(lc)
-	logging.Infof("status=success")
-	return nil
 }
 
-func (lc *LocalConfiguration) nextId() int {
-	lc.LastId++
-	return lc.LastId
-}
-
-func (lc *LocalConfiguration) UpdateHostname(envName string, hostname HostnameVo) error {
-	logging.Infof("status=begin, evnName=%s, hostname=%+v", envName, hostname)
-	env, _ := lc.GetEnv(envName)
-	if env == nil {
-		return errors.New("env not found")
-	}
-
-	err := env.UpdateHostname(hostname)
-	if err != nil {
+func AddEnv(ctx context.Context, env localvo.Env) error {
+	if conf, err := LoadConfiguration(); err == nil {
+		if err := conf.AddEnv(ctx, env); err == nil {
+			SaveConfiguration(conf)
+			return nil
+		} else {
+			return err
+		}
+	} else {
 		return err
 	}
-
-	SaveConfiguration(lc)
-	logging.Infof("status=success, hostname=%s", hostname.Hostname)
-	return nil
 }
 
-func (env *EnvVo) UpdateHostname(hostname HostnameVo) error {
-
-	foundHostname, _ := env.GetHostnameById(hostname.Id)
-	if foundHostname == nil {
-		return errors.New("not hostname found: " + hostname.Hostname)
+func RemoveEnvByName(ctx context.Context, env string) error {
+	if conf, err := LoadConfiguration(); err == nil {
+		if err := conf.RemoveEnvByName(ctx, env); err == nil {
+			SaveConfiguration(conf)
+			return nil
+		} else {
+			return err
+		}
+	} else {
+		return err
 	}
-	foundHostname.Hostname = hostname.Hostname
-	foundHostname.Ttl = hostname.Ttl
-	foundHostname.Ip = hostname.Ip
-	foundHostname.Target = hostname.Target
-	foundHostname.Type = hostname.Type
-	return nil
 }
 
-func (lc *LocalConfiguration) RemoveHostnameByEnvAndHostname(envName string, hostname string) error {
-	logging.Infof("status=begin, envName=%s, hostname=%s", envName, hostname)
-	env, envIndex := lc.GetEnv(envName)
-	if envIndex == -1 {
-		return errors.New("env not found")
+func RemoveHostnameByEnvAndHostname(env, hostname string) error {
+	if conf, err := LoadConfiguration(); err == nil {
+		if err := conf.RemoveHostnameByEnvAndHostname(env, hostname); err == nil {
+			SaveConfiguration(conf)
+			return nil
+		} else {
+			return err
+		}
+	} else {
+		return err
 	}
-	host, hostIndex := env.GetHostname(hostname)
-	if host == nil {
-		return errors.New("hostname not found")
+}
+
+func AddHostname(env string, hostname localvo.Hostname) error {
+	if conf, err := LoadConfiguration(); err == nil {
+		if err := conf.AddHostname(env, hostname); err == nil {
+			SaveConfiguration(conf)
+			return nil
+		} else {
+			return err
+		}
+	} else {
+		return err
 	}
-	lc.RemoveHostname(envIndex, hostIndex)
-	logging.Infof("status=success, envName=%s, hostname=%s", envName, hostname)
-	return nil
 }
 
-func (lc *LocalConfiguration) RemoveHostname(envIndex int, hostIndex int){
-
-	logging.Infof("status=begin, envIndex=%d, hostIndex=%d", envIndex, hostIndex)
-	env := &lc.Envs[envIndex]
-	(*env).Hostnames = append((*env).Hostnames[:hostIndex], (*env).Hostnames[hostIndex+1:]...)
-	SaveConfiguration(lc)
-	logging.Infof("status=success, envIndex=%d, hostIndex=%d", envIndex, hostIndex)
-
-}
-
-func (lc *LocalConfiguration) SetActiveEnv(env EnvVo) error {
-	logging.Infof("status=begin, envActive=%s", env.Name)
-	foundEnv, _ := lc.GetEnv(env.Name)
-	if foundEnv == nil {
-		logging.Warningf("status=env-not-found, envName=%s", env.Name)
-		return errors.New("Env not found: " + env.Name)
+func UpdateHostname(env string, hostname localvo.Hostname) error {
+	if conf, err := LoadConfiguration(); err == nil {
+		if err := conf.UpdateHostname(env, hostname); err == nil {
+			SaveConfiguration(conf)
+			return nil
+		} else {
+			return err
+		}
+	} else {
+		return err
 	}
-	lc.ActiveEnv = env.Name
-	SaveConfiguration(lc)
-	logging.Infof("status=success")
-	return nil
-}
-
-func NewEmptyEnv() []EnvVo {
-	return []EnvVo{{Hostnames:[]HostnameVo{}, Name:""}}
-}
-
-func (lc *LocalConfiguration) GetRemoteServers(ctx context.Context) [][4]byte {
-	if len(lc.RemoteDnsServers) == 0 {
-		lc.RemoteDnsServers = append(lc.RemoteDnsServers, [4]byte{8, 8, 8, 8})
-		logging.Infof("status=put-default-server")
-	}
-	return lc.RemoteDnsServers
-}
-
-func ResetConf() {
-	if err := os.Remove(confPath); err != nil {
-		logging.Errorf("reset=failed, err=%v", err)
-		os.Exit(-1)
-	}
-	store.GetInstance().Clear()
 }

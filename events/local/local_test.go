@@ -1,6 +1,7 @@
 package local
 
 import (
+	"github.com/mageddo/dns-proxy-server/events/local/localvo"
 	"testing"
 	"github.com/stretchr/testify/assert"
 	"github.com/mageddo/dns-proxy-server/cache/store"
@@ -8,7 +9,9 @@ import (
 
 func TestSaveConfiguration_ClearCacheAfterChangeConfiguration(t *testing.T) {
 
-	defer ResetConf()
+	// arrange
+
+	ResetConf()
 
 	expectedHostname := "github.io"
 
@@ -28,11 +31,15 @@ func TestSaveConfiguration_ClearCacheAfterChangeConfiguration(t *testing.T) {
 	assert.Nil(t, cache.Get(expectedHostname))
 
 	// changing value for the hostname at configuration database
-	hostname := HostnameVo{Ip: [4]byte{192,168,0,2}, Ttl:30, Env:"", Hostname: expectedHostname, Type:"A"}
-	assert.Nil(t, conf.AddHostname( "", hostname))
+	hostname := localvo.Hostname{Ip: [4]byte{192,168,0,2}, Ttl:30, Hostname: expectedHostname, Type:"A"}
+	assert.Nil(t, AddHostname( "", hostname))
 
 	// cache must be clear after add a hostname in conf
 	assert.False(t, cache.ContainsKey(expectedHostname))
+
+	conf, err = LoadConfiguration()
+	env, _  = conf.GetActiveEnv()
+
 	foundHostname, _ = env.GetHostname(expectedHostname)
 	assert.Equal(t, [4]byte{192,168,0,2}, foundHostname.Ip)
 
@@ -40,7 +47,8 @@ func TestSaveConfiguration_ClearCacheAfterChangeConfiguration(t *testing.T) {
 
 func TestShouldSaveARecord(t *testing.T) {
 
-	defer ResetConf()
+	// arrange
+	ResetConf()
 
 	expectedHostname := "github.io"
 
@@ -48,21 +56,23 @@ func TestShouldSaveARecord(t *testing.T) {
 	assert.Nil(t, err, "could not load conf")
 
 	// act
-	assert.Nil(t, conf.AddHostname( "", HostnameVo{Ip: [4]byte{192,168,0,2}, Ttl:30, Env:"", Hostname: expectedHostname, Type:A}))
+	assert.Nil(t, conf.AddHostname( "", localvo.Hostname{Ip: [4]byte{192,168,0,2}, Ttl:30, Hostname: expectedHostname, Type:localvo.A}))
 
 	// assert
 
 	env, _ := conf.GetActiveEnv()
 	hostnameVo, _ := env.GetHostname("github.io")
 	assert.Equal(t, expectedHostname, hostnameVo.Hostname)
-	assert.Equal(t, A, hostnameVo.Type)
+	assert.Equal(t, localvo.A, hostnameVo.Type)
 
 }
 
 
 func TestShouldSaveCnameRecord(t *testing.T) {
 
-	defer ResetConf()
+	// arrange
+
+	ResetConf()
 
 	expectedHostname := "github.io"
 
@@ -70,13 +80,13 @@ func TestShouldSaveCnameRecord(t *testing.T) {
 	assert.Nil(t, err, "could not load conf")
 
 	// act
-	assert.Nil(t, conf.AddHostname( "", HostnameVo{Ip: [4]byte{192,168,0,2}, Ttl:30, Env:"", Hostname: expectedHostname, Type:CNAME}))
+	assert.Nil(t, conf.AddHostname( "", localvo.Hostname{Ip: [4]byte{192,168,0,2}, Ttl:30, Hostname: expectedHostname, Type:localvo.CNAME}))
 
 	// assert
 
 	env, _ := conf.GetActiveEnv()
 	hostnameVo, _ := env.GetHostname("github.io")
 	assert.Equal(t, expectedHostname, hostnameVo.Hostname)
-	assert.Equal(t, CNAME, hostnameVo.Type)
+	assert.Equal(t, localvo.CNAME, hostnameVo.Type)
 
 }

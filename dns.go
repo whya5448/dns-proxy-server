@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/mageddo/dns-proxy-server/conf"
-	_ "github.com/mageddo/dns-proxy-server/controller"
+	_ "github.com/mageddo/dns-proxy-server/controller/v1"
 	"github.com/mageddo/dns-proxy-server/events/docker"
 	"github.com/mageddo/dns-proxy-server/events/local"
 	_ "github.com/mageddo/dns-proxy-server/log"
@@ -49,10 +49,14 @@ func handleQuestion(respWriter dns.ResponseWriter, reqMsg *dns.Msg) {
 
 	solverFactory := proxy.NewCnameDnsSolverFactory(&proxy.DefaultDnsSolverFactory{})
 	msg, err := solverFactory.Solve(ctx, firstQuestion, getSolvers())
-	msg.SetReply(reqMsg)
-	msg.Compress = conf.Compress()
-	respWriter.WriteMsg(msg)
 	logging.Debugf("status=complete, question=%+v, answers=%+v, err=%+v", ctx, firstQuestion, msg.Answer, err)
+	if err == nil {
+		msg.SetReply(reqMsg)
+		msg.Compress = conf.Compress()
+		respWriter.WriteMsg(msg)
+	} else {
+		respWriter.Close()
+	}
 }
 
 var solversCreated int32 = 0
