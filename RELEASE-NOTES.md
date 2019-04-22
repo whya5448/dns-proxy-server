@@ -1,3 +1,8 @@
+### 2.14.1
+* Fixing nil pointer when remote server get timeout (#126)
+* Simplify bug report
+* Fixing nil pointer when remote server returns timeout
+
 ### 2.14.0
 * Making some refactoring facilitating to the feature requested at #121
 * Fixing nil pointer sometimes when the hostname were not found
