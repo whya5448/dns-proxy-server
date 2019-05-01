@@ -22,7 +22,7 @@ func TestShouldSolveCnameIp(t *testing.T){
 		Hostname: hostname, Type:localvo.CNAME, Ttl: 2, Target:"github.com",
 	}))
 	assert.Nil(t, local.AddHostname("", localvo.Hostname{
-		Hostname: "github.com", Type: localvo.A, Ttl: 3, Ip: [4]byte{1, 2, 3, 4},
+		Hostname: "github.com", Type: localvo.A, Ttl: 3, Ip: "1.2.3.4",
 	}))
 
 	// act

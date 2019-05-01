@@ -15,7 +15,13 @@ func ToIpsByteArray(ips []string) [][4]byte {
 }
 
 func ToIpByteArray(byteArray *[4]byte, ip string) *[4]byte {
-	ip = ip[:strings.Index(ip, ":")]
+	if len(strings.TrimSpace(ip)) == 0 {
+		return byteArray
+	}
+	index := strings.Index(ip, ":")
+	if index >= 0 {
+		ip = ip[:index]
+	}
 	ipStringArray := strings.Split(ip, ".")
 
 	for j, ipPiece := range ipStringArray {
