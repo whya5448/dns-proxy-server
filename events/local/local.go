@@ -89,10 +89,10 @@ func LoadVersionedConfiguration(confBytes []byte) (*localvo.Configuration, error
 
 func readVersion(confBytes []byte) int {
 	m := make(map[string]interface{})
-	json.Unmarshal(confBytes, m)
+	json.Unmarshal(confBytes, &m)
 	version, found := m["version"]
 	if found {
-		return version.(int)
+		return int(version.(float64))
 	} else {
 		return 1
 	}

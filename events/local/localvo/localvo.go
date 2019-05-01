@@ -63,7 +63,6 @@ func (lc *Configuration) GetEnv(envName string) (*Env, int) {
 }
 
 func (env *Env) AddHostname(hostname *Hostname) error {
-
 	logging.Infof("status=begin, env=%s, hostname=%+v", env.Name, hostname)
 	if env == nil {
 		return errors.New("env not found")
@@ -175,7 +174,7 @@ func (lc *Configuration) AddHostname(envName string, hostname Hostname) error {
 	if err != nil {
 		return err
 	}
-	logging.Infof("status=success")
+	logging.Infof("status=success, env=%s, hostname=%s", envName, hostname.Hostname)
 	return nil
 }
 

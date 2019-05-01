@@ -1,10 +1,11 @@
 package local
 
 import (
-	"github.com/mageddo/dns-proxy-server/events/local/localvo"
-	"testing"
-	"github.com/stretchr/testify/assert"
 	"github.com/mageddo/dns-proxy-server/cache/store"
+	"github.com/mageddo/dns-proxy-server/events/local/localvo"
+	"github.com/stretchr/testify/assert"
+	"io/ioutil"
+	"testing"
 )
 
 func TestSaveConfiguration_ClearCacheAfterChangeConfiguration(t *testing.T) {
@@ -69,24 +70,56 @@ func TestShouldSaveARecord(t *testing.T) {
 
 
 func TestShouldSaveCnameRecord(t *testing.T) {
-
 	// arrange
-
 	ResetConf()
-
 	expectedHostname := "github.io"
 
-	conf, err := LoadConfiguration()
-	assert.Nil(t, err, "could not load conf")
-
 	// act
-	assert.Nil(t, conf.AddHostname( "", localvo.Hostname{Ip: "192.168.0.2", Ttl:30, Hostname: expectedHostname, Type:localvo.CNAME}))
+	assert.Nil(t, AddHostname( "", localvo.Hostname{Ip: "192.168.0.2", Ttl:30, Hostname: expectedHostname, Type:localvo.CNAME}))
 
 	// assert
-
+	conf, err := LoadConfiguration()
+	assert.Nil(t, err, "could not load conf")
 	env, _ := conf.GetActiveEnv()
 	hostnameVo, _ := env.GetHostname("github.io")
 	assert.Equal(t, expectedHostname, hostnameVo.Hostname)
 	assert.Equal(t, localvo.CNAME, hostnameVo.Type)
+}
 
+func TestShouldLoadV2ConfigurationVO(t *testing.T){
+	// arrange
+	ResetConf()
+	const configJson = `
+	{
+		"version": 2,
+		"remoteDnsServers": ["7.6.5.3", "7.6.5.3:54"],
+		"envs": [
+			{
+				"name": "",
+				"hostnames": [
+					{
+						"id": 1556725127318816137,
+						"hostname": "github.com",
+						"ip": "192.168.0.1",
+						"ttl": 50,
+						"type": "A"
+					}
+				]
+			}
+		]
+	}
+	`
+	assert.Nil(t, ioutil.WriteFile(confPath, []byte(configJson), 0766))
+	expectedHostname := "github.io"
+
+	// act
+	assert.Nil(t, AddHostname( "", localvo.Hostname{Ip: "192.168.0.2", Ttl:30, Hostname: expectedHostname, Type:localvo.CNAME}))
+
+	// assert
+	conf, err := LoadConfiguration()
+	assert.Nil(t, err, "could not load conf")
+	env, _ := conf.GetActiveEnv()
+	hostnameVo, _ := env.GetHostname("github.io")
+	assert.Equal(t, expectedHostname, hostnameVo.Hostname)
+	assert.Equal(t, localvo.CNAME, hostnameVo.Type)
 }
