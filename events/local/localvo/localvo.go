@@ -261,7 +261,7 @@ func (lc *Configuration) GetRemoteServers(ctx context.Context) []DNSServer {
 	if len(lc.RemoteDnsServers) != 0 {
 		return lc.RemoteDnsServers
 	}
-	logging.Infof("status=return-default-server")
+	logging.Debug("status=return-default-server")
 	return []DNSServer{
 		{
 			Port: 53,

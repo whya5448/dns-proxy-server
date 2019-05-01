@@ -81,7 +81,7 @@ func getSolvers() []proxy.DnsSolver {
 
 func serve(net, name, secret string) {
 	port := fmt.Sprintf(":%d", conf.DnsServerPort())
-	logging.Info("status=begin, port=%d", conf.DnsServerPort())
+	logging.Infof("status=begin, port=%d", conf.DnsServerPort())
 	switch name {
 	case "":
 		server := &dns.Server{Addr: port, Net: net, TsigSecret: nil}
@@ -142,7 +142,7 @@ func main() {
 
 	// setup resolv conf
 	go func() {
-		logging.Infof("status=setup-default-dns, setup-dns=%b", conf.SetupResolvConf())
+		logging.Infof("status=setup-default-dns, setup-dns=%t", conf.SetupResolvConf())
 		if conf.SetupResolvConf() {
 			for ; ; {
 				logging.Info("status=updating-resolv.conf")
