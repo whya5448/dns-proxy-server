@@ -2,6 +2,7 @@ package vo
 
 import (
 	"github.com/mageddo/dns-proxy-server/events/local/localvo"
+	"github.com/mageddo/dns-proxy-server/utils/iputils"
 	"strconv"
 )
 
@@ -17,12 +18,12 @@ type HostnameV1 struct {
 
 func (hostnameV1 HostnameV1) ToHostname() localvo.Hostname {
 	return localvo.Hostname{
-		Id: parseInt(hostnameV1.Id),
-		Hostname:hostnameV1.Hostname,
-		Ip:hostnameV1.Ip,
-		Target:hostnameV1.Target,
-		Ttl:hostnameV1.Ttl,
-		Type:hostnameV1.Type,
+		Id:       parseInt(hostnameV1.Id),
+		Hostname: hostnameV1.Hostname,
+		Ip:       iputils.ToIpString(hostnameV1.Ip),
+		Target:   hostnameV1.Target,
+		Ttl:      hostnameV1.Ttl,
+		Type:     hostnameV1.Type,
 	}
 }
 
@@ -54,7 +55,7 @@ func fromHostname(env string,hostname localvo.Hostname) HostnameV1 {
 		Type:     hostname.Type,
 		Ttl:      hostname.Ttl,
 		Target:   hostname.Target,
-		Ip:       hostname.Ip,
+		Ip:       *iputils.ToIpByteArray(&[4]byte{}, hostname.Ip),
 		Hostname: hostname.Hostname,
 		Env:      env,
 	}

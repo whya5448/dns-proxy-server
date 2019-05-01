@@ -10,7 +10,7 @@ type ConfigurationV2 struct {
 	 * it will try one by one in order, if no one is specified then 8.8.8.8 is used by default
 	 * DO NOT call this variable directly, use GetRemoteDnsServers instead
 	 */
-	RemoteDnsServers [][4]byte `json:"remoteDnsServers"`
+	RemoteDnsServers []string `json:"remoteDnsServers"`
 	Envs []EnvV2               `json:"envs"`
 	ActiveEnv string           `json:"activeEnv"`
 
@@ -37,7 +37,7 @@ type EnvV2 struct {
 type HostnameV2 struct {
 	Id int `json:"id"`
 	Hostname string `json:"hostname"`
-	Ip [4]byte `json:"ip"` // hostname ip when type=A
+	Ip string `json:"ip"` // hostname ip when type=A
 	Target string `json:"target"` // target hostname when type=CNAME
 	Ttl int `json:"ttl"`
 	Env string `json:"env,omitempty"` // apenas para o post do rest,

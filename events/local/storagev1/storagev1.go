@@ -2,6 +2,7 @@ package storagev1
 
 import (
 	"github.com/mageddo/dns-proxy-server/events/local/localvo"
+	"github.com/mageddo/dns-proxy-server/utils/iputils"
 )
 
 type ConfigurationV1 struct {
@@ -47,17 +48,17 @@ type HostnameV1 struct {
 
 func ValueOf(c *localvo.Configuration) *ConfigurationV1 {
 	return &ConfigurationV1{
-		Envs: toV1Envs(c.Envs),
-		WebServerPort:c.WebServerPort,
-		RemoteDnsServers:c.RemoteDnsServers,
-		RegisterContainerNames:c.RegisterContainerNames,
-		LogLevel:c.LogLevel,
-		LogFile:c.LogFile,
-		HostMachineHostname:c.HostMachineHostname,
-		Domain:c.Domain,
-		DnsServerPort:c.DnsServerPort,
-		DefaultDns:c.DefaultDns,
-		ActiveEnv:c.ActiveEnv,
+		Envs:                   toV1Envs(c.Envs),
+		WebServerPort:          c.WebServerPort,
+		RemoteDnsServers:       iputils.ToIpsByteArray(c.RemoteDnsServers),
+		RegisterContainerNames: c.RegisterContainerNames,
+		LogLevel:               c.LogLevel,
+		LogFile:                c.LogFile,
+		HostMachineHostname:    c.HostMachineHostname,
+		Domain:                 c.Domain,
+		DnsServerPort:          c.DnsServerPort,
+		DefaultDns:             c.DefaultDns,
+		ActiveEnv:              c.ActiveEnv,
 	}
 }
 
@@ -91,24 +92,24 @@ func fromHostname(hostname localvo.Hostname) HostnameV1 {
 		Type:     hostname.Type,
 		Ttl:      hostname.Ttl,
 		Target:   hostname.Target,
-		Ip:       hostname.Ip,
+		Ip:       *iputils.ToIpByteArray(&[4]byte{}, hostname.Ip),
 	}
 }
 
 func (c *ConfigurationV1) ToConfig() *localvo.Configuration {
 	return &localvo.Configuration{
-		Version:1,
-		ActiveEnv:c.ActiveEnv,
-		DefaultDns:c.DefaultDns,
-		DnsServerPort:c.DnsServerPort,
-		Domain:c.Domain,
-		Envs: toEnvs(c.Envs),
-		HostMachineHostname:c.HostMachineHostname,
-		LogFile: c.LogFile,
-		LogLevel:c.LogLevel,
-		RegisterContainerNames:c.RegisterContainerNames,
-		RemoteDnsServers:c.RemoteDnsServers,
-		WebServerPort:c.WebServerPort,
+		Version:                1,
+		ActiveEnv:              c.ActiveEnv,
+		DefaultDns:             c.DefaultDns,
+		DnsServerPort:          c.DnsServerPort,
+		Domain:                 c.Domain,
+		Envs:                   toEnvs(c.Envs),
+		HostMachineHostname:    c.HostMachineHostname,
+		LogFile:                c.LogFile,
+		LogLevel:               c.LogLevel,
+		RegisterContainerNames: c.RegisterContainerNames,
+		RemoteDnsServers:       iputils.ToIpStringArray(c.RemoteDnsServers),
+		WebServerPort:          c.WebServerPort,
 	}
 }
 
@@ -131,7 +132,7 @@ func toEnvs(v1Envs []EnvV1) []localvo.Env {
 func fillHostname(hostname *localvo.Hostname, v1Hostname *HostnameV1) {
 	hostname.Id = v1Hostname.Id
 	hostname.Hostname = v1Hostname.Hostname
-	hostname.Ip = v1Hostname.Ip
+	hostname.Ip = iputils.ToIpString(v1Hostname.Ip)
 	hostname.Target = v1Hostname.Target
 	hostname.Ttl = v1Hostname.Ttl
 	hostname.Type = v1Hostname.Type

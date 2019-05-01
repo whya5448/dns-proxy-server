@@ -15,7 +15,7 @@ type Configuration struct {
 	 * it will try one by one in order, if no one is specified then 8.8.8.8 is used by default
 	 * DO NOT call this variable directly, use GetRemoteDnsServers instead
 	 */
-	RemoteDnsServers [][4]byte
+	RemoteDnsServers []string
 	Envs []Env
 	ActiveEnv string
 	WebServerPort int
@@ -46,7 +46,7 @@ const (
 type Hostname struct {
 	Id       int64
 	Hostname string
-	Ip       [4]byte // hostname ip when type=A
+	Ip       string // hostname ip when type=A
 	Target   string  // target hostname when type=CNAME
 	Ttl      int
 	Type     EntryType
@@ -96,7 +96,7 @@ func(env *Env) GetHostname(hostname string) (*Hostname, int) {
 
 func(env *Env) FindHostnameByName(ctx context.Context, hostname string) *[]Hostname {
 	logging.Infof("status=begin, hostname=%s", hostname)
-	hostList := []Hostname{}
+	var hostList []Hostname
 	for _, host := range env.Hostnames {
 		if matched, _ := regexp.MatchString(fmt.Sprintf(".*%s.*", hostname), host.Hostname); matched {
 			hostList = append(hostList, host)
@@ -154,7 +154,7 @@ func (lc *Configuration) RemoveEnv(index int){
 	logging.Infof("status=success, index=%d", index)
 }
 
-func (lc *Configuration) AddDns( dns [4]byte){
+func (lc *Configuration) AddDns(dns string){
 	lc.RemoteDnsServers = append(lc.RemoteDnsServers, dns)
 }
 
@@ -253,10 +253,11 @@ func (lc *Configuration) SetActiveEnv(env Env) error {
 	return nil
 }
 
-func (lc *Configuration) GetRemoteServers(ctx context.Context) [][4]byte {
+func (lc *Configuration) GetRemoteServers(ctx context.Context) []string {
 	if len(lc.RemoteDnsServers) == 0 {
-		lc.RemoteDnsServers = append(lc.RemoteDnsServers, [4]byte{8, 8, 8, 8})
-		logging.Infof("status=put-default-server")
+		defaultDnsServer := "8.8.8.8:53"
+		lc.RemoteDnsServers = append(lc.RemoteDnsServers, defaultDnsServer)
+		logging.Infof("status=put-default-server, defaultDnsServer=%s", defaultDnsServer)
 	}
 	return lc.RemoteDnsServers
 }

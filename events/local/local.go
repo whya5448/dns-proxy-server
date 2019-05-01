@@ -43,7 +43,7 @@ func LoadConfiguration() (*localvo.Configuration, error){
 		defaultConfig := &localvo.Configuration{
 			Version:          1,
 			Envs:             make([]localvo.Env, 0),
-			RemoteDnsServers: make([][4]byte, 0),
+			RemoteDnsServers: make([]string, 0),
 		}
 		storeDefaultConfig(defaultConfig)
 		return defaultConfig, nil
@@ -79,7 +79,7 @@ func LoadVersionedConfiguration(confBytes []byte) (*localvo.Configuration, error
 	case 2:
 		v2Config := &storagev2.ConfigurationV2{
 			Envs: make([]storagev2.EnvV2, 0),
-			RemoteDnsServers: make([][4]byte, 0),
+			RemoteDnsServers: make([]string, 0),
 		}
 		err := json.Unmarshal(confBytes, v2Config)
 		return v2Config.ToConfig(), err
