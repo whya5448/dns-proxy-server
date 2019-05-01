@@ -56,7 +56,7 @@ func ValueOf(c *localvo.Configuration) *ConfigurationV2 {
 		HostMachineHostname:    c.HostMachineHostname,
 		LogLevel:               c.LogFile,
 		RegisterContainerNames: c.RegisterContainerNames,
-		RemoteDnsServers:       c.RemoteDnsServers,
+		RemoteDnsServers:       localvo.ToIpsStringArray(c.RemoteDnsServers),
 		WebServerPort:          c.WebServerPort,
 		Envs:                   toV2Envs(c.Envs),
 	}
@@ -112,7 +112,7 @@ func (c *ConfigurationV2) ToConfig() *localvo.Configuration {
 		LogFile:                c.LogFile,
 		LogLevel:               c.LogLevel,
 		RegisterContainerNames: c.RegisterContainerNames,
-		RemoteDnsServers:       c.RemoteDnsServers,
+		RemoteDnsServers:       localvo.StringArrayToDnsServer(c.RemoteDnsServers),
 		WebServerPort:          c.WebServerPort,
 	}
 }

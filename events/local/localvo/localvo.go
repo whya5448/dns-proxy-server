@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/mageddo/go-logging"
 	"regexp"
+	"time"
 )
 
 type Configuration struct {
@@ -15,7 +16,7 @@ type Configuration struct {
 	 * it will try one by one in order, if no one is specified then 8.8.8.8 is used by default
 	 * DO NOT call this variable directly, use GetRemoteDnsServers instead
 	 */
-	RemoteDnsServers []string
+	RemoteDnsServers []DNSServer
 	Envs []Env
 	ActiveEnv string
 	WebServerPort int
@@ -154,14 +155,18 @@ func (lc *Configuration) RemoveEnv(index int){
 }
 
 func (lc *Configuration) AddDns(dns string){
-	lc.RemoteDnsServers = append(lc.RemoteDnsServers, dns)
+	lc.RemoteDnsServers = append(lc.RemoteDnsServers, toDnsServer(dns))
 }
+
 
 func (lc *Configuration) RemoveDns(index int){
 	lc.RemoteDnsServers = append(lc.RemoteDnsServers[:index], lc.RemoteDnsServers[index+1:]...)
 }
 
 func (lc *Configuration) AddHostname(envName string, hostname Hostname) error {
+	if hostname.Id == 0 {
+		hostname.Id = time.Now().UnixNano()
+	}
 	if hostname.Type == "" {
 		return errors.New("Type is required")
 	}
@@ -252,12 +257,15 @@ func (lc *Configuration) SetActiveEnv(env Env) error {
 	return nil
 }
 
-func (lc *Configuration) GetRemoteServers(ctx context.Context) []string {
-	if len(lc.RemoteDnsServers) == 0 {
-		defaultDnsServer := "8.8.8.8:53"
-		lc.RemoteDnsServers = append(lc.RemoteDnsServers, defaultDnsServer)
-		logging.Infof("status=put-default-server, defaultDnsServer=%s", defaultDnsServer)
+func (lc *Configuration) GetRemoteServers(ctx context.Context) []DNSServer {
+	if len(lc.RemoteDnsServers) != 0 {
+		return lc.RemoteDnsServers
 	}
-	return lc.RemoteDnsServers
+	logging.Infof("status=return-default-server")
+	return []DNSServer{
+		{
+			Port: 53,
+			Ip:   "8.8.8.8",
+		},
+	}
 }
-

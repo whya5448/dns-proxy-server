@@ -92,7 +92,7 @@ func TestShouldLoadV2ConfigurationVO(t *testing.T){
 	const configJson = `
 	{
 		"version": 2,
-		"remoteDnsServers": ["7.6.5.3", "7.6.5.3:54"],
+		"remoteDnsServers": ["7.6.5.3", "7.6.5.4:54"],
 		"envs": [
 			{
 				"name": "",
@@ -110,16 +110,25 @@ func TestShouldLoadV2ConfigurationVO(t *testing.T){
 	}
 	`
 	assert.Nil(t, ioutil.WriteFile(confPath, []byte(configJson), 0766))
-	expectedHostname := "github.io"
+	expectedHostname := localvo.Hostname{Ip: "192.168.0.2", Ttl: 30, Hostname: "github.io", Type: localvo.CNAME}
 
 	// act
-	assert.Nil(t, AddHostname( "", localvo.Hostname{Ip: "192.168.0.2", Ttl:30, Hostname: expectedHostname, Type:localvo.CNAME}))
+	assert.Nil(t, AddHostname( "", expectedHostname))
 
 	// assert
 	conf, err := LoadConfiguration()
 	assert.Nil(t, err, "could not load conf")
 	env, _ := conf.GetActiveEnv()
 	hostnameVo, _ := env.GetHostname("github.io")
-	assert.Equal(t, expectedHostname, hostnameVo.Hostname)
-	assert.Equal(t, localvo.CNAME, hostnameVo.Type)
+	assert.Equal(t, expectedHostname.Hostname, hostnameVo.Hostname)
+	assert.Equal(t, expectedHostname.Ip, hostnameVo.Ip)
+	assert.Equal(t, expectedHostname.Target, hostnameVo.Target)
+	assert.Equal(t, expectedHostname.Type, hostnameVo.Type)
+	assert.Equal(t, 2, len(conf.RemoteDnsServers))
+
+	assert.Equal(t, "7.6.5.3", conf.RemoteDnsServers[0].Ip)
+	assert.Equal(t, 53, conf.RemoteDnsServers[0].Port)
+
+	assert.Equal(t, "7.6.5.4", conf.RemoteDnsServers[1].Ip)
+	assert.Equal(t, 54, conf.RemoteDnsServers[1].Port)
 }

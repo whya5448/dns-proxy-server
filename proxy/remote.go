@@ -9,6 +9,7 @@ import (
 	"golang.org/x/net/context"
 	"github.com/mageddo/dns-proxy-server/events/local"
 	"github.com/mageddo/go-logging"
+	"strconv"
 
 	"github.com/mageddo/dns-proxy-server/cache/store"
 )
@@ -42,26 +43,20 @@ func (r remoteDnsSolver) Solve(ctx context.Context, question dns.Question) (*dns
 	var res *dns.Msg
 	for _, server := range config.GetRemoteServers(ctx) {
 
-		if len(server) != 4 {
-			logging.Warning("status=wrong-server, server=%+v", ctx, server)
-			continue
-		}
-
 		// server and port to ask
-		formatServer := fmt.Sprintf("%d.%d.%d.%d", server[0], server[1], server[2], server[3])
-		res, _, err = client.Exchange(m, net.JoinHostPort(formatServer, "53"))
+		res, _, err = client.Exchange(m, net.JoinHostPort(server.Ip, strconv.Itoa(server.Port)))
 
 		// if the answer not be returned
 		if res == nil {
 			err = errors.New(fmt.Sprintf("status=answer-can-not-be-null, err=%v", err))
-			logging.Infof("status=no-answer, question=%s, server=%s, err=%s", ctx, question.Name, formatServer, err)
+			logging.Infof("status=no-answer, question=%s, server=%s, err=%s", ctx, question.Name, server.Ip, err)
 			continue
 		} else if res.Rcode != dns.RcodeSuccess { // what the code of the return message ?
 			err = errors.New(fmt.Sprintf("status=invalid-answer-name, name=%s, rcode=%d", question.Name, res.Rcode))
 			logging.Infof("status=bad-code, name=%s, rcode=%d, err=%s", ctx, question.Name, res.Rcode, err)
 			continue
 		}
-		logging.Debugf("status=remote-solved, server=%s, name=%s, res=%d", ctx, formatServer, question.Name, getRCode(res))
+		logging.Debugf("status=remote-solved, server=%s, name=%s, res=%d", ctx, server.Ip, question.Name, getRCode(res))
 		return res, nil
 	}
 	logging.Infof("status=complete, name=%s, res=%d, err=%s", ctx, question.Name, getRCode(res), err)

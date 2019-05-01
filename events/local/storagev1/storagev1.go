@@ -50,7 +50,7 @@ func ValueOf(c *localvo.Configuration) *ConfigurationV1 {
 	return &ConfigurationV1{
 		Envs:                   toV1Envs(c.Envs),
 		WebServerPort:          c.WebServerPort,
-		RemoteDnsServers:       iputils.ToIpsByteArray(c.RemoteDnsServers),
+		RemoteDnsServers:       localvo.ToIpsByteArray(c.RemoteDnsServers),
 		RegisterContainerNames: c.RegisterContainerNames,
 		LogLevel:               c.LogLevel,
 		LogFile:                c.LogFile,
@@ -108,7 +108,7 @@ func (c *ConfigurationV1) ToConfig() *localvo.Configuration {
 		LogFile:                c.LogFile,
 		LogLevel:               c.LogLevel,
 		RegisterContainerNames: c.RegisterContainerNames,
-		RemoteDnsServers:       iputils.ToIpStringArray(c.RemoteDnsServers),
+		RemoteDnsServers:       localvo.ByteArrayToDnsServer(c.RemoteDnsServers),
 		WebServerPort:          c.WebServerPort,
 	}
 }
