@@ -9,6 +9,7 @@ import (
 	"github.com/miekg/dns"
 	"golang.org/x/net/context"
 	"net"
+	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
@@ -32,6 +33,9 @@ func (s SystemDnsSolver) Solve(ctx context.Context, question dns.Question) (*dns
 	return nil, errors.New("host not found")
 }
 
+func (s SystemDnsSolver) Name() string {
+	return reflect.TypeOf(s).String()
+}
 
 func NewSystemSolver() SystemDnsSolver {
 	return SystemDnsSolver{}

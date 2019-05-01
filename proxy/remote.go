@@ -9,6 +9,7 @@ import (
 	"golang.org/x/net/context"
 	"github.com/mageddo/dns-proxy-server/events/local"
 	"github.com/mageddo/go-logging"
+	"reflect"
 	"strconv"
 
 	"github.com/mageddo/dns-proxy-server/cache/store"
@@ -56,11 +57,15 @@ func (r remoteDnsSolver) Solve(ctx context.Context, question dns.Question) (*dns
 			logging.Infof("status=bad-code, name=%s, rcode=%d, err=%s", ctx, question.Name, res.Rcode, err)
 			continue
 		}
-		logging.Debugf("status=remote-solved, server=%s, name=%s, res=%d", ctx, server.Ip, question.Name, getRCode(res))
+		logging.Debugf("status=remote-solved, server=%s, name=%s, res=%d, answers=%d", ctx, server.Ip, question.Name, getRCode(res), len(res.Answer))
 		return res, nil
 	}
 	logging.Infof("status=complete, name=%s, res=%d, err=%s", ctx, question.Name, getRCode(res), err)
 	return res, err
+}
+
+func (r remoteDnsSolver) Name() string {
+	return reflect.TypeOf(r).String()
 }
 
 func NewRemoteDnsSolver() *remoteDnsSolver {

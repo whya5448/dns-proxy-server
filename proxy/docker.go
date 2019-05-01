@@ -7,6 +7,7 @@ import (
 	"github.com/miekg/dns"
 	"golang.org/x/net/context"
 	"net"
+	"reflect"
 	"strconv"
 	"strings"
 )
@@ -24,6 +25,10 @@ func (s DockerDnsSolver) Solve(ctx context.Context, question dns.Question) (*dns
 		}
 	}
 	return nil, errors.New("hostname not found " + questionName)
+}
+
+func (s DockerDnsSolver) Name() string {
+	return reflect.TypeOf(s).String()
 }
 
 func (s DockerDnsSolver) doSolve(ctx context.Context, k string, q dns.Question) (*dns.Msg, error) {

@@ -1,21 +1,23 @@
 package log
 
 import (
-	"github.com/mageddo/go-logging"
-	"os"
-	"io"
 	"github.com/mageddo/dns-proxy-server/conf"
+	"github.com/mageddo/go-logging"
+	"github.com/mageddo/go-logging/native"
+	"io"
+	"log"
+	"os"
 )
 
 func init(){
 	setup(os.Stdout)
 	logging.SetLevel(conf.LogLevel())
-	logging.Warningf("status=log level changed to %d", conf.LogLevel())
+	logging.Warningf("status=log-level-changed, log-level= %d", conf.LogLevel())
 	SetOutput(conf.LogFile())
 }
 
 func setup(out io.Writer) {
-	logging.SetOutput(out)
+	logging.SetLog(logging.New(native.NewGologPrinter(out, "", log.LstdFlags | log.Lmicroseconds), 4))
 }
 
 func SetOutput(f string) error {

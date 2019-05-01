@@ -65,6 +65,10 @@ type FakeSolver struct {
 	mock.Mock
 }
 
+func (m *FakeSolver) Name() string {
+	return "FakeSolver"
+}
+
 func (m *FakeSolver) Solve(ctx context.Context, question dns.Question) (*dns.Msg, error) {
 	args := m.Called(ctx, question)
 	if msg, ok := args.Get(0).(*dns.Msg); ok {

@@ -27,6 +27,10 @@ func (s localDnsSolver) Solve(ctx context.Context, question dns.Question) (*dns.
 	return nil, errors.New("hostname not found " + questionName)
 }
 
+func (s localDnsSolver) Name() string {
+	return reflect.TypeOf(s).String()
+}
+
 func NewLocalDNSSolver() *localDnsSolver {
 	return &localDnsSolver{}
 }
