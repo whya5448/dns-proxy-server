@@ -41,7 +41,7 @@ func LoadConfiguration() (*localvo.Configuration, error){
 		}
 	} else {
 		defaultConfig := &localvo.Configuration{
-			Version:          1,
+			Version:          2,
 			Envs:             make([]localvo.Env, 0),
 			RemoteDnsServers: make([]localvo.DNSServer, 0),
 		}

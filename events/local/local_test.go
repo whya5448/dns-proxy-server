@@ -178,3 +178,18 @@ func TestShouldLoadV1ConfigurationVO(t *testing.T){
 	assert.Equal(t, "7.6.5.4", conf.RemoteDnsServers[1].Ip)
 	assert.Equal(t, 53, conf.RemoteDnsServers[1].Port)
 }
+
+func TestDefaultStorageApiVersion(t *testing.T){
+	// arrange
+	ResetConf()
+
+	expectedHostname := localvo.Hostname{Ip: "192.168.0.2", Ttl: 30, Hostname: "github.io", Type: localvo.CNAME}
+
+	// act
+	assert.Nil(t, AddHostname( "", expectedHostname))
+
+	// assert
+	conf, err := LoadConfiguration()
+	assert.Nil(t, err, "could not load conf")
+	assert.Equal(t, 2, conf.Version)
+}
