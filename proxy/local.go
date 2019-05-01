@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/mageddo/dns-proxy-server/events/local"
 	"github.com/mageddo/dns-proxy-server/events/local/localvo"
+	"github.com/mageddo/dns-proxy-server/utils/iputils"
 	"github.com/mageddo/go-logging"
 	"github.com/miekg/dns"
 	"golang.org/x/net/context"
@@ -41,9 +42,10 @@ func getCnameMsg(question dns.Question, hostname *localvo.Hostname) *dns.Msg{
 }
 
 func getAMsg(question dns.Question, hostname *localvo.Hostname) *dns.Msg{
+	ipArray := iputils.ToIpByteArray(&[4]byte{}, hostname.Ip)
 	rr := &dns.A{
 		Hdr: dns.RR_Header{Name: question.Name, Rrtype: dns.TypeA, Class: dns.ClassINET, Ttl: uint32(hostname.Ttl)},
-		A:   net.IPv4(hostname.Ip[0], hostname.Ip[1], hostname.Ip[2], hostname.Ip[3]),
+		A:   net.IPv4(ipArray[0], ipArray[1], ipArray[2], ipArray[3]),
 	}
 	m := new(dns.Msg)
 	m.Answer = append(m.Answer, rr)
