@@ -1,3 +1,8 @@
+### 2.14.2
+* Ability to specify remote server port
+* Introducing storage api v2
+* Refactoring the docs to use Hugo templates 
+ 
 ### 2.14.1
 * Fixing nil pointer when remote server get timeout (#126)
 * Simplify bug report
