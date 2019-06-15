@@ -1,6 +1,5 @@
 import React from 'react'
-import jquery from 'jquery'
-let $ = jquery;
+import $ from 'jquery'
 
 export class RecordForm extends React.Component {
 	constructor(props) {
@@ -20,7 +19,12 @@ export class RecordForm extends React.Component {
 		};
 	}
 
+	shouldComponentUpdate(nextProps, nextState) {
+		return nextProps.env !== nextState.form.env;
+	}
+
 	componentDidMount(){
+		console.warn('RecordForm did mount, state=%o', this.state);
 		this.processValueLabel(this.state.form.type);
 	}
 
@@ -85,7 +89,10 @@ export class RecordForm extends React.Component {
 			url: '/hostname/',
 			contentType: 'application/json',
 			// dataType: 'json',
-			data: JSON.stringify(this.state.form),
+			data: JSON.stringify({
+				...this.state.form,
+				env: this.props.env
+			}),
 		})
 		.done(function(){
 			window.$.notify({

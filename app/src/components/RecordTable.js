@@ -1,12 +1,11 @@
 import React from 'react';
-import jquery from 'jquery'
-let $ = jquery;
+import $ from 'jquery'
+
 export class RecordTable extends React.Component {
 	constructor(props){
 		super();
 		this.state = {
-			table: [],
-			someText: "some text"
+			table: []
 		};
 		this.props = props;
 	}
@@ -15,14 +14,13 @@ export class RecordTable extends React.Component {
 	}
 
 	reloadTable() {
-		let that = this;
 		return $.ajax({
-			url: '/hostname/find/?env=' + window.activeEnv + '&hostname='
-		}).then(function (data) {
-			that.setState({table: data});
-			console.debug('m=getData, data=%o', data);
+			url: '/hostname/find/?env=' + this.props.env + '&hostname='
+		}).then(data => {
+			this.setState({ table: data });
+			console.debug('c=RecordTable, m=reloadTable, env=%s, data=%o', this.props.env, data);
 		}, function (err) {
-			console.error('m=getData, status=error', err);
+			console.error('c=RecordTable, m=reloadTable, status=error', err);
 		});
 	}
 
@@ -39,7 +37,7 @@ export class RecordTable extends React.Component {
 			method: 'PUT',
 			contentType: 'application/json',
 			data: JSON.stringify({
-				env: window.activeEnv,
+				env: this.props.env,
 				id: row.id,
 				type: row.type,
 				hostname: row.hostname,
@@ -60,19 +58,18 @@ export class RecordTable extends React.Component {
 
 	deleteRecord(row){
 		console.info('deleting ' + row.hostname);
-		let that = this;
 		$.ajax({
 			url: '/hostname',
 			method: 'DELETE',
 			data: JSON.stringify({
-				env: window.activeEnv,
+				env: this.props.env,
 				hostname: row.hostname
 			}),
 			contentType: 'application/json'
-		}).then(function(data) {
+		}).then((data) => {
 			console.debug('m=del, status=scucess');
 			window.$.notify({message: 'Removed: ' + row.hostname});
-			that.reloadTable();
+			this.reloadTable();
 		}, function(err){
 			console.error('m=save, status=error', err);
 			window.$.notify({message: err.responseText}, {type: 'danger'});
@@ -152,6 +149,12 @@ export class RecordTable extends React.Component {
 	}
 
 	render(){
+		if (!this.state.table.length) {
+			return (
+				<></>
+			);
+		}
+
 		return (
 			<div >
 				<h3>Records</h3>

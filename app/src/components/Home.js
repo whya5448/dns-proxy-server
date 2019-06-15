@@ -1,3 +1,4 @@
+import EnvPicker from './EnvPicker';
 import React from 'react'
 import {RecordForm} from './RecordForm.js'
 import {RecordTable} from './RecordTable.js'
@@ -6,13 +7,26 @@ export class Home extends React.Component {
 	constructor() {
 		super();
 		this.state = {
-			forceUpdate: null
+			forceUpdate: null,
+			env: ''
 		};
 	}
+
 	onUpdate(){
-		this.table.reloadTable();
+		this.table.reloadTable(this.state.env);
+		this.envPicker.reload(this.state.env);
 	}
+
+	onChangeEnv(env) {
+		console.debug('c=Home, m=onChangeEnv, env=%s', env);
+		this.setState(
+			{ env },
+			() => this.table.reloadTable(this.state.env)
+		)
+	}
+
 	render(){
+		console.debug('render state=%o', this.state)
 		return (
 			<div>
 				<nav className="navbar navbar-inverse navbar-fixed-top" >
@@ -39,9 +53,16 @@ export class Home extends React.Component {
 					</div>
 				</nav>
 				<div className="container">
-					<h3>New Record</h3>
-					<RecordForm onUpdate={(e) => this.onUpdate(e)} />
-					<RecordTable ref={(it) => this.table = it} />
+					<div className="col-sm-12 col-md-7 col-lg-5">
+						<h3>Environments</h3>
+						<EnvPicker onChange={env => this.onChangeEnv(env)} ref={(it) => this.envPicker = it}/>
+					</div>
+
+					<div className="col-sm-12">
+						<h3>New Record</h3>
+						<RecordForm env={this.state.env} onUpdate={(e) => this.onUpdate(e)} />
+						<RecordTable env={this.state.env} ref={(it) => this.table = it} />
+					</div>
 				</div>
 			</div>
 		);
