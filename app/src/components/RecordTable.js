@@ -96,7 +96,7 @@ export class RecordTable extends React.Component {
 	}
 
 	handleIpChange(e, row) {
-		row[e.target.name] = e.target.value.split("\.").map(it => it ? parseInt(it) : "");
+		row[e.target.name] = e.target.value.split('.').map(it => it ? parseInt(it) : "");
 		this.forceUpdate();
 	}
 
