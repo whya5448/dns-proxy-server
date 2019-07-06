@@ -84,7 +84,7 @@ export default class EnvPicker extends React.PureComponent {
 						className="btn btn-secondary"
 						type="button"
 					>
-					Criar novo ambiente
+					Create new environment
 					</button>
 				</div>
 			</>

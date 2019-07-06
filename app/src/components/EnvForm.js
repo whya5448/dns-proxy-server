@@ -7,7 +7,7 @@ const createEnvironment = (name, callback) => {
 	if (!sanitizedInput.length) {
 		window.$.notify({
 			title: 'Ops',
-			message: 'O nome do ambiente deve conter apenas: letras, números, _ e -'
+			message: 'Only letters, numbers, _ and - are allowed in environment name'
 		}, {
 			type: 'warning'
 		});
@@ -35,7 +35,7 @@ const createEnvironment = (name, callback) => {
 	})
 	.then(() => {
 		window.$.notify({
-			message: `Ambiente '${sanitizedInput}' criado com sucesso`
+			message: `Environment '${sanitizedInput}' created successfully`
 		}, {
 			type: 'success'
 		});
@@ -45,7 +45,7 @@ const createEnvironment = (name, callback) => {
 	.catch(response => {
 		window.$.notify({
 			title: 'Ops!',
-			message: 'Ocorreu um erro ao criar o ambiente',
+			message: 'An error ocurred',
 		}, {
 			type: 'danger'
 		})
@@ -67,13 +67,13 @@ const EnvForm = ({ onCreate, onCancel }) => {
 					className="btn btn-primary mr-3"
 					type="button"
 					onClick={ev => createEnvironment(textInput.current.value, onCreate)}
-				>Criar novo ambiente</button>
+				>Create new environment</button>
 
 				<button
 					className="btn btn-secondary"
 					onClick={() => onCancel()}
 					type="button"
-				>Cancelar</button>
+				>Cancel</button>
 			</div>
 		</>
 	)
