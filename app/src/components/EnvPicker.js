@@ -40,9 +40,9 @@ export default class EnvPicker extends React.PureComponent {
 				defer.reject();
 			},
 			success: () => defer.resolve(),
-			data: {
-				env
-			}
+			data: JSON.stringify({
+				name: env
+			})
 		});
 
 		return defer.promise();
