@@ -1,12 +1,17 @@
 import React from 'react'
 import $ from 'jquery';
 
+const DEFAULT_ENV = '';
+
 export default class EnvPicker extends React.PureComponent {
-	constructor() {
-		super();
+	constructor(...args) {
+		super(...args);
+
+		const { env: current = '' } = this.props;
+
 		this.state = {
 			envList: [],
-			current: ''
+			current
 		};
 	}
 
@@ -14,30 +19,43 @@ export default class EnvPicker extends React.PureComponent {
 		return $.ajax({
 			url: '/env/',
 		}).then(data => {
-			console.debug('m=getData, data=%o', data);
+			console.debug('c=EnvPicker, m=getData, data=%o', data);
 			this.setState({envList: data});
 		}, function (err) {
-			console.error('m=getData, status=error', err);
+			console.error('c=EnvPicker, m=getData, status=error', err);
 		});
 	}
 
-	activate() {
+	deleteCurrent() {
 		const { state: { current: env } } = this;
-		console.log('c=EnvPicker, m=activate, env=%s', env);
+		console.log('c=EnvPicker, m=deleteCurrent, env=%s', env);
 
 		const defer = $.Deferred();
 
-		// API is returning an empty body with content type 'application/json', this is causing a parse error
-		$.ajax('/env/active', {
-			type: 'PUT',
+		if (env === DEFAULT_ENV) {
+			const message = 'Deleting default environment is not allowed';
+
+			window.$.notify({
+				title: 'Ops!',
+				message
+			}, {
+				type: 'danger'
+			});
+
+			defer.rejectWith(new Error(message));
+			return defer.promise();
+		}
+
+		$.ajax('/env/', {
+			type: 'DELETE',
 			contentType: 'application/json',
-			error: response => {
-				if (response.status === 200) {
+			error: ({ status }) => {
+				if (status === 200) {
 					defer.resolve();
 					return;
 				}
 
-				defer.reject();
+				defer.rejectWith(new Error(`HTTP ${status}`));
 			},
 			success: () => defer.resolve(),
 			data: JSON.stringify({
@@ -58,36 +76,44 @@ export default class EnvPicker extends React.PureComponent {
 
 		this.setState(
 			{ current },
-			() => this.activate()
-				.fail(err => console.error('c=EnvPicker, m=handleChanges, error=%o', err))
-				.always(() => this.props.onChange(current))
+			() => this.props.onChange(current)
 		);
 	}
 
 	render() {
 		const { envList, current } = this.state;
+		const deleteEnv = () => {
+			this.deleteCurrent()
+				.then(() => this.props.onDelete())
+				.fail(err => console.error('m=render, err=%o', err))
+		};
+
+		console.debug('c=EnvPicker, m=render, env=%s', current);
 
 		return (
-			<>
-				<div className="input-group">
-					<select className="form-control mr-3"
-						onChange={ev => this.handleChanges(ev)}
-						value={current}
-						name="env"
-					>
-						{envList.map(
-							({ name }, index) => (<option key={name} value={name}>{name.length ? name : 'Default'}</option>)
-						)}
-					</select>
+			<div className="input-group">
+				<select className="form-control"
+					onChange={ev => this.handleChanges(ev)}
+					value={current}
+					name="env"
+				>
+					{envList.map(
+						({ name }, index) => (<option key={name} value={name}>{name.length ? name : 'Default'}</option>)
+					)}
+				</select>
+				<div className="input-group-append ml-3">
 					<button
 						onClick={() => this.props.onToggle()}
-						className="btn btn-secondary"
+						className="btn btn-info"
 						type="button"
-					>
-					Create new environment
-					</button>
+					>Create new</button>
+					<button
+						onClick={deleteEnv}
+						className="btn btn-danger"
+						type="button"
+					>Delete selected</button>
 				</div>
-			</>
+			</div>
 		)
 	}
 }

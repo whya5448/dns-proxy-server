@@ -3,7 +3,6 @@ import ReactDOM from 'react-dom';
 import * as serviceWorker from './serviceWorker';
 import {Home} from './components/Home'
 
-window.activeEnv = '';
 ReactDOM.render(
 	<Home/>, document.getElementById("root")
 );

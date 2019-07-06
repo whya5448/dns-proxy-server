@@ -33,49 +33,48 @@ const createEnvironment = (name, callback) => {
 			}),
 		});
 	})
-	.then(() => {
-		window.$.notify({
-			message: `Environment '${sanitizedInput}' created successfully`
-		}, {
-			type: 'success'
-		});
+	.then(
+		() => {
+			window.$.notify({
+				message: `Environment '${sanitizedInput}' created successfully`
+			}, {
+				type: 'success'
+			});
 
-		callback();
-	})
-	.catch(response => {
-		window.$.notify({
-			title: 'Ops!',
-			message: 'An error ocurred',
-		}, {
-			type: 'danger'
-		})
+			callback(sanitizedInput);
+		}, response => {
+			window.$.notify({
+				title: 'Ops!',
+				message: 'An error ocurred',
+			}, {
+				type: 'danger'
+			})
 
-		console.error('Could not create environment: %o', response);
-	});
+			console.error('Could not create environment: %o', response);
+		}
+	);
 }
 
 const EnvForm = ({ onCreate, onCancel }) => {
 	const textInput = React.createRef();
 
 	return (
-		<>
-			<div className="mb-3">
-				<input type="text" className="form-control" ref={textInput} />
-			</div>
-			<div className="mb-3">
+		<div className="input-group">
+			<input type="text" className="form-control" ref={textInput} />
+			<div className="input-group-append ml-3">
 				<button
-					className="btn btn-primary mr-3"
+					className="btn btn-info"
 					type="button"
 					onClick={ev => createEnvironment(textInput.current.value, onCreate)}
-				>Create new environment</button>
+				>Save</button>
 
 				<button
-					className="btn btn-secondary"
+					className="btn btn-dark"
 					onClick={() => onCancel()}
 					type="button"
 				>Cancel</button>
 			</div>
-		</>
+		</div>
 	)
 };
 

@@ -1,21 +1,78 @@
 import EnvPicker from './EnvPicker';
 import EnvForm from './EnvForm';
+import NavBar from './NavBar';
 import React from 'react'
+import $ from 'jquery';
 import {RecordForm} from './RecordForm.js'
 import {RecordTable} from './RecordTable.js'
 
+const DEFAULT_ENV = '';
+
 export class Home extends React.Component {
-	constructor() {
-		super();
+	constructor(...args) {
+		super(...args);
+
 		this.state = {
 			forceUpdate: null,
 			createEnv: false,
+			isLoading: true,
 			env: ''
 		};
 	}
 
+	shouldComponentUpdate(nextProps, nextState) {
+		console.debug('c=Home, m=shouldComponentUpdate, nextProps=%o, nextState=%o, currentState=%o', nextProps, nextState, this.state);
+		return (nextProps.env !== this.state.env || nextProps.isLoading !== this.state.isLoading || nextProps.createEnv !== this.state.createEnv);
+	}
+
+	componentDidMount() {
+		this.getActiveEnvironment().then(
+			data => {
+				this.setState({
+					isLoading: false,
+					env: data.name
+				})
+			},
+			err => {
+				window.$.notify({
+					message: 'Failed to fetch current environment'
+				}, {
+					type: 'danger'
+				})
+				console.error('m=componentDidMount, err=%o', err)
+			}
+		);
+	}
+
+	activate(env) {
+		console.log('c=Home, m=activate, env=%s', env);
+
+		const defer = $.Deferred();
+
+		// API is returning an empty body with content type 'application/json', this is causing a parse error
+		$.ajax('/env/active', {
+			type: 'PUT',
+			contentType: 'application/json',
+			error: response => {
+				if (response.status === 200) {
+					defer.resolve();
+					return;
+				}
+
+				defer.reject();
+			},
+			success: () => defer.resolve(),
+			data: JSON.stringify({
+				name: env
+			})
+		});
+
+		return defer.promise();
+	}
+
 	toggleEnvForm() {
 		const { createEnv } = this.state;
+		console.debug('m=Home, m=toggleEnvForm, createEnv=%s', createEnv);
 
 		this.setState({
 			createEnv: !createEnv
@@ -23,68 +80,93 @@ export class Home extends React.Component {
 	}
 
 	onUpdate(){
-		this.table.reloadTable(this.state.env);
-		this.envPicker.reload(this.state.env);
+		const { state: { env } } = this;
+
+		this.table.reloadTable(env);
+		this.envPicker.reload(env);
 	}
 
 	onChangeEnv(env) {
 		console.debug('c=Home, m=onChangeEnv, env=%s', env);
-		this.setState(
-			{ env },
-			() => this.table.reloadTable(this.state.env)
+		this.activate(env)
+			.then(
+				() => this.setState({ env, createEnv: false }, () => this.table.reloadTable(this.state.env)),
+				err => {
+					window.$.notify({ message: 'Could not activate environment' }, { type: 'danger' })
+					console.error('c=Home, m=onChangeEnv, err=%o', err)
+				}
+			)
+	}
+
+	onCreate(env) {
+		this.onChangeEnv(env)
+	}
+
+	onDelete() {
+		this.onChangeEnv(DEFAULT_ENV)
+	}
+
+	getActiveEnvironment() {
+		return $.get('/env/active');
+	}
+
+	renderTable() {
+		return (
+			<>
+				<div className="col-sm-12 col-md-7 col-lg-5 mb-4">
+					<h3>Environments</h3>
+					{this.state.createEnv
+						? <EnvForm
+								onCancel={() => this.toggleEnvForm()}
+								onCreate={env => this.onCreate(env)}
+							/>
+						: <EnvPicker
+								onChange={env => this.onChangeEnv(env)}
+								onDelete={() => this.onDelete()}
+								onToggle={() => this.toggleEnvForm()}
+								ref={(it) => this.envPicker = it}
+								env={this.state.env}
+							/>
+					}
+				</div>
+
+				<div className="col-sm-12">
+					<h3>New Record</h3>
+					<RecordForm env={this.state.env} onUpdate={(e) => this.onUpdate(e)} />
+					<RecordTable env={this.state.env} ref={(it) => this.table = it} />
+				</div>
+			</>
+		)
+	}
+
+	renderLoading() {
+		return (
+			<div className="card">
+				<div className="card-body">
+					<div className="text-center m-5">
+						<div className="spinner-border text-primary" role="status">
+							<span className="sr-only">Loading...</span>
+						</div>
+					</div>
+				</div>
+			</div>
 		)
 	}
 
 	render(){
-		console.debug('render state=%o', this.state)
-		return (
-			<div>
-				<nav className="navbar navbar-inverse navbar-fixed-top" >
-					<a className="navbar-brand" href="#">DNS Proxy Server</a>
-					<button className="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
-						aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-						<span className="navbar-toggler-icon"></span>
-					</button>
-					<div className="collapse navbar-collapse" id="navbarNav">
-						<ul className="navbar-nav pull-right">
-							<li className="nav-item active">
-								<a className="nav-link" href="#">Home <span className="sr-only">(current)</span></a>
-							</li>
-							<li className="nav-item">
-								<a className="nav-link" href="#">Features</a>
-							</li>
-							<li className="nav-item">
-								<a className="nav-link" href="#">Pricing</a>
-							</li>
-							<li className="nav-item">
-								<a className="nav-link disabled" href="#">Disabled</a>
-							</li>
-						</ul>
-					</div>
-				</nav>
-				<div className="container">
-					<div className="col-sm-12 col-md-7 col-lg-5 mb-4">
-						<h3>Environments</h3>
-						{this.state.createEnv
-							? <EnvForm
-									onCancel={() => this.toggleEnvForm()}
-									onClick={() => this.toggleEnvForm()}
-								/>
-							: <EnvPicker
-									onChange={env => this.onChangeEnv(env)}
-									onToggle={() => this.toggleEnvForm()}
-									ref={(it) => this.envPicker = it}
-								/>
-						}
-					</div>
+		console.debug('c=Home, m=render, state=%o', this.state)
 
-					<div className="col-sm-12">
-						<h3>New Record</h3>
-						<RecordForm env={this.state.env} onUpdate={(e) => this.onUpdate(e)} />
-						<RecordTable env={this.state.env} ref={(it) => this.table = it} />
-					</div>
+		return (
+			<>
+				<NavBar />
+
+				<div className="container-fluid mb-5">
+					{this.state.isLoading
+						? this.renderLoading()
+						: this.renderTable()
+					}
 				</div>
-			</div>
+			</>
 		);
 	}
 }
