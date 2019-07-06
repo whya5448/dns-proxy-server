@@ -111,8 +111,10 @@ export class RecordTable extends React.Component {
 			{v.type === 'CNAME' && <td>{v.target}</td>}
 			<td className="text-right">{v.ttl}</td>
 			<td className="text-right records-actions">
-				<button className="btn btn-info fa fa-pencil-alt" onClick={(e) => this.swapEditionMode(v) } ></button>
-				<button className="btn btn-danger fa fa-trash-alt" onClick={(e) => this.deleteRecord(v) } ></button>
+				<div className="btn-group">
+					<button className="btn btn-info fa fa-pencil-alt" onClick={(e) => this.swapEditionMode(v) } ></button>
+					<button className="btn btn-danger fa fa-trash-alt" onClick={(e) => this.deleteRecord(v) } ></button>
+				</div>
 			</td>
 		</tr>
 	}
@@ -142,8 +144,10 @@ export class RecordTable extends React.Component {
 				<input className="form-control" name="ttl" type="number" onChange={(e) => this.handleNumberChange(e, v)} value={v.ttl}/>
 			</td>
 			<td className="text-right records-actions">
-				<button className="btn btn-primary fa fa-save" onClick={(e) => this.updateRecord(v) } ></button>
-				<button className="btn btn-danger fa fa-window-close" onClick={(e) => this.swapEditionMode(v) } ></button>
+				<div className="btn-group">
+					<button className="btn btn-primary fa fa-save" onClick={(e) => this.updateRecord(v) } ></button>
+					<button className="btn btn-danger fa fa-window-close" onClick={(e) => this.swapEditionMode(v) } ></button>
+				</div>
 			</td>
 		</tr>
 	}

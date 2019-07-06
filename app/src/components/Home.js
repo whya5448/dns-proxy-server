@@ -1,4 +1,5 @@
 import EnvPicker from './EnvPicker';
+import EnvForm from './EnvForm';
 import React from 'react'
 import {RecordForm} from './RecordForm.js'
 import {RecordTable} from './RecordTable.js'
@@ -8,8 +9,17 @@ export class Home extends React.Component {
 		super();
 		this.state = {
 			forceUpdate: null,
+			createEnv: false,
 			env: ''
 		};
+	}
+
+	toggleEnvForm() {
+		const { createEnv } = this.state;
+
+		this.setState({
+			createEnv: !createEnv
+		});
 	}
 
 	onUpdate(){
@@ -30,9 +40,9 @@ export class Home extends React.Component {
 		return (
 			<div>
 				<nav className="navbar navbar-inverse navbar-fixed-top" >
-					<a className="navbar-brand" href="#">DNS PROXY SERVER</a>
+					<a className="navbar-brand" href="#">DNS Proxy Server</a>
 					<button className="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
-									aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+						aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
 						<span className="navbar-toggler-icon"></span>
 					</button>
 					<div className="collapse navbar-collapse" id="navbarNav">
@@ -53,9 +63,19 @@ export class Home extends React.Component {
 					</div>
 				</nav>
 				<div className="container">
-					<div className="col-sm-12 col-md-7 col-lg-5">
+					<div className="col-sm-12 col-md-7 col-lg-5 mb-4">
 						<h3>Environments</h3>
-						<EnvPicker onChange={env => this.onChangeEnv(env)} ref={(it) => this.envPicker = it}/>
+						{this.state.createEnv
+							? <EnvForm
+									onCancel={() => this.toggleEnvForm()}
+									onClick={() => this.toggleEnvForm()}
+								/>
+							: <EnvPicker
+									onChange={env => this.onChangeEnv(env)}
+									onToggle={() => this.toggleEnvForm()}
+									ref={(it) => this.envPicker = it}
+								/>
+						}
 					</div>
 
 					<div className="col-sm-12">

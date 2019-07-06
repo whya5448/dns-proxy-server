@@ -28,10 +28,9 @@ export default class EnvPicker extends React.PureComponent {
 		const defer = $.Deferred();
 
 		// API is returning an empty body with content type 'application/json', this is causing a parse error
-		$.ajax({
-			url: '/env/active',
+		$.ajax('/env/active', {
 			type: 'PUT',
-			dataType: 'json',
+			contentType: 'application/json',
 			error: response => {
 				if (response.status === 200) {
 					defer.resolve();
@@ -69,11 +68,26 @@ export default class EnvPicker extends React.PureComponent {
 		const { envList, current } = this.state;
 
 		return (
-			<select className="form-control" name="env" value={current} onChange={ev => this.handleChanges(ev)}>
-				{envList.map(
-					({ name }, index) => (<option key={name} value={name}>{name.length ? name : 'Default'}</option>)
-				)}
-			</select>
+			<>
+				<div className="input-group">
+					<select className="form-control mr-3"
+						onChange={ev => this.handleChanges(ev)}
+						value={current}
+						name="env"
+					>
+						{envList.map(
+							({ name }, index) => (<option key={name} value={name}>{name.length ? name : 'Default'}</option>)
+						)}
+					</select>
+					<button
+						onClick={() => this.props.onToggle()}
+						className="btn btn-secondary"
+						type="button"
+					>
+					Criar novo ambiente
+					</button>
+				</div>
+			</>
 		)
 	}
 }
