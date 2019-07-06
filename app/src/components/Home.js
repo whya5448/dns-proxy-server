@@ -8,7 +8,7 @@ import {RecordTable} from './RecordTable.js'
 
 const DEFAULT_ENV = '';
 
-export class Home extends React.Component {
+export class Home extends React.PureComponent {
 	constructor(...args) {
 		super(...args);
 
@@ -18,11 +18,6 @@ export class Home extends React.Component {
 			isLoading: true,
 			env: ''
 		};
-	}
-
-	shouldComponentUpdate(nextProps, nextState) {
-		console.debug('c=Home, m=shouldComponentUpdate, nextProps=%o, nextState=%o, currentState=%o', nextProps, nextState, this.state);
-		return (nextProps.env !== this.state.env || nextProps.isLoading !== this.state.isLoading || nextProps.createEnv !== this.state.createEnv);
 	}
 
 	componentDidMount() {
