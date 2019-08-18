@@ -29,7 +29,7 @@ upload_file(){
 
 assemble(){
 	echo "> Testing ..."
-	go test -race -cover -ldflags "-X github.com/mageddo/dns-proxy-server/flags.version=test" ./.../
+	go test -p 1 -cover -ldflags "-X github.com/mageddo/dns-proxy-server/flags.version=test" ./.../
 	echo "> Tests completed"
 
 	echo "> Building..."
@@ -90,7 +90,7 @@ case $1 in
 	VERSION=$(cat VERSION | awk -F '.' '{ print $1"."$2}');
 	TARGET=$PWD/../dns-proxy-server-docs/${VERSION}
 
-	rm -r ${TARGET}
+	rm -r ${TARGET} || echo "not exists ${TARGET}"
 	hugo --baseURL=http://mageddo.github.io/dns-proxy-server/${VERSION} \
 	--destination ${TARGET} \
 	--source docs/

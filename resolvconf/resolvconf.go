@@ -3,11 +3,13 @@ package resolvconf
 import (
 	"bufio"
 	"bytes"
-	"errors"
+	"context"
 	"fmt"
 	"github.com/mageddo/dns-proxy-server/cache/store"
 	"github.com/mageddo/dns-proxy-server/conf"
+	"github.com/mageddo/dns-proxy-server/docker/dockernetwork"
 	"github.com/mageddo/go-logging"
+	"github.com/pkg/errors"
 	"io/ioutil"
 	"net"
 	"os"
@@ -24,7 +26,7 @@ func RestoreResolvconfToDefault() error {
 	return err
 }
 
-func SetMachineDNSServer(serverIP string) error {
+func SetMachineDnsServer(serverIP string) error {
 	hd := newSetMachineDnsServerHandler(serverIP)
 	return ProcessResolvconf(hd)
 }
@@ -39,8 +41,8 @@ func GetSearchDomainEntry() (string, error) {
 	for ; scanner.Scan();  {
 		line := scanner.Text()
 		switch getDnsEntryType(line) {
-		case SEARCH:
-			return line[len(SEARCH) + 1:], nil
+		case Search:
+			return line[len(Search) + 1:], nil
 		}
 	}
 	return "", nil
@@ -50,8 +52,6 @@ func GetSearchDomainEntry() (string, error) {
 func ProcessResolvconf( handler DnsHandler ) error {
 
 	var newResolvConfBuff bytes.Buffer
-	logging.Infof("status=begin")
-
 	resolvconf := conf.GetResolvConf()
 	fileRead, err := os.Open(resolvconf)
 	if err != nil {
@@ -63,13 +63,13 @@ func ProcessResolvconf( handler DnsHandler ) error {
 		hasContent = false
 		foundDnsProxyEntry = false
 	)
-	logging.Infof("status=open-conf-file, file=%s", fileRead.Name())
+	logging.Debugf("status=open-conf-file, file=%s", fileRead.Name())
 	scanner := bufio.NewScanner(fileRead)
 	for scanner.Scan() {
 		line := scanner.Text()
 		hasContent = true
 		entryType := getDnsEntryType(line)
-		if entryType == PROXY {
+		if entryType == Proxy {
 			foundDnsProxyEntry = true
 		}
 		logging.Debugf("status=readline, line=%s, type=%s", line,  entryType)
@@ -89,7 +89,7 @@ func ProcessResolvconf( handler DnsHandler ) error {
 	if err != nil {
 		return err
 	}
-	logging.Infof("status=success, buffLength=%d", length)
+	logging.Debugf("status=success, buffLength=%d", length)
 	return nil
 }
 
@@ -100,35 +100,51 @@ func getDNSLine(serverIP string) string {
 func getDnsEntryType(line string) DnsEntry {
 
 	if strings.HasSuffix(line, "# dps-entry") {
-		return PROXY
+		return Proxy
 	} else if strings.HasPrefix(line, "# nameserver ") && strings.HasSuffix(line, "# dps-comment") {
-		return COMMENTED_SERVER
+		return CommentedServer
 	} else if strings.HasPrefix(line, "#") {
-		return COMMENT
+		return Comment
 	} else if strings.HasPrefix(line, "nameserver") {
-		return SERVER
+		return Server
 	} else if strings.HasPrefix(line, "search") {
-		return SEARCH
+		return Search
 	} else {
-		return ELSE
+		return Else
 	}
 }
 
-func SetCurrentDNSServerToMachineAndLockIt() error {
-	err := SetCurrentDNSServerToMachine()
-	if err != nil {
-		return err
+func SetCurrentDnsServerToMachine(ctx context.Context) error {
+	if ip, err := GetDpsIP(ctx); err == nil {
+		return SetMachineDnsServer(ip)
+	} else {
+		return errors.WithMessage(err, "can't set dps dns server to host machine")
 	}
-	return LockResolvConf()
 }
 
-func SetCurrentDNSServerToMachine() error {
-	ip, err := GetCurrentIpAddress()
-	logging.Infof("status=begin, ip=%s, err=%v", ip, err)
-	if err != nil {
-		return err
+func GetGatewayIP(ctx context.Context) (string, error) {
+	if dockernetwork.IsDockerConnected() {
+		if ip, err := dockernetwork.FindDpsNetworkGatewayIp(ctx); err == nil {
+			logging.Debugf("status=gateway-ip, ip=%s", ip)
+			return ip, nil
+		}
 	}
-	return SetMachineDNSServer(ip)
+	logging.Debugf("status=machine-ip")
+	return GetCurrentIpAddress()
+}
+
+func GetDpsIP(ctx context.Context) (string, error) {
+	if dockernetwork.IsDockerConnected() {
+		if ip, err := dockernetwork.FindDpsContainerIP(ctx); err == nil {
+			logging.Debugf("status=container-ip, ip=%s", ip)
+			return ip, nil
+		} else if ip, err = dockernetwork.FindDpsNetworkGatewayIp(ctx); err == nil {
+			logging.Debugf("status=gateway-ip, ip=%s", ip)
+			return ip, nil
+		}
+	}
+	logging.Debugf("status=machine-ip")
+	return GetCurrentIpAddress()
 }
 
 func LockResolvConf() error {
@@ -171,12 +187,12 @@ type DnsHandler interface {
 type DnsEntry string
 
 const(
-	COMMENT DnsEntry = "COMMENT"
-	COMMENTED_SERVER DnsEntry = "COMMENTED_SERVER"
-	SERVER DnsEntry = "SERVER"
-	PROXY DnsEntry = "PROXY"
-	SEARCH DnsEntry = "SEARCH"
-	ELSE DnsEntry = "ELSE"
+	Comment         DnsEntry = "COMMENT"
+	CommentedServer DnsEntry = "COMMENTED_SERVER"
+	Server          DnsEntry = "SERVER"
+	Proxy           DnsEntry = "PROXY"
+	Search          DnsEntry = "SEARCH"
+	Else            DnsEntry = "ELSE"
 )
 
 func GetCurrentIpAddress() (string, error) {
@@ -196,17 +212,17 @@ func GetCurrentIpAddress() (string, error) {
 	return "", nil
 }
 
-const SEARCH_DOMAIN_KEY = "SEARCH_DOMAIN"
+const SearchDomainKey = "SEARCH_DOMAIN"
 func GetSearchDomainEntryCached() (string, error){
 	cache := store.GetInstance()
-	if cache.ContainsKey(SEARCH_DOMAIN_KEY) {
-		logging.Debugf("status=cached-search-domain, domain=%s", cache.Get(SEARCH_DOMAIN_KEY))
-		return cache.Get(SEARCH_DOMAIN_KEY).(string), nil
+	if cache.ContainsKey(SearchDomainKey) {
+		logging.Debugf("status=cached-search-domain, domain=%s", cache.Get(SearchDomainKey))
+		return cache.Get(SearchDomainKey).(string), nil
 	}
 	logging.Debugf("status=hot-load-search-domain")
 	entry, err := GetSearchDomainEntry()
 	if err == nil {
-		cache.Put(SEARCH_DOMAIN_KEY, entry)
+		cache.Put(SearchDomainKey, entry)
 	}
 	return entry, err
 }

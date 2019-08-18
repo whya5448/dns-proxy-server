@@ -1,3 +1,8 @@
+### 2.15.0
+* Decreasing chance of acl issues by giving priority to answer ip of bridge networks over overlay ones
+* Now DPS can have your own network this way it can access and be accessed
+by all docker containers, **not** enabled by default [see the docs](http://mageddo.github.io/dns-proxy-server/2.15/en/2-features/dps-network-resolution/) 
+
 ### 2.14.6
 * Fixing ping slowness
 

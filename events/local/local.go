@@ -40,10 +40,13 @@ func LoadConfiguration() (*localvo.Configuration, error){
 			return configuration, nil
 		}
 	} else {
+		pfalse := false
 		defaultConfig := &localvo.Configuration{
 			Version:          2,
 			Envs:             make([]localvo.Env, 0),
 			RemoteDnsServers: make([]localvo.DNSServer, 0),
+			DpsNetwork: &pfalse,
+			DpsNetworkAutoConnect: &pfalse,
 		}
 		storeDefaultConfig(defaultConfig)
 		return defaultConfig, nil
@@ -129,21 +132,8 @@ func NewEmptyEnv() []localvo.Env {
 	return []localvo.Env{{Hostnames: []localvo.Hostname{}, Name:""}}
 }
 
-func Exists(name string) (bool, error) {
-	_, err := os.Stat(name)
-	if os.IsNotExist(err) {
-		return false, nil
-	}
-	return err == nil, err
-}
-
 func ResetConf() {
-	if exists, _ := Exists(confPath); exists {
-		if err := os.Remove(confPath); err != nil {
-			logging.Errorf("failed to reset conf", err)
-			os.Exit(-1)
-		}
-	}
+	os.Remove(confPath)
 	store.GetInstance().Clear()
 }
 
