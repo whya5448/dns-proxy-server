@@ -18,7 +18,7 @@ $ go run dns.go
 Running the GUI
 
 ```
-$ docker-compose exec app-dps bash
+$ docker-compose exec app-dps sh
 $ npm start
 ```
 
