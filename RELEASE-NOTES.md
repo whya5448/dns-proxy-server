@@ -1,7 +1,7 @@
 ### 2.18.0
 * Feature: Multiple environments, now you can setup a group of hostnames and save it to a environment, then you can 
 create a new environment and switch between them, very useful when working on different contexts switching from QA to PROD,
-for example
+for example, [see the docs](http://mageddo.github.io/dns-proxy-server/2.18/en/2-features/multiple-environments/)
 
 ### 2.17.4
 * Clearing cache for resolvers when the config file is saved
