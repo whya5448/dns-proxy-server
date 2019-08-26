@@ -40,6 +40,13 @@ assemble(){
 	cp -r /static build/
 }
 
+generateDocs(){
+	rm -r ${TARGET} || echo "not exists ${TARGET}"
+	hugo --baseURL=http://mageddo.github.io/dns-proxy-server/$1 \
+	--destination $2 \
+	--ignoreCache --source docs/
+}
+
 case $1 in
 
 	setup-repository )
@@ -89,21 +96,11 @@ case $1 in
 
 	VERSION=$(cat VERSION | awk -F '.' '{ print $1"."$2}');
 	TARGET=$PWD/../dns-proxy-server-docs/${VERSION}
-
-	rm -r ${TARGET} || echo "not exists ${TARGET}"
-	hugo --baseURL=http://mageddo.github.io/dns-proxy-server/${VERSION} \
-	--destination ${TARGET} \
-	--source docs/
+	generateDocs ${VERSION} ${TARGET}
 
 	VERSION=latest
 	TARGET=$PWD/../dns-proxy-server-docs/${VERSION}
-
-	rm -r ${TARGET}
-	hugo --baseURL=http://mageddo.github.io/dns-proxy-server/${VERSION} \
-	--destination ${TARGET} \
-	--ignoreCache --source docs/
-
-
+	generateDocs ${VERSION} ${TARGET}
 
 	;;
 
