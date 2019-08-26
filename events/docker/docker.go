@@ -1,8 +1,8 @@
 package docker
 
 import (
+	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/docker/engine-api/client"
 	"github.com/docker/engine-api/types"
@@ -11,8 +11,10 @@ import (
 	"github.com/mageddo/dns-proxy-server/cache"
 	"github.com/mageddo/dns-proxy-server/cache/lru"
 	"github.com/mageddo/dns-proxy-server/conf"
+	"github.com/mageddo/dns-proxy-server/docker/dockernetwork"
+	"github.com/mageddo/dns-proxy-server/reference"
 	"github.com/mageddo/go-logging"
-	"golang.org/x/net/context"
+	"github.com/pkg/errors"
 	"io"
 	"strings"
 )
@@ -24,23 +26,31 @@ const defaultNetworkLabel = "dps.network"
 func HandleDockerEvents(){
 
 	// connecting to docker api
+	ctx := reference.Context()
 	cli, err := client.NewClient("unix:///var/run/docker.sock", "v1.21", nil, nil)
 	if err != nil {
-		logging.Errorf("status=error-to-connect-at-host, solver=docker, err=%v", err)
+		logging.Warningf("status=error-parsing-host-url, err=%+v", err)
 		return
 	}
+	serverVersion, err := cli.ServerVersion(ctx)
+	if err != nil {
+		logging.Warningf("status=error-to-connect-at-host, solver=docker, err=%v", err)
+		return
+	}
+	logging.Infof("status=connected, serverVersion=%+v, err=%v", ctx, serverVersion, err)
+
+	dockernetwork.SetCli(cli)
 
 	// more about list containers https://docs.docker.com/engine/reference/commandline/ps/
 	options := types.ContainerListOptions{}
-	ctx := context.Background()
-
-	serverVersion, err := cli.ServerVersion(ctx)
-	logging.Infof("serverVersion=%+v, err=%v", serverVersion, err)
-
 	containers, err := cli.ContainerList(ctx, options)
 	if err != nil {
-		logging.Errorf("status=error-to-list-container, solver=docker, err=%v", err)
+		logging.Errorf("status=error-to-list-container, solver=docker, err=%v", ctx, err)
 		return
+	}
+
+	if conf.DpsNetwork() && dockernetwork.IsDockerConnected() {
+		setupDpsContainerNetwork(ctx)
 	}
 
 	// more about events here: http://docs-stage.docker.com/v1.10/engine/reference/commandline/events/
@@ -50,29 +60,26 @@ func HandleDockerEvents(){
 	eventFilter.Add("event", "stop")
 
 	// registering at events before get the list of actual containers, this way no one container will be missed #55
-	body, err := cli.Events(ctx, types.EventsOptions{ Filters: eventFilter })
+	body, err := cli.Events(ctx, types.EventsOptions{Filters: eventFilter})
 	if err != nil {
-		logging.Errorf("status=error-to-attach-at-events-handler, solver=docker, err=%v", err)
+		logging.Errorf("status=error-to-attach-at-events-handler, solver=docker, err=%v", ctx, err)
 		return
 	}
 
 	for _, c := range containers {
 
-		cInspection, err := cli.ContainerInspect(ctx, c.ID)
-		logging.Infof("status=container-from-list-begin, container=%s", cInspection.Name)
-		if err != nil {
-			logging.Errorf("status=inspect-error-at-list, container=%s, err=%v", c.Names, err)
-		}
+		dockernetwork.MustNetworkConnect(ctx, dockernetwork.DpsNetwork, c.ID, "")
+		cInspection := mustInspectContainer(ctx, c.ID)
 		hostnames := getHostnames(cInspection)
-		putHostnames(hostnames, cInspection)
-		logging.Infof("status=container-from-list-success, container=%s, hostnames=%s", cInspection.Name, hostnames)
+		putHostnames(ctx, hostnames, cInspection)
 
+		logging.Infof("status=started-container-processed, container=%s, hostnames=%s", ctx, cInspection.Name, hostnames)
 	}
-	
+
 	dec := json.NewDecoder(body)
 	for {
 
-		ctx := context.Background()
+		ctx := reference.Context()
 
 		var event events.Message
 		err := dec.Decode(&event)
@@ -80,21 +87,18 @@ func HandleDockerEvents(){
 			break
 		}
 
-		cInspection, err := cli.ContainerInspect(ctx, event.ID)
-		if err != nil {
-			logging.Warningf("status=inspect-error, id=%s, err=%v", event.ID, err)
-			continue
-		}
+		cInspection := mustInspectContainer(ctx, event.ID)
 		hostnames := getHostnames(cInspection)
+
 		action := event.Action
 		if len(action) == 0 {
 			action = event.Status
 		}
-		logging.Infof("status=resolved-hosts, action=%s, hostnames=%s", action, hostnames)
-
+		logging.Infof("status=resolved-hosts, action=%s, hostnames=%s", ctx, action, hostnames)
 		switch action {
 		case "start":
-			putHostnames(hostnames, cInspection)
+			dockernetwork.MustNetworkConnect(ctx, dockernetwork.DpsNetwork, cInspection.ID, "")
+			putHostnames(ctx, hostnames, mustInspectContainer(ctx, event.ID))
 			break
 
 		case "stop", "die":
@@ -102,19 +106,41 @@ func HandleDockerEvents(){
 				c.Remove(host)
 			}
 			break
-
 		}
 	}
 
+}
+
+func mustInspectContainer(ctx context.Context, containerID string) types.ContainerJSON {
+	if cInspection, err := dockernetwork.GetCli().ContainerInspect(ctx, containerID); err != nil {
+		panic(errors.WithMessage(err, fmt.Sprintf("status=inspect-error, id=%s", containerID)))
+	} else {
+		return cInspection
+	}
+}
+
+func setupDpsContainerNetwork(ctx context.Context) {
+	if _, err := dockernetwork.CreateOrUpdateDpsNetwork(ctx); err != nil {
+		// todo disable dpsNetwork option here
+		panic(fmt.Sprintf("can't create dps network %+v", err))
+	}
+	if dpsContainer, err := dockernetwork.FindDpsContainer(ctx); err != nil {
+		logging.Infof("status=can't-find-dps-container, err=%+v", ctx, err.Error())
+	} else {
+		dpsContainerIP := "172.157.5.249"
+		dockernetwork.MustNetworkDisconnectForIp(ctx, dockernetwork.DpsNetwork, dpsContainerIP)
+		dockernetwork.MustNetworkConnect(ctx, dockernetwork.DpsNetwork, dpsContainer.ID, dpsContainerIP)
+	}
 }
 
 func GetCache() cache.Cache {
 	return c
 }
 
+// retrieve hostnames which should be registered given the container
 func getHostnames(inspect types.ContainerJSON) []string {
 	hostnames := *new([]string)
-	if machineHostname, err := getMachineHostname(inspect); err == nil {
+	if machineHostname, err := getContainerHostname(inspect); err == nil {
 		hostnames = append(hostnames, machineHostname)
 	}
 	hostnames = append(hostnames, getHostnamesFromEnv(inspect)...)
@@ -143,7 +169,7 @@ func getHostnamesFromEnv(inspect types.ContainerJSON) ([]string){
 }
 
 // Returns current docker container machine hostname
-func getMachineHostname(inspect types.ContainerJSON) (string, error) {
+func getContainerHostname(inspect types.ContainerJSON) (string, error) {
 	if len(inspect.Config.Hostname) != 0 {
 		if len(inspect.Config.Domainname) != 0 {
 			return fmt.Sprintf("%s.%s", inspect.Config.Hostname, inspect.Config.Domainname), nil
@@ -155,7 +181,7 @@ func getMachineHostname(inspect types.ContainerJSON) (string, error) {
 }
 
 func getHostnameFromContainerName(inspect types.ContainerJSON) string {
-	return fmt.Sprintf("%s.%s", inspect.Name[1:], conf.GetDPSDomain())
+	return fmt.Sprintf("%s.%s", inspect.Name[1:], conf.GetDpsDomain())
 }
 
 func getHostnameFromServiceName(inspect types.ContainerJSON) (string, error) {
@@ -164,30 +190,14 @@ func getHostnameFromServiceName(inspect types.ContainerJSON) (string, error) {
 		logging.Debugf("status=service-found, service=%s", v)
 		return fmt.Sprintf("%s.docker", v), nil
 	}
-	return "", errors.New("service not found")
+	return "", errors.New("service not found for container: " + inspect.Name)
 }
 
-func putHostnames(hostnames []string, inspect types.ContainerJSON) error {
-	for _, host := range hostnames {
-		networkName := inspect.Config.Labels[defaultNetworkLabel]
-		ip := ""
-		for actualNetwork, network := range inspect.NetworkSettings.Networks {
-			logging.Debugf("container=%s, defaultNetwork=%s, network=%s, ip=%s", inspect.Name, networkName, actualNetwork, network.IPAddress)
-			if len(networkName) == 0 || networkName == actualNetwork {
-				ip = network.IPAddress
-				break
-			}
-		}
-		if len(ip) == 0 {
-			ip = inspect.NetworkSettings.IPAddress
-			if len(ip) == 0 {
-				err := fmt.Sprintf("no network found to %s", inspect.Name)
-				logging.Error(err)
-				return errors.New(err)
-			}
-		}
-		logging.Debugf("host=%s, ip=%s", host, ip)
+func putHostnames(ctx context.Context, predefinedHosts []string, inspect types.ContainerJSON) {
+	preferredNetwork := inspect.Config.Labels[defaultNetworkLabel]
+	ip := dockernetwork.FindBestIpForNetworks(ctx, inspect, preferredNetwork, dockernetwork.DpsNetwork, "bridge")
+	for _, host := range predefinedHosts {
+		logging.Debugf("host=%s, ip=%s, container=%s, preferredNetwork=%s", ctx, host, ip, inspect.Name, preferredNetwork)
 		c.Put(host, ip)
 	}
-	return nil
 }

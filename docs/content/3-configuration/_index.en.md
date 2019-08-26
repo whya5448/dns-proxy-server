@@ -36,7 +36,9 @@ __Version 2__
   "logLevel": "DEBUG",
   "logFile": "console" // where the log will be written,
   "registerContainerNames": false, // if should register container name / service name as a hostname
-  "domain": "" // The container names domain
+  "domain": "", // The container names domain
+  "dpsNetwork": false, // if should create a bridge network for dps container
+  "dpsNetworkAutoConnect": false // if should connect all containers to dps container
 }
 ```
 
@@ -93,6 +95,10 @@ __Version 1__
     	This DNS server will be the default server for this machine (default true)
   -domain string
     	Domain utilized to solver containers and services hostnames (default "docker")
+  -dps-network
+    	Create a bridge network for DPS increasing compatibility
+  -dps-network-auto-connect
+    	Connect all running and new containers to the DPS network, this way you will probably not have resolution issues by acl (implies dps-network=true)
   -help
     	This message
   -host-machine-hostname string

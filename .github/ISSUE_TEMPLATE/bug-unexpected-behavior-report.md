@@ -1,6 +1,9 @@
 ---
 name: Bug/Unexpected Behavior Report
 about: Create a report to help us improve
+title: ''
+labels: ''
+assignees: ''
 
 ---
 
