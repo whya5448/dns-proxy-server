@@ -33,7 +33,7 @@ export class Home extends React.PureComponent {
 					message: 'Failed to fetch current environment'
 				}, {
 					type: 'danger'
-				})
+				});
 				console.error('m=componentDidMount, err=%o', err)
 			}
 		);
@@ -108,27 +108,30 @@ export class Home extends React.PureComponent {
 	renderTable() {
 		return (
 			<>
-				<div className="col-sm-12 col-md-7 col-lg-5 mb-4">
-					<h3>Environments</h3>
-					{this.state.createEnv
-						? <EnvForm
+				<div className="row">
+					<div className="col-12">
+						<h3>Environments</h3>
+						{this.state.createEnv
+							? <EnvForm
 								onCancel={() => this.toggleEnvForm()}
 								onCreate={env => this.onCreate(env)}
 							/>
-						: <EnvPicker
+							: <EnvPicker
 								onChange={env => this.onChangeEnv(env)}
 								onDelete={() => this.onDelete()}
 								onToggle={() => this.toggleEnvForm()}
 								ref={(it) => this.envPicker = it}
 								env={this.state.env}
 							/>
-					}
+						}
+					</div>
 				</div>
-
-				<div className="col-sm-12">
-					<h3>New Record</h3>
-					<RecordForm env={this.state.env} onUpdate={(e) => this.onUpdate(e)} />
-					<RecordTable env={this.state.env} ref={(it) => this.table = it} />
+				<div className="row">
+					<div className="col-12">
+						<h3>New Record</h3>
+						<RecordForm env={this.state.env} onUpdate={(e) => this.onUpdate(e)}/>
+						<RecordTable env={this.state.env} ref={(it) => this.table = it}/>
+					</div>
 				</div>
 			</>
 		)
@@ -155,7 +158,7 @@ export class Home extends React.PureComponent {
 			<>
 				<NavBar />
 
-				<div className="container-fluid mb-5">
+				<div className="container mb-5">
 					{this.state.isLoading
 						? this.renderLoading()
 						: this.renderTable()

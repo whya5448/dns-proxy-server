@@ -57,7 +57,7 @@ func init(){
 		var hostname vo.HostnameV1
 		if err := json.NewDecoder(req.Body).Decode(&hostname); err != nil {
 			res.Header().Add("Content-Type", "application/json")
-			BadRequest(res, "Invalid JSON")
+			BadRequest(res, fmt.Sprintf("Invalid JSON: %s", err))
 			return
 		}
 		logging.Infof("m=/hostname/, status=parsed-host, host=%+v", hostname)

@@ -81,14 +81,13 @@ export class RecordForm extends React.Component {
 	}
 
 	handleSubmit(e) {
-		var that = this;
+		let that = this;
 		e.preventDefault();
 		e.target.checkValidity();
 		$.ajax({
 			method: 'POST',
 			url: '/hostname/',
 			contentType: 'application/json',
-			// dataType: 'json',
 			data: JSON.stringify({
 				...this.state.form,
 				env: this.props.env

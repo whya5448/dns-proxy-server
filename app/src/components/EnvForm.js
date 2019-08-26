@@ -60,19 +60,21 @@ const EnvForm = ({ onCreate, onCancel }) => {
 
 	return (
 		<div className="input-group">
-			<input type="text" className="form-control" ref={textInput} />
-			<div className="input-group-append ml-3">
+			<input placeholder="my new env..." type="text" className="form-control" ref={textInput} />
+			<div className="input-group-append">
 				<button
-					className="btn btn-info"
+					title="Save"
+					className="btn btn-info fa fa-save"
 					type="button"
 					onClick={ev => createEnvironment(textInput.current.value, onCreate)}
-				>Save</button>
+				></button>
 
 				<button
-					className="btn btn-dark"
+					title="Cancel"
+					className="btn btn-dark fa fa-times"
 					onClick={() => onCancel()}
 					type="button"
-				>Cancel</button>
+				></button>
 			</div>
 		</div>
 	)

@@ -101,17 +101,23 @@ export default class EnvPicker extends React.PureComponent {
 						({ name }, index) => (<option key={name} value={name}>{name.length ? name : 'Default'}</option>)
 					)}
 				</select>
-				<div className="input-group-append ml-3">
+				<div className="input-group-append">
 					<button
+						title="Create new env"
 						onClick={() => this.props.onToggle()}
 						className="btn btn-info"
 						type="button"
-					>Create new</button>
+					>
+						<span className="fa fa-plus-circle"></span>
+					</button>
 					<button
+						title="Delete selected env"
 						onClick={deleteEnv}
 						className="btn btn-danger"
 						type="button"
-					>Delete selected</button>
+					>
+						<span className="fa fa-trash-alt"></span>
+					</button>
 				</div>
 			</div>
 		)
