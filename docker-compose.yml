@@ -27,7 +27,7 @@ services:
     command: bash -c "builder.bash assemble"
 
   app-dps:
-    image: node:8.15-jessie
+    image: node:12-alpine
     volumes:
       - ./app:/app
     working_dir: /app

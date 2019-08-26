@@ -1,12 +1,11 @@
 import React from 'react';
-import jquery from 'jquery'
-let $ = jquery;
+import $ from 'jquery'
+
 export class RecordTable extends React.Component {
 	constructor(props){
 		super();
 		this.state = {
-			table: [],
-			someText: "some text"
+			table: []
 		};
 		this.props = props;
 	}
@@ -15,14 +14,13 @@ export class RecordTable extends React.Component {
 	}
 
 	reloadTable() {
-		let that = this;
 		return $.ajax({
-			url: '/hostname/find/?env=' + window.activeEnv + '&hostname='
-		}).then(function (data) {
-			that.setState({table: data});
-			console.debug('m=getData, data=%o', data);
+			url: '/hostname/find/?env=' + this.props.env + '&hostname='
+		}).then(data => {
+			this.setState({ table: data });
+			console.debug('c=RecordTable, m=reloadTable, env=%s, data=%o', this.props.env, data);
 		}, function (err) {
-			console.error('m=getData, status=error', err);
+			console.error('c=RecordTable, m=reloadTable, status=error', err);
 		});
 	}
 
@@ -39,7 +37,7 @@ export class RecordTable extends React.Component {
 			method: 'PUT',
 			contentType: 'application/json',
 			data: JSON.stringify({
-				env: window.activeEnv,
+				env: this.props.env,
 				id: row.id,
 				type: row.type,
 				hostname: row.hostname,
@@ -60,19 +58,18 @@ export class RecordTable extends React.Component {
 
 	deleteRecord(row){
 		console.info('deleting ' + row.hostname);
-		let that = this;
 		$.ajax({
 			url: '/hostname',
 			method: 'DELETE',
 			data: JSON.stringify({
-				env: window.activeEnv,
+				env: this.props.env,
 				hostname: row.hostname
 			}),
 			contentType: 'application/json'
-		}).then(function(data) {
+		}).then((data) => {
 			console.debug('m=del, status=scucess');
 			window.$.notify({message: 'Removed: ' + row.hostname});
-			that.reloadTable();
+			this.reloadTable();
 		}, function(err){
 			console.error('m=save, status=error', err);
 			window.$.notify({message: err.responseText}, {type: 'danger'});
@@ -96,7 +93,7 @@ export class RecordTable extends React.Component {
 	}
 
 	handleIpChange(e, row) {
-		row[e.target.name] = e.target.value.split("\.").map(it => it ? parseInt(it) : "");
+		row[e.target.name] = e.target.value.split('.').map(it => it ? parseInt(it) : "");
 		this.forceUpdate();
 	}
 
@@ -113,9 +110,11 @@ export class RecordTable extends React.Component {
 			{(!v.type || v.type === 'A') && <td>{this.formatIp(v.ip)}</td>}
 			{v.type === 'CNAME' && <td>{v.target}</td>}
 			<td className="text-right">{v.ttl}</td>
-			<td className="text-right records-actions">
-				<button className="btn btn-info fa fa-pencil-alt" onClick={(e) => this.swapEditionMode(v) } ></button>
-				<button className="btn btn-danger fa fa-trash-alt" onClick={(e) => this.deleteRecord(v) } ></button>
+			<td className="text-center records-actions">
+				<div className="btn-group">
+					<button className="btn btn-info fa fa-pencil-alt" onClick={(e) => this.swapEditionMode(v) } ></button>
+					<button className="btn btn-danger fa fa-trash-alt" onClick={(e) => this.deleteRecord(v) } ></button>
+				</div>
 			</td>
 		</tr>
 	}
@@ -144,14 +143,22 @@ export class RecordTable extends React.Component {
 			<td className="text-right">
 				<input className="form-control" name="ttl" type="number" onChange={(e) => this.handleNumberChange(e, v)} value={v.ttl}/>
 			</td>
-			<td className="text-right records-actions">
-				<button className="btn btn-primary fa fa-save" onClick={(e) => this.updateRecord(v) } ></button>
-				<button className="btn btn-danger fa fa-window-close" onClick={(e) => this.swapEditionMode(v) } ></button>
+			<td className="text-center records-actions">
+				<div className="btn-group">
+					<button className="btn btn-primary fa fa-save" onClick={(e) => this.updateRecord(v) } ></button>
+					<button className="btn btn-danger fa fa-times" onClick={(e) => this.swapEditionMode(v) } ></button>
+				</div>
 			</td>
 		</tr>
 	}
 
 	render(){
+		if (!this.state.table.length) {
+			return (
+				<></>
+			);
+		}
+
 		return (
 			<div >
 				<h3>Records</h3>

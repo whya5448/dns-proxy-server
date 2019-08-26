@@ -1,6 +1,5 @@
 import React from 'react'
-import jquery from 'jquery'
-let $ = jquery;
+import $ from 'jquery'
 
 export class RecordForm extends React.Component {
 	constructor(props) {
@@ -20,13 +19,18 @@ export class RecordForm extends React.Component {
 		};
 	}
 
+	shouldComponentUpdate(nextProps, nextState) {
+		return nextProps.env !== nextState.form.env;
+	}
+
 	componentDidMount(){
+		console.warn('RecordForm did mount, state=%o', this.state);
 		this.processValueLabel(this.state.form.type);
 	}
 
 	handleIp(e){
 		let form = this.state.form;
-		form[e.target.name] = e.target.value.split("\.").map(it => parseInt(it));
+		form[e.target.name] = e.target.value.split('.').map(it => parseInt(it));
 		this.setState({ form });
 	}
 
@@ -45,16 +49,20 @@ export class RecordForm extends React.Component {
 	}
 
 	handleType(evt){
-		let form = this.state.form;
-		form[evt.target.name] = evt.target.value;
-		if(evt.target.value === 'A'){
-			this.state.showIp = true;
-			this.state.showTarget = false;
-		} else {
-			this.state.showIp = false;
-			this.state.showTarget = true;
+		const { state: { form} } = this;
+		const { target: { name: targetName, value: targetValue }} = evt;
+
+		form[targetName] = targetValue;
+
+		let showIp = false;
+		let showTarget = true;
+
+		if(targetValue === 'A'){
+			showIp = true;
+			showTarget = false;
 		}
-		this.setState({form: form});
+
+		this.setState({form: form, showIp, showTarget});
 	}
 
 	processValueLabel(k){
@@ -73,15 +81,17 @@ export class RecordForm extends React.Component {
 	}
 
 	handleSubmit(e) {
-		var that = this;
+		let that = this;
 		e.preventDefault();
 		e.target.checkValidity();
 		$.ajax({
 			method: 'POST',
 			url: '/hostname/',
 			contentType: 'application/json',
-			// dataType: 'json',
-			data: JSON.stringify(this.state.form),
+			data: JSON.stringify({
+				...this.state.form,
+				env: this.props.env
+			}),
 		})
 		.done(function(){
 			window.$.notify({

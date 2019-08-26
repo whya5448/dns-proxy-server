@@ -1,4 +1,4 @@
-FROM node:8.15-jessie AS BUILDER
+FROM node:12-alpine AS BUILDER
 COPY app /app
 WORKDIR /app
 ENV PUBLIC_URL=/static

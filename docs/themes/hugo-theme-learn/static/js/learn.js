@@ -223,24 +223,24 @@ jQuery(document).ready(function() {
         });
     });
 
-    jQuery('input, textarea').keydown(function (e) {
-         //  left and right arrow keys
-         if (e.which == '37' || e.which == '39') {
-             e.stopPropagation();
-         }
-     });
-    
-    jQuery(document).keydown(function(e) {
-      // prev links - left arrow key
-      if(e.which == '37') {
-        jQuery('.nav.nav-prev').click();
-      }
-
-      // next links - right arrow key
-      if(e.which == '39') {
-        jQuery('.nav.nav-next').click();
-      }
-    });
+    // jQuery('input, textarea').keydown(function (e) {
+    //      //  left and right arrow keys
+    //      if (e.which == '37' || e.which == '39') {
+    //          e.stopPropagation();
+    //      }
+    //  });
+    //
+    // jQuery(document).keydown(function(e) {
+    //   // prev links - left arrow key
+    //   if(e.which == '37') {
+    //     jQuery('.nav.nav-prev').click();
+    //   }
+    //
+    //   // next links - right arrow key
+    //   if(e.which == '39') {
+    //     jQuery('.nav.nav-next').click();
+    //   }
+    // });
 
     $('#top-bar a:not(:has(img)):not(.btn)').addClass('highlight');
     $('#body-inner a:not(:has(img)):not(.btn):not(a[rel="footnote"])').addClass('highlight');
@@ -264,7 +264,7 @@ jQuery(document).ready(function() {
         });
     }
 
-    /** 
+    /**
     * Fix anchor scrolling that hides behind top nav bar
     * Courtesy of https://stackoverflow.com/a/13067009/28106
     *
@@ -346,7 +346,7 @@ jQuery(document).ready(function() {
 
         $(document).ready($.proxy(anchorScrolls, 'init'));
     })(window.document, window.history, window.location);
-    
+
 });
 
 jQuery(window).on('load', function() {
