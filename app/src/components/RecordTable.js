@@ -110,7 +110,7 @@ export class RecordTable extends React.Component {
 			{(!v.type || v.type === 'A') && <td>{this.formatIp(v.ip)}</td>}
 			{v.type === 'CNAME' && <td>{v.target}</td>}
 			<td className="text-right">{v.ttl}</td>
-			<td className="text-right records-actions">
+			<td className="text-center records-actions">
 				<div className="btn-group">
 					<button className="btn btn-info fa fa-pencil-alt" onClick={(e) => this.swapEditionMode(v) } ></button>
 					<button className="btn btn-danger fa fa-trash-alt" onClick={(e) => this.deleteRecord(v) } ></button>
@@ -143,10 +143,10 @@ export class RecordTable extends React.Component {
 			<td className="text-right">
 				<input className="form-control" name="ttl" type="number" onChange={(e) => this.handleNumberChange(e, v)} value={v.ttl}/>
 			</td>
-			<td className="text-right records-actions">
+			<td className="text-center records-actions">
 				<div className="btn-group">
 					<button className="btn btn-primary fa fa-save" onClick={(e) => this.updateRecord(v) } ></button>
-					<button className="btn btn-danger fa fa-window-close" onClick={(e) => this.swapEditionMode(v) } ></button>
+					<button className="btn btn-danger fa fa-times" onClick={(e) => this.swapEditionMode(v) } ></button>
 				</div>
 			</td>
 		</tr>

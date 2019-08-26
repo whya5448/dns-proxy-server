@@ -108,7 +108,7 @@ export class Home extends React.PureComponent {
 	renderTable() {
 		return (
 			<>
-				<div className="row">
+				<div className="row mb-2">
 					<div className="col-12">
 						<h3>Environments</h3>
 						{this.state.createEnv
