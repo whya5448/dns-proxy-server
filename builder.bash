@@ -101,7 +101,7 @@ case $1 in
 	rm -r ${TARGET}
 	hugo --baseURL=http://mageddo.github.io/dns-proxy-server/${VERSION} \
 	--destination ${TARGET} \
-	--source docs/
+	--ignoreCache --source docs/
 
 
 
