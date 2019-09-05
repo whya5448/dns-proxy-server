@@ -7,14 +7,18 @@ assignees: ''
 
 ---
 
-### What is expected
-
-Describe what you expected to happen and why
-
 ### What is Happening
 
 * Describe what is happening instead
 * Please also describe how to reproduce
+
+### What is expected
+
+Describe what you expected to happen and why
+
+### Steps to Reproduce
+
+Describe which steps should be followed to reproduce the issue
 
 **Specs:**
 - OS: [e.g. Ubuntu 16]
