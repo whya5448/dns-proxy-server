@@ -73,6 +73,7 @@ func TestContainerNamesRegistryMustBeDisabledByDefault(t *testing.T){
 func TestMustGetHostnamesBasedOnMachineHostnameAndEnvironmentVariableAndContainerNameAndContainerServiceName(t *testing.T){
 
 	os.Setenv(env.MG_REGISTER_CONTAINER_NAMES, "1")
+	os.Setenv(env.MG_DOMAIN, "other.example.com")
 
 	// arrange
 	inspect := types.ContainerJSON{
@@ -85,13 +86,13 @@ func TestMustGetHostnamesBasedOnMachineHostnameAndEnvironmentVariableAndContaine
 		},
 	}
 	inspect.ContainerJSONBase = new(types.ContainerJSONBase)
-	inspect.Name = "/nginx-container"
+	inspect.Name = "/nginx-container_1"
 
 	// assert
 	hosts := getHostnames(inspect)
 
 	// act
-	assert.Equal(t, []string {"mageddo.com", "server2.mageddo.com", "server3.mageddo.com", "nginx-container.docker", "nginx-service.docker"}, hosts)
+	assert.Equal(t, []string {"mageddo.com", "server2.mageddo.com", "server3.mageddo.com", "nginx-container_1.other.example.com", "nginx-service.other.example.com"}, hosts)
 
 }
 
