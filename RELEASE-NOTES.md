@@ -1,3 +1,6 @@
+### 2.18.6
+* Fixing gateway IP resolution when not in DPS network (#186)
+
 ### 2.18.5
 * Fixing unnecessary stacktraces were being logged
 * Answering NXDOMAIN when no answers were found

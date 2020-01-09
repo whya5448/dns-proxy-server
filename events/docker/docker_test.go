@@ -1,9 +1,7 @@
 package docker
 
 import (
-	"context"
 	"fmt"
-	"github.com/docker/engine-api/client"
 	"github.com/docker/engine-api/types"
 	"github.com/docker/engine-api/types/container"
 	"github.com/docker/engine-api/types/network"
@@ -16,16 +14,6 @@ import (
 	"strings"
 	"testing"
 )
-
-type MockApiClient struct {
-	mock.Mock
-	client.Client
-}
-
-func (m *MockApiClient) NetworkList(ctx context.Context, options types.NetworkListOptions) ([]types.NetworkResource, error) {
-	args := m.Called(ctx, options)
-	return args.Get(0).([]types.NetworkResource), args.Error(1)
-}
 
 func TestMustGetHostnamesBasedOnMachineHostnameAndEnvironmentVariable(t *testing.T){
 
@@ -98,6 +86,7 @@ func TestMustGetHostnamesBasedOnMachineHostnameAndEnvironmentVariableAndContaine
 
 func TestMustSolveIPFromDefaultConfiguredNetwork(t *testing.T){
 	// arrange
+	mockApiClient := &dockernetwork.MockApiClient{}
 	inspect := types.ContainerJSON{
 		Config: &container.Config{
 			Hostname:"mageddo", Domainname:"com",
@@ -112,9 +101,9 @@ func TestMustSolveIPFromDefaultConfiguredNetwork(t *testing.T){
 	inspect.Config.Labels[defaultNetworkLabel] = "network-2"
 	inspect.NetworkSettings = new(types.NetworkSettings)
 	inspect.NetworkSettings.Networks = make(map[string]*network.EndpointSettings)
-	inspect.NetworkSettings.Networks["network-1"] = createNetwork("192.168.0.1", "123")
-	inspect.NetworkSettings.Networks["network-2"] = createNetwork("192.168.0.2", "124")
-	inspect.NetworkSettings.Networks["network-3"] = createNetwork("192.168.0.3", "125")
+	inspect.NetworkSettings.Networks["network-1"] = mockApiClient.CreateMockNetwork("192.168.0.1", "123")
+	inspect.NetworkSettings.Networks["network-2"] = mockApiClient.CreateMockNetwork("192.168.0.2", "124")
+	inspect.NetworkSettings.Networks["network-3"] = mockApiClient.CreateMockNetwork("192.168.0.3", "125")
 
 	// act
 	putHostnames(reference.Context(), []string{"acme.com"}, inspect)
@@ -131,14 +120,14 @@ func TestMustSolveIPFromFirstContainerWhenDefaultNetworkIsNotSet(t *testing.T){
 			Labels: map[string]string{},
 		},
 	}
+	mockApiClient := &dockernetwork.MockApiClient{}
 	inspect.ContainerJSONBase = new(types.ContainerJSONBase)
 	inspect.NetworkSettings = new(types.NetworkSettings)
 	inspect.NetworkSettings.Networks = make(map[string]*network.EndpointSettings)
-	inspect.NetworkSettings.Networks["network-1"] = createNetwork("192.168.0.1", "123")
-	inspect.NetworkSettings.Networks["network-2"] = createNetwork("192.168.0.2", "124")
-	inspect.NetworkSettings.Networks["network-3"] = createNetwork("192.168.0.3", "125")
+	inspect.NetworkSettings.Networks["network-1"] = mockApiClient.CreateMockNetwork("192.168.0.1", "123")
+	inspect.NetworkSettings.Networks["network-2"] = mockApiClient.CreateMockNetwork("192.168.0.2", "124")
+	inspect.NetworkSettings.Networks["network-3"] = mockApiClient.CreateMockNetwork("192.168.0.3", "125")
 
-	mockApiClient := &MockApiClient{}
 	dockernetwork.SetCli(mockApiClient)
 
 	mockApiClient.On("NetworkList", ctx, types.NetworkListOptions{
@@ -165,6 +154,7 @@ func TestMustSolveIPFromFirstContainerWhenDefaultNetworkIsNotSet(t *testing.T){
 
 func TestMustSolveIPFromDpsNetworkWhenSet(t *testing.T){
 	// arrange
+	mockApiClient := &dockernetwork.MockApiClient{}
 	inspect := types.ContainerJSON{
 		Config: &container.Config{
 			Labels: map[string]string{
@@ -176,9 +166,9 @@ func TestMustSolveIPFromDpsNetworkWhenSet(t *testing.T){
 	inspect.Name = "/nginx-container"
 	inspect.NetworkSettings = new(types.NetworkSettings)
 	inspect.NetworkSettings.Networks = make(map[string]*network.EndpointSettings)
-	inspect.NetworkSettings.Networks["network-1"] = createNetwork("192.168.0.1", "123")
-	inspect.NetworkSettings.Networks[dockernetwork.DpsNetwork] = createNetwork("192.168.0.2", "124")
-	inspect.NetworkSettings.Networks["network-3"] = createNetwork("192.168.0.3", "125")
+	inspect.NetworkSettings.Networks["network-1"] = mockApiClient.CreateMockNetwork("192.168.0.1", "123")
+	inspect.NetworkSettings.Networks[dockernetwork.DpsNetwork] = mockApiClient.CreateMockNetwork("192.168.0.2", "124")
+	inspect.NetworkSettings.Networks["network-3"] = mockApiClient.CreateMockNetwork("192.168.0.3", "125")
 
 	// act
 	putHostnames(reference.Context(), []string{"acme.com"}, inspect)
@@ -188,9 +178,3 @@ func TestMustSolveIPFromDpsNetworkWhenSet(t *testing.T){
 	assert.Equal(t, foundHostname, "192.168.0.2")
 }
 
-func createNetwork(ip string, id string) *network.EndpointSettings {
-	m := new(network.EndpointSettings)
-	m.IPAddress = ip
-	m.NetworkID = id
-	return m
-}
