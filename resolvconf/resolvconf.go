@@ -124,14 +124,7 @@ func SetCurrentDnsServerToMachine(ctx context.Context) error {
 
 func GetGatewayIP(ctx context.Context) (string, error) {
 	if dockernetwork.IsDockerConnected() {
-		if ip, err := dockernetwork.FindDpsNetworkGatewayIp(ctx); err == nil {
-			logging.Debugf("status=FindDpsNetworkGatewayIp, ip=%s", ip)
-			return ip, nil
-		}
-		if ip, err := dockernetwork.FindDockerNetworkNetworkGatewayIp(ctx); err == nil {
-			logging.Debugf("status=FindDockerNetworkNetworkGatewayIp, ip=%s", ip)
-			return ip, nil
-		}
+		return dockernetwork.GetGatewayIp(ctx)
 	}
 	return GetCurrentIpAddress()
 }

@@ -57,6 +57,18 @@ func CreateOrUpdateDpsNetwork(ctx context.Context) (types.NetworkCreateResponse,
 	return res, err
 }
 
+func GetGatewayIp(ctx context.Context) (string, error) {
+	if ip, err := FindDpsNetworkGatewayIp(ctx); err == nil {
+		logging.Debugf("status=FindDpsNetworkGatewayIp, ip=%s", ip)
+		return ip, nil
+	}
+	if ip, err := FindDockerNetworkNetworkGatewayIp(ctx); err == nil {
+		logging.Debugf("status=FindDockerNetworkNetworkGatewayIp, ip=%s", ip)
+		return ip, nil
+	} else {
+		return "", err
+	}
+}
 func FindNetworkGatewayIp(ctx context.Context, name string) (string, error) {
 	logging.Debugf("status=begin, network=%s", name)
 	if networkResource, err := FindNetworkByName(ctx, name); err != nil {
