@@ -129,7 +129,6 @@ func GetGatewayIP(ctx context.Context) (string, error) {
 			return ip, nil
 		}
 	}
-	logging.Debugf("status=machine-ip")
 	return GetCurrentIpAddress()
 }
 
@@ -196,7 +195,7 @@ const(
 )
 
 func GetCurrentIpAddress() (string, error) {
-
+	logging.Debugf("status=get-current-machine-ip")
 	addrs, err := net.InterfaceAddrs()
 	if err != nil {
 		return "", err
